@@ -1,0 +1,15 @@
+{
+  "name": "DevTask: Developers",
+  "version": "3.0.0",
+  "description": "DevTask: Full-stack productivity app for developers",
+  "main": "index.js",
+  "scripts": {
+    "install-all": "npm install && npm install --prefix server && npm install --prefix client",
+    "dev": "concurrently \"npm run dev --prefix client\" \"npm start --prefix server\"",
+    "zip": "node zip-project.js"
+  },
+  "dependencies": {
+    "archiver": "^6.0.1",
+    "concurrently": "^8.2.2"
+  }
+}

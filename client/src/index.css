@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-800 transition-colors duration-300;
+  }
+  .dark body {
+    @apply bg-darkBg text-textMuted;
+  }
+}
+
+/* Neon Glow utilities */
+.neon-glow-cyan {
+  box-shadow: 0 0 15px rgba(122, 162, 247, 0.15);
+}
+
+.neon-glow-teal {
+  box-shadow: 0 0 15px rgba(125, 207, 255, 0.15);
+}
+
+.neon-border-cyan:focus {
+  border-color: #7AA2F7;
+  box-shadow: 0 0 10px rgba(122, 162, 247, 0.25);
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #1a1b26;
+}
+::-webkit-scrollbar-thumb {
+  background: #292e42;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #7aa2f7;
+}

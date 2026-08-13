@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+
+# Build output
+client/dist/
+dist/
+
+# Environment & secrets
+.env
+.env.local
+server/.env
+!.env.example
+server/.env.example
+
+# Runtime data
+server/uploads/
+server/prisma/*.db
+server/prisma/*.db-journal
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Zip archives
+*.zip

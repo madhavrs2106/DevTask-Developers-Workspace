@@ -1,0 +1,80 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id             String           @id @default(uuid())
+  email          String           @unique
+  password       String
+  name           String
+  title          String           @default("Full Stack Developer")
+  avatarColor    String           @default("cyan")
+  avatarUrl      String?
+  createdAt      DateTime         @default(now())
+  tasks          Task[]
+  courses        Course[]
+  dailyAnalytics DailyAnalytics[]
+  activityLogs   ActivityLog[]
+  socials        SocialLink[]
+}
+
+model SocialLink {
+  id       String  @id @default(uuid())
+  platform String
+  url      String
+  userId   String
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Task {
+  id            String   @id @default(uuid())
+  title         String
+  description   String?
+  status        String   @default("TODO") // "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE"
+  difficulty    String   @default("BEGINNER") // "BEGINNER" | "INTERMEDIATE" | "ADVANCED"
+  techStack     String   @default("") // comma-separated values (e.g. "React,Go")
+  githubLink    String?
+  codeSnippet   String?
+  durationHours Float    @default(0.0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Course {
+  id              String   @id @default(uuid())
+  title           String
+  platform        String   @default("Self-Paced")
+  status          String   @default("NOT_STARTED") // "NOT_STARTED" | "IN_PROGRESS" | "COMPLETED"
+  progressPercent Int      @default(0)
+  totalHours      Float    @default(0.0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model DailyAnalytics {
+  id          String   @id @default(uuid())
+  date        String   // YYYY-MM-DD
+  codingHours Float    @default(0.0)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
+
+model ActivityLog {
+  id     String @id @default(uuid())
+  date   String // YYYY-MM-DD
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+}
