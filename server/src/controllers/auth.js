@@ -41,8 +41,9 @@ const serializeUser = (user) => ({
 });
 
 const computeStreak = async (userId) => {
-  const logs = await prisma.activityLog.findMany({
-    where: { userId },
+  // A day counts toward the streak only if study hours were logged that day (codingHours > 0)
+  const logs = await prisma.dailyAnalytics.findMany({
+    where: { userId, codingHours: { gt: 0 } },
     select: { date: true },
     orderBy: { date: 'desc' }
   });

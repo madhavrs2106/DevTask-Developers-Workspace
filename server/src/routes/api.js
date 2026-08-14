@@ -4,6 +4,7 @@ const router = express.Router();
 const authMiddleware = require('../middleware/auth');
 const authController = require('../controllers/auth');
 const tasksController = require('../controllers/tasks');
+const projectsController = require('../controllers/projects');
 const coursesController = require('../controllers/courses');
 const analyticsController = require('../controllers/analytics');
 const socialsController = require('../controllers/socials');
@@ -24,6 +25,12 @@ router.get('/tasks', authMiddleware, tasksController.getTasks);
 router.post('/tasks', authMiddleware, tasksController.createTask);
 router.put('/tasks/:id', authMiddleware, tasksController.updateTask);
 router.delete('/tasks/:id', authMiddleware, tasksController.deleteTask);
+
+// Projects routes
+router.get('/projects', authMiddleware, projectsController.getProjects);
+router.post('/projects', authMiddleware, projectsController.createProject);
+router.put('/projects/:id', authMiddleware, projectsController.updateProject);
+router.delete('/projects/:id', authMiddleware, projectsController.deleteProject);
 
 // Courses routes
 router.get('/courses', authMiddleware, coursesController.getCourses);

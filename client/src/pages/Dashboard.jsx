@@ -8,6 +8,15 @@ export default function Dashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
 
   useEffect(() => {
     fetchDashboardData();
@@ -58,6 +67,11 @@ export default function Dashboard() {
   }
 
   const { summary, weeklyCoding, taskStatusDistribution, skillMastery } = data;
+
+  const maxLoggedHours = Math.max(10, ...weeklyCoding.map(d => d.hours));
+  const yMax = Math.ceil(maxLoggedHours / 2) * 2;
+  const yTicks = [];
+  for (let v = 0; v <= yMax; v += 2) yTicks.push(v);
 
   const COLORS = ['#38BDF8', '#818CF8', '#A78BFA', '#34D399'];
 
@@ -129,21 +143,21 @@ export default function Dashboard() {
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left main chart (Weekly coding tracker) */}
-        <div className="bg-white dark:bg-darkSurface border border-slate-200 dark:border-darkBorder p-6 rounded-xl lg:col-span-2 shadow-sm">
+        <div className="bg-white dark:bg-darkSurface border border-slate-200 dark:border-darkBorder p-6 rounded-xl lg:col-span-2 shadow-sm min-w-0">
           <h3 className="text-sm font-mono font-bold text-slate-900 dark:text-textHeader mb-6 tracking-wide flex items-center gap-2">
             <Code2 className="w-4 h-4 text-neonCyan" /> 7-DAY INTENSITY TRACKER
           </h3>
-          <div className="h-72">
+          <div className="h-56 md:h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={weeklyCoding} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <AreaChart data={weeklyCoding} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorHours" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#06B6D4" stopOpacity={0.4}/>
                     <stop offset="95%" stopColor="#06B6D4" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <XAxis dataKey="date" stroke="#475569" fontSize={11} fontFamily="JetBrains Mono" />
-                <YAxis stroke="#475569" fontSize={11} fontFamily="JetBrains Mono" />
+                <XAxis dataKey="date" tickFormatter={(d) => d.slice(5)} interval="preserveStartEnd" minTickGap={12} stroke="#475569" fontSize={isMobile ? 9 : 11} fontFamily="JetBrains Mono" />
+                <YAxis domain={[0, yMax]} ticks={yTicks} width={isMobile ? 30 : 60} stroke="#475569" fontSize={isMobile ? 9 : 11} fontFamily="JetBrains Mono" />
                 <Tooltip
                   contentStyle={{ backgroundColor: '#121212', borderColor: '#334155', borderRadius: '8px', color: '#F8FAFC', fontFamily: 'JetBrains Mono' }}
                 />
@@ -154,7 +168,7 @@ export default function Dashboard() {
         </div>
 
         {/* Right chart (Task Distribution) */}
-        <div className="bg-white dark:bg-darkSurface border border-slate-200 dark:border-darkBorder p-6 rounded-xl flex flex-col justify-between shadow-sm">
+        <div className="bg-white dark:bg-darkSurface border border-slate-200 dark:border-darkBorder p-6 rounded-xl flex flex-col justify-between shadow-sm min-w-0">
           <div>
             <h3 className="text-sm font-mono font-bold text-slate-900 dark:text-textHeader mb-6 tracking-wide">TASK DISTRIBUTION</h3>
             <div className="h-52 flex items-center justify-center">
