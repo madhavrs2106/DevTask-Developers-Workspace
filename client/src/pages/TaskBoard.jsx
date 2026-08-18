@@ -395,7 +395,7 @@ export default function TaskBoard() {
               <button onClick={resetTaskForm} className="text-slate-400 hover:text-slate-600 dark:text-textMuted dark:hover:text-white text-xl">&times;</button>
             </div>
 
-            <form onSubmit={handleCreateTask} className="p-6 space-y-4 max-h-[65vh] overflow-y-auto">
+            <form onSubmit={handleCreateTask} noValidate className="p-6 space-y-4 max-h-[65vh] overflow-y-auto">
               <div>
                 <label className="block text-xs font-mono text-slate-500 dark:text-textMuted mb-1">Task Title</label>
                 <input
@@ -474,7 +474,7 @@ export default function TaskBoard() {
               <div>
                 <label className="block text-xs font-mono text-slate-500 dark:text-textMuted mb-1">GitHub Repository Link</label>
                 <input
-                  type="url"
+                  type="text"
                   placeholder="https://github.com/user/repo"
                   value={newGithubLink}
                   onChange={(e) => setNewGithubLink(e.target.value)}

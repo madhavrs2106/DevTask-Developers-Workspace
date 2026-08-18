@@ -23,6 +23,7 @@ export default function Projects() {
   const [newGithubLink, setNewGithubLink] = useState('');
   const [newCodeSnippet, setNewCodeSnippet] = useState('');
   const [newDurationHours, setNewDurationHours] = useState('0.0');
+  const [formError, setFormError] = useState('');
 
   useEffect(() => {
     fetchProjects();
@@ -46,6 +47,7 @@ export default function Projects() {
 
   const handleCreateProject = async (e) => {
     e.preventDefault();
+    setFormError('');
     try {
       const payload = {
         title: newTitle,
@@ -70,12 +72,18 @@ export default function Projects() {
         body: JSON.stringify(payload)
       });
 
-      if (response.ok) {
-        resetProjectForm();
-        fetchProjects();
+      const data = await response.json();
+
+      if (!response.ok) {
+        setFormError(data.error || 'Failed to save project');
+        return;
       }
+
+      resetProjectForm();
+      fetchProjects();
     } catch (err) {
       console.error('Error saving project', err);
+      setFormError(err.message || 'Network error');
     }
   };
 
@@ -96,6 +104,7 @@ export default function Projects() {
     setEditingProject(null);
     setNewStatus('TODO');
     setNewDifficulty('BEGINNER');
+    setFormError('');
     setShowAddModal(true);
   };
 
@@ -395,7 +404,7 @@ export default function Projects() {
               <button onClick={resetProjectForm} className="text-slate-400 hover:text-slate-600 dark:text-textMuted dark:hover:text-white text-xl">&times;</button>
             </div>
 
-            <form onSubmit={handleCreateProject} className="p-6 space-y-4 max-h-[65vh] overflow-y-auto">
+            <form onSubmit={handleCreateProject} noValidate className="p-6 space-y-4 max-h-[65vh] overflow-y-auto">
               <div>
                 <label className="block text-xs font-mono text-slate-500 dark:text-textMuted mb-1">Project Title</label>
                 <input
@@ -474,7 +483,7 @@ export default function Projects() {
               <div>
                 <label className="block text-xs font-mono text-slate-500 dark:text-textMuted mb-1">GitHub Repository Link</label>
                 <input
-                  type="url"
+                  type="text"
                   placeholder="https://github.com/user/repo"
                   value={newGithubLink}
                   onChange={(e) => setNewGithubLink(e.target.value)}
@@ -508,6 +517,9 @@ export default function Projects() {
                   {editingProject ? 'Save Changes' : 'Commit Project'}
                 </button>
               </div>
+              {formError && (
+                <p className="text-red-400 text-xs font-mono mt-2">{formError}</p>
+              )}
             </form>
           </div>
         </div>
