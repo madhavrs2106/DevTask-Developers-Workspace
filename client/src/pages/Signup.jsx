@@ -21,7 +21,6 @@ export default function Signup({ navigateToLogin }) {
     }
     if (password !== confirmPassword) {
       setError('Passwords do not match');
-      setLoading(false);
       return;
     }
     setLoading(true);

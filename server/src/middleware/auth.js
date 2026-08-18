@@ -14,7 +14,7 @@ module.exports = async function(req, res, next) {
 
   let decoded;
   try {
-    decoded = jwt.verify(token, process.env.JWT_SECRET || 'midnight-neon-glow-secret-key-12345');
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
   } catch (ex) {
     return res.status(400).json({ error: 'Invalid token.' });
   }

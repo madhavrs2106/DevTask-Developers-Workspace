@@ -73,7 +73,7 @@ const toResponse = async (user) => ({
 
 const signToken = (user) => jwt.sign(
   { id: user.id, email: user.email },
-  process.env.JWT_SECRET || 'midnight-neon-glow-secret-key-12345',
+  process.env.JWT_SECRET,
   { expiresIn: '30d' }
 );
 
@@ -90,7 +90,9 @@ exports.register = async (req, res) => {
       return res.status(400).json({ error: 'Only @devtask.io email addresses are allowed' });
     }
 
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const normalizedEmail = email.trim().toLowerCase();
+
+    const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (existingUser) {
       return res.status(400).json({ error: 'User with this email already exists' });
     }
@@ -98,7 +100,7 @@ exports.register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
       data: {
-        email,
+        email: normalizedEmail,
         password: hashedPassword,
         name,
         title: title || 'Full Stack Developer',
@@ -127,7 +129,7 @@ exports.login = async (req, res) => {
     }
 
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: email.trim().toLowerCase() },
       include: { socials: true }
     });
     if (!user) {

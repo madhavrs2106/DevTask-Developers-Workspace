@@ -76,7 +76,7 @@ exports.updateTask = async (req, res) => {
     const hoursDiff = (Number(durationHours) || 0.0) - existingTask.durationHours;
 
     const updatedTask = await prisma.task.update({
-      where: { id },
+      where: { id, userId: req.user.id },
       data: {
         title,
         description,
@@ -89,8 +89,8 @@ exports.updateTask = async (req, res) => {
       }
     });
 
-    // Adjust analytics if coding hours changed
-    if (hoursDiff !== 0) {
+    // Only add hours, never subtract
+    if (hoursDiff > 0) {
       const today = new Date().toISOString().split('T')[0];
       await prisma.dailyAnalytics.upsert({
         where: {
@@ -105,7 +105,7 @@ exports.updateTask = async (req, res) => {
         create: {
           userId: req.user.id,
           date: today,
-          codingHours: Math.max(0, hoursDiff)
+          codingHours: hoursDiff
         }
       });
     }
@@ -127,28 +127,7 @@ exports.deleteTask = async (req, res) => {
       return res.status(404).json({ error: 'Task not found' });
     }
 
-    // Deduct durationHours from daily analytics if deleted task was done today
-    if (existingTask.durationHours > 0) {
-      const today = new Date().toISOString().split('T')[0];
-      const analytics = await prisma.dailyAnalytics.findUnique({
-        where: {
-          userId_date: {
-            userId: req.user.id,
-            date: today
-          }
-        }
-      });
-      if (analytics) {
-        await prisma.dailyAnalytics.update({
-          where: { id: analytics.id },
-          data: {
-            codingHours: Math.max(0, analytics.codingHours - existingTask.durationHours)
-          }
-        });
-      }
-    }
-
-    await prisma.task.delete({ where: { id } });
+    await prisma.task.delete({ where: { id, userId: req.user.id } });
     res.json({ message: 'Task deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });

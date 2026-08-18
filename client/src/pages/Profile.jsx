@@ -357,7 +357,7 @@ function SocialIcon({ platform }) {
   const normalized = platform.toLowerCase();
   if (normalized.includes('github')) return <Github className="w-5 h-5 text-slate-400 dark:text-textMuted shrink-0" />;
   if (normalized.includes('linkedin')) return <Linkedin className="w-5 h-5 text-neonCyan shrink-0" />;
-  if (normalized.includes('twitter') || normalized.includes('x')) return <Twitter className="w-5 h-5 text-neonTeal shrink-0" />;
+  if (normalized.includes('twitter') || normalized === 'x') return <Twitter className="w-5 h-5 text-neonTeal shrink-0" />;
   if (normalized.includes('website') || normalized.includes('web') || normalized.includes('portfolio')) return <Globe className="w-5 h-5 text-neonTeal shrink-0" />;
   return <Link2 className="w-5 h-5 text-slate-400 dark:text-textMuted shrink-0" />;
 }

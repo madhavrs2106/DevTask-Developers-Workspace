@@ -64,7 +64,7 @@ exports.updateProject = async (req, res) => {
     const hoursDiff = (Number(durationHours) || 0.0) - existingProject.durationHours;
 
     const updatedProject = await prisma.project.update({
-      where: { id },
+      where: { id, userId: req.user.id },
       data: {
         title,
         description,
@@ -77,12 +77,12 @@ exports.updateProject = async (req, res) => {
       }
     });
 
-    if (hoursDiff !== 0) {
+    if (hoursDiff > 0) {
       const today = new Date().toISOString().split('T')[0];
       await prisma.dailyAnalytics.upsert({
         where: { userId_date: { userId: req.user.id, date: today } },
         update: { codingHours: { increment: hoursDiff } },
-        create: { userId: req.user.id, date: today, codingHours: Math.max(0, hoursDiff) }
+        create: { userId: req.user.id, date: today, codingHours: hoursDiff }
       });
     }
 
@@ -103,20 +103,7 @@ exports.deleteProject = async (req, res) => {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    if (existingProject.durationHours > 0) {
-      const today = new Date().toISOString().split('T')[0];
-      const analytics = await prisma.dailyAnalytics.findUnique({
-        where: { userId_date: { userId: req.user.id, date: today } }
-      });
-      if (analytics) {
-        await prisma.dailyAnalytics.update({
-          where: { id: analytics.id },
-          data: { codingHours: Math.max(0, analytics.codingHours - existingProject.durationHours) }
-        });
-      }
-    }
-
-    await prisma.project.delete({ where: { id } });
+    await prisma.project.delete({ where: { id, userId: req.user.id } });
     res.json({ message: 'Project deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });

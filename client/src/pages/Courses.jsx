@@ -152,8 +152,8 @@ export default function Courses() {
 
               <div>
                 <div className="flex justify-between items-start gap-4 mb-3">
-                  <span className={`text-[10px] font-mono font-bold border px-2 py-0.5 rounded ${statusBadges[course.status].style}`}>
-                    {statusBadges[course.status].label}
+                  <span className={`text-[10px] font-mono font-bold border px-2 py-0.5 rounded ${(statusBadges[course.status] || statusBadges.NOT_STARTED).style}`}>
+                    {(statusBadges[course.status] || statusBadges.NOT_STARTED).label}
                   </span>
                   <span className="text-[10px] font-mono text-slate-500 dark:text-textMuted">{course.platform}</span>
                 </div>

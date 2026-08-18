@@ -109,7 +109,7 @@ exports.chat = async (req, res) => {
     }
 
     const data = await response.json();
-    res.json({ reply: data.choices[0].message.content.trim() });
+    res.json({ reply: (data.choices?.[0]?.message?.content || '').trim() });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: error.message });

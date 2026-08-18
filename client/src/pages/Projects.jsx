@@ -106,8 +106,14 @@ export default function Projects() {
 
   const openCreateModal = () => {
     setEditingProject(null);
+    setNewTitle('');
+    setNewDescription('');
     setNewStatus('TODO');
     setNewDifficulty('BEGINNER');
+    setNewTechStack('');
+    setNewGithubLink('');
+    setNewCodeSnippet('');
+    setNewDurationHours('0.0');
     setFormError('');
     setShowAddModal(true);
   };
@@ -257,7 +263,7 @@ export default function Projects() {
                         <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-950 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-800/80">
                           {project.difficulty}
                         </span>
-                        <span className="text-[10px] font-mono text-neonCyan">{project.durationHours.toFixed(1)} hrs</span>
+                        <span className="text-[10px] font-mono text-neonCyan">{(project.durationHours ?? 0).toFixed(1)} hrs</span>
                       </div>
 
                       <h4 className="font-mono text-sm font-bold text-slate-900 dark:text-textHeader mb-2 group-hover:text-neonCyan transition-colors line-clamp-1">
