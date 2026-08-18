@@ -1,6 +1,6 @@
 {
   "name": "DevTask: Developers",
-  "version": "3.0.0",
+  "version": "1.0.0",
   "description": "DevTask: Full-stack productivity app for developers",
   "main": "index.js",
   "scripts": {

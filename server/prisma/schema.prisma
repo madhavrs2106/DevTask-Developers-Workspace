@@ -1,6 +1,6 @@
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -17,6 +17,7 @@ model User {
   avatarUrl      String?
   createdAt      DateTime         @default(now())
   tasks          Task[]
+  projects       Project[]
   courses        Course[]
   dailyAnalytics DailyAnalytics[]
   activityLogs   ActivityLog[]
@@ -32,6 +33,22 @@ model SocialLink {
 }
 
 model Task {
+  id            String   @id @default(uuid())
+  title         String
+  description   String?
+  status        String   @default("TODO") // "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE"
+  difficulty    String   @default("BEGINNER") // "BEGINNER" | "INTERMEDIATE" | "ADVANCED"
+  techStack     String   @default("") // comma-separated values (e.g. "React,Go")
+  githubLink    String?
+  codeSnippet   String?
+  durationHours Float    @default(0.0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Project {
   id            String   @id @default(uuid())
   title         String
   description   String?

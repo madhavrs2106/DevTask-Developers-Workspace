@@ -24,21 +24,17 @@ module.exports = async function(req, res, next) {
   // Record today's activity (best-effort, never blocks the request)
   try {
     const today = new Date().toISOString().split('T')[0];
-    await prisma.activityLog.upsert({
-      where: {
-        userId_date: {
-          userId: decoded.id,
-          date: today
-        }
-      },
-      update: {},
-      create: {
-        userId: decoded.id,
-        date: today
-      }
+    const existing = await prisma.activityLog.findUnique({
+      where: { userId_date: { userId: decoded.id, date: today } },
+      select: { id: true }
     });
+    if (!existing) {
+      await prisma.activityLog.create({
+        data: { userId: decoded.id, date: today }
+      });
+    }
   } catch (err) {
-    console.error('Failed to log activity', err.message);
+    // Best-effort: silently skip (e.g. user was deleted, or concurrent race)
   }
 
   next();

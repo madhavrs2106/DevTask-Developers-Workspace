@@ -28,7 +28,7 @@ export default function Header({ currentPageName, setSidebarOpen }) {
       <div className="flex items-center gap-4">
         {/* Streak counter */}
         <div
-          title={`${streak} consecutive active day${streak === 1 ? '' : 's'}`}
+          title={`${streak} consecutive study day${streak === 1 ? '' : 's'}`}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border font-mono text-xs font-bold transition-all ${
             streak > 0
               ? 'bg-orange-500/10 border-orange-500/25 text-orange-500 dark:text-orange-400'
