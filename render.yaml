@@ -5,7 +5,7 @@ services:
     repo: https://github.com/madhavrs2106/DevTask-Developers-Workspace
     plan: free
     rootDir: server
-    buildCommand: npm install && npx prisma generate && npx prisma db push
+    buildCommand: npm install && npx prisma generate
     startCommand: npm start
     healthCheckPath: /
     envVars:
