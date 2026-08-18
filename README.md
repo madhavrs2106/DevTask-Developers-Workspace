@@ -2,7 +2,7 @@
 
 Full-stack developer productivity suite: kanban task board, study roadmaps, analytics dashboard, and streak tracking. React (Vite + Tailwind) frontend, Node/Express + Prisma (SQLite) backend.
 
-![Version](https://img.shields.io/badge/version-1.0.0-7AA2F7) ![React](https://img.shields.io/badge/React-18-61DAFB) ![Vite](https://img.shields.io/badge/Vite-5-646CFF) ![Tailwind](https://img.shields.io/badge/Tailwind-3-38BDF8) ![Express](https://img.shields.io/badge/Express-4-7DCFFF) ![Prisma](https://img.shields.io/badge/Prisma-5-5B8DEF)
+![Version](https://img.shields.io/badge/version-3.0.0-7AA2F7) ![React](https://img.shields.io/badge/React-18-61DAFB) ![Vite](https://img.shields.io/badge/Vite-5-646CFF) ![Tailwind](https://img.shields.io/badge/Tailwind-3-38BDF8) ![Express](https://img.shields.io/badge/Express-4-7DCFFF) ![Prisma](https://img.shields.io/badge/Prisma-5-5B8DEF)
 
 ## Features
 
