@@ -33,6 +33,15 @@ exports.createProject = async (req, res) => {
       }
     });
 
+    if (durationHours && Number(durationHours) > 0) {
+      const today = new Date().toISOString().split('T')[0];
+      await prisma.dailyAnalytics.upsert({
+        where: { userId_date: { userId: req.user.id, date: today } },
+        update: { codingHours: { increment: Number(durationHours) } },
+        create: { userId: req.user.id, date: today, codingHours: Number(durationHours) }
+      });
+    }
+
     res.status(201).json(project);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -52,6 +61,8 @@ exports.updateProject = async (req, res) => {
       return res.status(404).json({ error: 'Project not found' });
     }
 
+    const hoursDiff = (Number(durationHours) || 0.0) - existingProject.durationHours;
+
     const updatedProject = await prisma.project.update({
       where: { id },
       data: {
@@ -65,6 +76,15 @@ exports.updateProject = async (req, res) => {
         durationHours: Number(durationHours) || 0.0
       }
     });
+
+    if (hoursDiff !== 0) {
+      const today = new Date().toISOString().split('T')[0];
+      await prisma.dailyAnalytics.upsert({
+        where: { userId_date: { userId: req.user.id, date: today } },
+        update: { codingHours: { increment: hoursDiff } },
+        create: { userId: req.user.id, date: today, codingHours: Math.max(0, hoursDiff) }
+      });
+    }
 
     res.json(updatedProject);
   } catch (error) {
@@ -81,6 +101,19 @@ exports.deleteProject = async (req, res) => {
 
     if (!existingProject) {
       return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (existingProject.durationHours > 0) {
+      const today = new Date().toISOString().split('T')[0];
+      const analytics = await prisma.dailyAnalytics.findUnique({
+        where: { userId_date: { userId: req.user.id, date: today } }
+      });
+      if (analytics) {
+        await prisma.dailyAnalytics.update({
+          where: { id: analytics.id },
+          data: { codingHours: Math.max(0, analytics.codingHours - existingProject.durationHours) }
+        });
+      }
     }
 
     await prisma.project.delete({ where: { id } });

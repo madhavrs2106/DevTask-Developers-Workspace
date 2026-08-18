@@ -159,7 +159,7 @@ export default function TaskBoard() {
   const filteredTasks = tasks.filter(t => 
     t.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
     (t.description && t.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    t.techStack.toLowerCase().includes(searchTerm.toLowerCase())
+    (t.techStack && t.techStack.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const columns = [

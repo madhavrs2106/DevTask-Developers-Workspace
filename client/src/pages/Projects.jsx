@@ -35,6 +35,10 @@ export default function Projects() {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
+        const contentType = response.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+          throw new Error('Server returned an unexpected response. The backend may be waking up, please try again.');
+        }
         const data = await response.json();
         setProjects(data);
       }
@@ -168,7 +172,7 @@ export default function Projects() {
   const filteredProjects = projects.filter(t => 
     t.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
     (t.description && t.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    t.techStack.toLowerCase().includes(searchTerm.toLowerCase())
+    (t.techStack && t.techStack.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const columns = [
