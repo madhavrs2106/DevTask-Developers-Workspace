@@ -66,7 +66,10 @@ export default function Dashboard() {
     );
   }
 
-  const { summary, weeklyCoding, taskStatusDistribution, skillMastery } = data;
+  const summary = data?.summary || { totalCodingHours: 0, activeTasks: 0, sprintVelocity: 0, completedCourses: 0 };
+  const weeklyCoding = data?.weeklyCoding || [];
+  const taskStatusDistribution = data?.taskStatusDistribution || [];
+  const skillMastery = data?.skillMastery || [];
 
   const maxLoggedHours = Math.max(10, ...weeklyCoding.map(d => d.hours));
   const yMax = Math.ceil(maxLoggedHours / 2) * 2;

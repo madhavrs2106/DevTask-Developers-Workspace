@@ -50,7 +50,7 @@ export default function Header({ currentPageName, setSidebarOpen }) {
               />
             ) : (
               <div className="w-6 h-6 rounded-full bg-neonCyan/20 flex items-center justify-center text-neonCyan font-bold text-xs uppercase font-mono">
-                {user.name.charAt(0)}
+                {user.name?.charAt(0) || 'D'}
               </div>
             )}
             <span className="hidden sm:block text-sm font-semibold text-slate-700 dark:text-textHeader font-mono">{user.name}</span>

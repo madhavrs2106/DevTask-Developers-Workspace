@@ -49,15 +49,21 @@ exports.updateCourse = async (req, res) => {
       return res.status(404).json({ error: 'Course not found' });
     }
 
+    const updateData = {
+      title,
+      platform,
+      status
+    };
+    if (progressPercent !== undefined) {
+      updateData.progressPercent = Number(progressPercent) || 0;
+    }
+    if (totalHours !== undefined) {
+      updateData.totalHours = Number(totalHours) || 0.0;
+    }
+
     const updatedCourse = await prisma.course.update({
       where: { id },
-      data: {
-        title,
-        platform,
-        status,
-        progressPercent: Number(progressPercent) || 0,
-        totalHours: Number(totalHours) || 0.0
-      }
+      data: updateData
     });
 
     res.json(updatedCourse);

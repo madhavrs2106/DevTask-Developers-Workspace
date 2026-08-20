@@ -63,18 +63,22 @@ exports.updateProject = async (req, res) => {
 
     const hoursDiff = (Number(durationHours) || 0.0) - existingProject.durationHours;
 
+    const updateData = {
+      title,
+      description,
+      status,
+      difficulty,
+      techStack,
+      githubLink,
+      codeSnippet
+    };
+    if (durationHours !== undefined) {
+      updateData.durationHours = Number(durationHours) || 0.0;
+    }
+
     const updatedProject = await prisma.project.update({
-      where: { id, userId: req.user.id },
-      data: {
-        title,
-        description,
-        status,
-        difficulty,
-        techStack,
-        githubLink,
-        codeSnippet,
-        durationHours: Number(durationHours) || 0.0
-      }
+      where: { id },
+      data: updateData
     });
 
     if (hoursDiff > 0) {
@@ -103,7 +107,7 @@ exports.deleteProject = async (req, res) => {
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    await prisma.project.delete({ where: { id, userId: req.user.id } });
+    await prisma.project.delete({ where: { id } });
     res.json({ message: 'Project deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });

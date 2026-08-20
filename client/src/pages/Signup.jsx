@@ -28,6 +28,7 @@ export default function Signup({ navigateToLogin }) {
       await signup(name, email, password, title);
     } catch (err) {
       setError(err.message || 'Failed to sign up');
+    } finally {
       setLoading(false);
     }
   };

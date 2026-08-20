@@ -610,7 +610,7 @@ export default function Settings() {
 }
 
 function SocialIcon({ platform }) {
-  const normalized = platform.toLowerCase();
+  const normalized = (platform || '').toLowerCase();
   if (normalized.includes('github')) return <Github className="w-5 h-5 text-slate-400 dark:text-textMuted shrink-0" />;
   if (normalized.includes('linkedin')) return <Linkedin className="w-5 h-5 text-neonCyan shrink-0" />;
   if (normalized.includes('twitter') || normalized === 'x') return <Twitter className="w-5 h-5 text-neonTeal shrink-0" />;

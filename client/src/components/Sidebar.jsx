@@ -88,7 +88,7 @@ export default function Sidebar({ currentPage, setCurrentPage, sidebarOpen, setS
                   />
                 ) : (
                   <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-darkBorder flex items-center justify-center border border-neonCyan/40 neon-glow-cyan text-neonCyan font-mono font-bold text-lg uppercase">
-                    {user.name.charAt(0)}
+                    {user.name?.charAt(0) || 'D'}
                   </div>
                 )}
                 <div className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-neonTeal border-2 border-slate-200 dark:border-darkBg" />

@@ -21,6 +21,7 @@ export default function Login({ navigateToSignup }) {
       await login(email, password);
     } catch (err) {
       setError(err.message || 'Invalid credentials');
+    } finally {
       setLoading(false);
     }
   };

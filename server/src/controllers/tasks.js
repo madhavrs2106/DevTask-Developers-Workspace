@@ -75,18 +75,22 @@ exports.updateTask = async (req, res) => {
 
     const hoursDiff = (Number(durationHours) || 0.0) - existingTask.durationHours;
 
+    const updateData = {
+      title,
+      description,
+      status,
+      difficulty,
+      techStack,
+      githubLink,
+      codeSnippet
+    };
+    if (durationHours !== undefined) {
+      updateData.durationHours = Number(durationHours) || 0.0;
+    }
+
     const updatedTask = await prisma.task.update({
-      where: { id, userId: req.user.id },
-      data: {
-        title,
-        description,
-        status,
-        difficulty,
-        techStack,
-        githubLink,
-        codeSnippet,
-        durationHours: Number(durationHours) || 0.0
-      }
+      where: { id },
+      data: updateData
     });
 
     // Only add hours, never subtract
@@ -127,7 +131,7 @@ exports.deleteTask = async (req, res) => {
       return res.status(404).json({ error: 'Task not found' });
     }
 
-    await prisma.task.delete({ where: { id, userId: req.user.id } });
+    await prisma.task.delete({ where: { id } });
     res.json({ message: 'Task deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
