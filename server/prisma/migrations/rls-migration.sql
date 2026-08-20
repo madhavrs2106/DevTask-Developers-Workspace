@@ -61,13 +61,13 @@ GRANT SELECT ON public.user_public TO authenticated;
 -- SELECT: users can only read their own profile
 CREATE POLICY "user_select_own"
   ON public."User" FOR SELECT
-  USING (auth.uid() = id);
+  USING (auth.uid()::text = id);
 
 -- UPDATE: users can only update their own profile
 CREATE POLICY "user_update_own"
   ON public."User" FOR UPDATE
-  USING (auth.uid() = id)
-  WITH CHECK (auth.uid() = id);
+  USING (auth.uid()::text = id)
+  WITH CHECK (auth.uid()::text = id);
 
 -- No INSERT/DELETE on User (handled by Supabase Auth triggers or backend)
 
@@ -78,20 +78,20 @@ CREATE POLICY "user_update_own"
 
 CREATE POLICY "task_select_own"
   ON public."Task" FOR SELECT
-  USING (auth.uid() = "userId");
+  USING (auth.uid()::text = "userId");
 
 CREATE POLICY "task_insert_own"
   ON public."Task" FOR INSERT
-  WITH CHECK (auth.uid() = "userId");
+  WITH CHECK (auth.uid()::text = "userId");
 
 CREATE POLICY "task_update_own"
   ON public."Task" FOR UPDATE
-  USING (auth.uid() = "userId")
-  WITH CHECK (auth.uid() = "userId");
+  USING (auth.uid()::text = "userId")
+  WITH CHECK (auth.uid()::text = "userId");
 
 CREATE POLICY "task_delete_own"
   ON public."Task" FOR DELETE
-  USING (auth.uid() = "userId");
+  USING (auth.uid()::text = "userId");
 
 
 -- ──────────────────────────────────────────────
@@ -100,20 +100,20 @@ CREATE POLICY "task_delete_own"
 
 CREATE POLICY "project_select_own"
   ON public."Project" FOR SELECT
-  USING (auth.uid() = "userId");
+  USING (auth.uid()::text = "userId");
 
 CREATE POLICY "project_insert_own"
   ON public."Project" FOR INSERT
-  WITH CHECK (auth.uid() = "userId");
+  WITH CHECK (auth.uid()::text = "userId");
 
 CREATE POLICY "project_update_own"
   ON public."Project" FOR UPDATE
-  USING (auth.uid() = "userId")
-  WITH CHECK (auth.uid() = "userId");
+  USING (auth.uid()::text = "userId")
+  WITH CHECK (auth.uid()::text = "userId");
 
 CREATE POLICY "project_delete_own"
   ON public."Project" FOR DELETE
-  USING (auth.uid() = "userId");
+  USING (auth.uid()::text = "userId");
 
 
 -- ──────────────────────────────────────────────
@@ -122,20 +122,20 @@ CREATE POLICY "project_delete_own"
 
 CREATE POLICY "course_select_own"
   ON public."Course" FOR SELECT
-  USING (auth.uid() = "userId");
+  USING (auth.uid()::text = "userId");
 
 CREATE POLICY "course_insert_own"
   ON public."Course" FOR INSERT
-  WITH CHECK (auth.uid() = "userId");
+  WITH CHECK (auth.uid()::text = "userId");
 
 CREATE POLICY "course_update_own"
   ON public."Course" FOR UPDATE
-  USING (auth.uid() = "userId")
-  WITH CHECK (auth.uid() = "userId");
+  USING (auth.uid()::text = "userId")
+  WITH CHECK (auth.uid()::text = "userId");
 
 CREATE POLICY "course_delete_own"
   ON public."Course" FOR DELETE
-  USING (auth.uid() = "userId");
+  USING (auth.uid()::text = "userId");
 
 
 -- ──────────────────────────────────────────────
@@ -144,20 +144,20 @@ CREATE POLICY "course_delete_own"
 
 CREATE POLICY "analytics_select_own"
   ON public."DailyAnalytics" FOR SELECT
-  USING (auth.uid() = "userId");
+  USING (auth.uid()::text = "userId");
 
 CREATE POLICY "analytics_insert_own"
   ON public."DailyAnalytics" FOR INSERT
-  WITH CHECK (auth.uid() = "userId");
+  WITH CHECK (auth.uid()::text = "userId");
 
 CREATE POLICY "analytics_update_own"
   ON public."DailyAnalytics" FOR UPDATE
-  USING (auth.uid() = "userId")
-  WITH CHECK (auth.uid() = "userId");
+  USING (auth.uid()::text = "userId")
+  WITH CHECK (auth.uid()::text = "userId");
 
 CREATE POLICY "analytics_delete_own"
   ON public."DailyAnalytics" FOR DELETE
-  USING (auth.uid() = "userId");
+  USING (auth.uid()::text = "userId");
 
 
 -- ──────────────────────────────────────────────
@@ -166,11 +166,11 @@ CREATE POLICY "analytics_delete_own"
 
 CREATE POLICY "activity_select_own"
   ON public."ActivityLog" FOR SELECT
-  USING (auth.uid() = "userId");
+  USING (auth.uid()::text = "userId");
 
 CREATE POLICY "activity_insert_own"
   ON public."ActivityLog" FOR INSERT
-  WITH CHECK (auth.uid() = "userId");
+  WITH CHECK (auth.uid()::text = "userId");
 
 -- No UPDATE/DELETE on activity logs (append-only)
 
@@ -181,20 +181,20 @@ CREATE POLICY "activity_insert_own"
 
 CREATE POLICY "social_select_own"
   ON public."SocialLink" FOR SELECT
-  USING (auth.uid() = "userId");
+  USING (auth.uid()::text = "userId");
 
 CREATE POLICY "social_insert_own"
   ON public."SocialLink" FOR INSERT
-  WITH CHECK (auth.uid() = "userId");
+  WITH CHECK (auth.uid()::text = "userId");
 
 CREATE POLICY "social_update_own"
   ON public."SocialLink" FOR UPDATE
-  USING (auth.uid() = "userId")
-  WITH CHECK (auth.uid() = "userId");
+  USING (auth.uid()::text = "userId")
+  WITH CHECK (auth.uid()::text = "userId");
 
 CREATE POLICY "social_delete_own"
   ON public."SocialLink" FOR DELETE
-  USING (auth.uid() = "userId");
+  USING (auth.uid()::text = "userId");
 
 
 -- ============================================================
