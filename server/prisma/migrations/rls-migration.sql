@@ -37,7 +37,9 @@ ALTER TABLE public."SocialLink"    FORCE ROW LEVEL SECURITY;
 -- Drop existing view if it exists
 DROP VIEW IF EXISTS public.user_public;
 
-CREATE VIEW public.user_public AS
+CREATE VIEW public.user_public
+  WITH (security_invoker = true)
+AS
 SELECT
   id,
   email,
