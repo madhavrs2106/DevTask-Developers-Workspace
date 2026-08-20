@@ -219,7 +219,7 @@ export default function Courses() {
           <div className="w-full max-w-md bg-white dark:bg-darkSurface border border-slate-200 dark:border-darkBorder rounded-2xl overflow-hidden shadow-2xl">
             <div className="p-6 border-b border-slate-200 dark:border-darkBorder flex justify-between items-center">
               <h3 className="text-lg font-mono font-bold text-slate-900 dark:text-textHeader">
-                {editingCourse ? 'Configure Syllabus Module' : 'Add Learning Roadmap'}
+                {editingCourse ? 'Configure Syllabus Module' : 'Add Working Roadmap'}
               </h3>
               <button onClick={resetForm} className="text-slate-400 hover:text-slate-600 dark:text-textMuted dark:hover:text-white text-xl">&times;</button>
             </div>

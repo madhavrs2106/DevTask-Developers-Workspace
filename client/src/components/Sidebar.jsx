@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, KanbanSquare, FolderKanban, GraduationCap, LogOut, Settings, User, X } from 'lucide-react';
+import { LayoutDashboard, KanbanSquare, GraduationCap, LogOut, Settings, User, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 export default function Sidebar({ currentPage, setCurrentPage, sidebarOpen, setSidebarOpen }) {
@@ -7,8 +7,7 @@ export default function Sidebar({ currentPage, setCurrentPage, sidebarOpen, setS
 
   const navigation = [
     { name: 'Dashboard', icon: LayoutDashboard, id: 'dashboard' },
-    { name: 'Learning Space', icon: KanbanSquare, id: 'tasks' },
-    { name: 'Project Space', icon: FolderKanban, id: 'projects' },
+    { name: 'Working Space', icon: KanbanSquare, id: 'tasks' },
     { name: 'Roadmaps & Courses', icon: GraduationCap, id: 'courses' },
     { name: 'Developer Profile', icon: User, id: 'profile' },
     { name: 'Settings', icon: Settings, id: 'settings' }

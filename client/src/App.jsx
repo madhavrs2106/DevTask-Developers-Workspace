@@ -4,7 +4,6 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Dashboard from './pages/Dashboard';
 import TaskBoard from './pages/TaskBoard';
-import Projects from './pages/Projects';
 import Courses from './pages/Courses';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
@@ -46,8 +45,7 @@ function AppContent() {
 
   const pageNames = {
     dashboard: 'Dashboard',
-    tasks: 'Learning Space',
-    projects: 'Project Space',
+    tasks: 'Working Space',
     courses: 'Roadmaps & Courses',
     profile: 'Profile',
     settings: 'Settings'
@@ -69,7 +67,6 @@ function AppContent() {
         <main className="flex-1 flex flex-col overflow-hidden">
           {currentPage === 'dashboard' && <Dashboard />}
           {currentPage === 'tasks' && <TaskBoard />}
-          {currentPage === 'projects' && <Projects />}
           {currentPage === 'courses' && <Courses />}
           {currentPage === 'profile' && <Profile onNavigateToSettings={() => setCurrentPage('settings')} />}
           {currentPage === 'settings' && <Settings />}

@@ -186,16 +186,16 @@ export default function Profile({ onNavigateToSettings }) {
           </div>
         </div>
 
-        {/* Learning / Learned Courses */}
+        {/* Working / Completed Courses */}
         <div className="bg-white dark:bg-darkSurface border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-md">
           <h3 className="text-sm font-mono font-bold text-slate-900 dark:text-textHeader border-b border-slate-100 dark:border-slate-800 pb-3 mb-5 flex items-center gap-2">
-            <BookOpen className="w-4 h-4 text-neonCyan" /> Learning / Learned Courses
+            <BookOpen className="w-4 h-4 text-neonCyan" /> Working / Completed Courses
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-mono font-bold text-slate-500 dark:text-textMuted uppercase tracking-widest">Learning</span>
+                <span className="text-xs font-mono font-bold text-slate-500 dark:text-textMuted uppercase tracking-widest">In Progress</span>
                 <span className="text-xs font-mono bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-2 py-0.5 rounded-full">
                   {learningCourses.length}
                 </span>
@@ -280,11 +280,11 @@ export default function Profile({ onNavigateToSettings }) {
           )}
         </div>
 
-        {/* Learning Activity */}
+        {/* Coding Activity */}
         <div className="bg-white dark:bg-darkSurface border border-slate-200 dark:border-slate-800 rounded-xl p-6 shadow-md">
           <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 mb-5">
             <h3 className="text-sm font-mono font-bold text-slate-900 dark:text-textHeader flex items-center gap-2">
-              <CalendarDays className="w-4 h-4 text-neonCyan" /> Learning Activity
+              <CalendarDays className="w-4 h-4 text-neonCyan" /> Coding Activity
             </h3>
           <div className="flex items-center gap-1">
             <button
