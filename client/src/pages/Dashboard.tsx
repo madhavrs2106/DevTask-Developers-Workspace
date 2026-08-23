@@ -90,7 +90,7 @@ export function Dashboard() {
           label="Total coding hours"
           value={formatHours(s.totalCodingHours)}
           icon={Clock}
-          sub={<span className="metric-mono">{formatHours(weekTotal)} in the last 7 days</span>}
+          sub={<span className="metric-mono">lifetime total</span>}
           spark={hoursSpark}
         />
         <StatCard
