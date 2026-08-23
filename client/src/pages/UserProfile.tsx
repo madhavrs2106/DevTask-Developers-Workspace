@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   BookOpen,
@@ -180,13 +180,19 @@ export function UserProfile() {
                 {profile.isFollowing ? "Unfollow" : "Follow"}
               </Button>
               <span className="flex items-center gap-4 text-xs text-ink-faint">
-                <span className="inline-flex items-center gap-1.5">
+                <Link
+                  to={`/u/${profile.username}/followers`}
+                  className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 transition-all hover:bg-white/5 hover:text-white"
+                >
                   <Users size={14} className="text-accent-bright" />
                   <strong className="text-sm text-white">{profile.followersCount}</strong> followers
-                </span>
-                <span className="inline-flex items-center gap-1.5">
+                </Link>
+                <Link
+                  to={`/u/${profile.username}/following`}
+                  className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 transition-all hover:bg-white/5 hover:text-white"
+                >
                   <strong className="text-sm text-white">{profile.followingCount}</strong> following
-                </span>
+                </Link>
               </span>
             </div>
           </div>
