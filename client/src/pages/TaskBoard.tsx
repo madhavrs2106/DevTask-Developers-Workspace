@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { KanbanSquare, LayoutList, ListTodo, Plus, Search, Square, X } from "lucide-react";
+import { Filter, KanbanSquare, LayoutList, ListTodo, Plus, Search, Square, X } from "lucide-react";
 import { cn } from "../lib/utils";
 import { DIFFICULTIES, DIFFICULTY_META, TASK_STATUSES } from "../lib/constants";
 import { useReorderTasks, useTasks, useUpdateTask, type ReorderUpdate } from "../hooks/useQueries";
@@ -30,6 +30,9 @@ export function TaskBoard() {
   const [query, setQuery] = useState("");
   const [tagFilter, setTagFilter] = useState<string[]>([]);
   const [difficultyFilter, setDifficultyFilter] = useState<"" | Difficulty>("");
+  const [tagPopoverOpen, setTagPopoverOpen] = useState(false);
+  const [tagDraft, setTagDraft] = useState<string[]>([]);
+  const tagRef = useRef<HTMLDivElement>(null);
 
   /* ?new=1 (header CTA) opens the create dialog */
   useEffect(() => {
@@ -45,6 +48,18 @@ export function TaskBoard() {
     tasks.forEach((t) => t.tags.forEach((tag) => set.add(tag)));
     return [...set].sort((a, b) => a.localeCompare(b));
   }, [tasks]);
+
+  // Close popover on outside click
+  useEffect(() => {
+    if (!tagPopoverOpen) return;
+    function handleClick(e: MouseEvent) {
+      if (tagRef.current && !tagRef.current.contains(e.target as Node)) {
+        setTagPopoverOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [tagPopoverOpen]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -69,12 +84,6 @@ export function TaskBoard() {
     setEditingTask(null);
     setDefaultStatus(status);
     setModalOpen(true);
-  }
-
-  function toggleTag(tag: string) {
-    setTagFilter((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
-    );
   }
 
   function openEdit(task: Task) {
@@ -160,37 +169,89 @@ export function TaskBoard() {
             />
           </div>
 
-          {/* Tag filter — multi-select chips */}
-          <div className="flex flex-wrap items-center gap-1.5">
-            <span className="text-[11px] uppercase tracking-wide text-ink-faint mr-0.5">Tags</span>
-            {allTags.map((tag) => {
-              const active = tagFilter.includes(tag);
-              return (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => toggleTag(tag)}
-                  className={cn(
-                    "rounded-md border px-1.5 py-0.5 font-mono text-[10px] uppercase transition-colors",
-                    active
-                      ? "border-accent/40 bg-accent/15 text-accent-bright shadow-glow-sm"
-                      : "border-slate-700 text-ink-faint hover:border-slate-500 hover:text-slate-300"
-                  )}
-                >
-                  {tag}
-                </button>
-              );
-            })}
-          </div>
-          {tagFilter.length > 0 && (
+          {/* Tag filter — button + popover */}
+          <div className="relative" ref={tagRef}>
             <button
               type="button"
-              onClick={() => setTagFilter([])}
-              className="flex items-center gap-1 rounded-md border border-slate-700 px-1.5 py-0.5 text-[10px] text-ink-muted transition-colors hover:border-rose-400/40 hover:text-rose-300"
+              onClick={() => {
+                setTagDraft([...tagFilter]);
+                setTagPopoverOpen((v) => !v);
+              }}
+              className={cn(
+                "input-dark flex !w-auto items-center gap-1.5",
+                tagFilter.length > 0 && "border-accent/40 text-accent-bright"
+              )}
             >
-              <X size={10} /> clear
+              <Filter size={13} />
+              Tags
+              {tagFilter.length > 0 && (
+                <span className="rounded-full bg-accent/20 px-1.5 py-0.5 text-[10px] font-bold leading-none text-accent-bright">
+                  {tagFilter.length}
+                </span>
+              )}
             </button>
-          )}
+
+            {tagPopoverOpen && (
+              <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border border-slate-700 bg-surface-raised p-3 shadow-xl">
+                <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-ink-faint">
+                  Filter by tags
+                </p>
+                <div className="max-h-48 space-y-1 overflow-y-auto pr-1">
+                  {allTags.length === 0 && (
+                    <p className="py-2 text-center text-xs text-ink-muted">No tags yet</p>
+                  )}
+                  {allTags.map((tag) => {
+                    const checked = tagDraft.includes(tag);
+                    return (
+                      <label
+                        key={tag}
+                        onClick={() =>
+                          setTagDraft((prev) =>
+                            prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+                          )
+                        }
+                        className="flex cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-xs transition-colors hover:bg-slate-800"
+                      >
+                        <span
+                          className={cn(
+                            "flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors",
+                            checked
+                              ? "border-accent bg-accent/20 text-accent-bright"
+                              : "border-slate-600 bg-transparent text-transparent"
+                          )}
+                        >
+                          {checked && <span className="text-[10px]">✓</span>}
+                        </span>
+                        <span className="font-mono uppercase text-slate-300">{tag}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                <div className="mt-3 flex items-center gap-2 border-t border-slate-700 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTagDraft([...tagFilter]);
+                      setTagPopoverOpen(false);
+                    }}
+                    className="flex-1 rounded-lg border border-slate-700 py-1.5 text-[11px] text-ink-muted transition-colors hover:text-white"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTagFilter([...tagDraft]);
+                      setTagPopoverOpen(false);
+                    }}
+                    className="flex-1 rounded-lg border border-accent/30 bg-accent/10 py-1.5 text-[11px] font-medium text-accent-bright transition-colors hover:bg-accent/20"
+                  >
+                    Filter
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Difficulty filter */}
           <select
