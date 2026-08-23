@@ -10,11 +10,15 @@ services:
     plan: free
     region: oregon
     branch: main
-    buildCommand: npm install && npx prisma generate --schema=prisma/schema.prisma && npm run build -w client
+    # --include=dev keeps tooling (prisma CLI, vite, tsc) installed even with NODE_ENV=production
+    buildCommand: npm install --include=dev --no-audit --no-fund && npx prisma generate --schema=prisma/schema.prisma && npm run build -w client
     startCommand: npm run start
     healthCheckPath: /api/health
     autoDeploy: true
     envVars:
+      # Pin the Node runtime for reproducible builds
+      - key: NODE_VERSION
+        value: 22
       - key: DATABASE_URL
         fromDatabase:
           name: devtask-db
