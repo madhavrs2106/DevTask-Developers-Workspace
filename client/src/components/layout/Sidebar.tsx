@@ -144,7 +144,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             </span>
           </NavLink>
           <p className="mt-3 px-3 font-mono text-[10px] uppercase tracking-widest text-slate-600">
-            v1.0.0 · midnight neon
+            DevTask v1.0
           </p>
         </div>
       </aside>
