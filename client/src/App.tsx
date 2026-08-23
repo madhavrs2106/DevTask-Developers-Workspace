@@ -10,6 +10,7 @@ import { TaskList } from "./pages/TaskList";
 import { Projects } from "./pages/Projects";
 import { Courses } from "./pages/Courses";
 import { SearchPage } from "./pages/SearchPage";
+import { UserProfile } from "./pages/UserProfile";
 import { Profile } from "./pages/Profile";
 import { Settings } from "./pages/Settings";
 import { useAuth } from "./context/AuthContext";
@@ -52,6 +53,7 @@ export default function App() {
           <Route path="projects" element={<Projects />} />
           <Route path="courses" element={<Courses />} />
           <Route path="search" element={<SearchPage />} />
+          <Route path="u/:username" element={<UserProfile />} />
           <Route path="profile" element={<Profile />} />
           <Route path="settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />

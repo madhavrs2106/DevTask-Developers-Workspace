@@ -127,3 +127,33 @@ export const searchUsers = asyncHandler(async (req, res) => {
 
   res.json({ users });
 });
+
+/** GET /api/users/:username — public profile with skills. */
+export const getUserProfile = asyncHandler(async (req, res) => {
+  const { username } = req.params;
+
+  const user = await prisma.user.findUnique({
+    where: { username },
+    select: {
+      ...publicUserSelect,
+      skills: { orderBy: [{ level: "desc" }, { name: "asc" }] },
+      _count: { select: { tasks: true } },
+    },
+  });
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found." });
+  }
+
+  const tasksDone = await prisma.task.count({
+    where: { userId: user.id, status: "DONE" },
+  });
+
+  const coursesCompleted = await prisma.course.count({
+    where: { userId: user.id, status: "COMPLETED" },
+  });
+
+  res.json({
+    user: { ...user, tasksDone, coursesCompleted },
+  });
+});

@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { Search as SearchIcon, Users } from "lucide-react";
 import { useSearchUsers } from "../hooks/useQueries";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -58,9 +59,10 @@ export function SearchPage() {
             {users.length} developer{users.length !== 1 && "s"} found
           </p>
           {users.map((u) => (
-            <div
+            <Link
               key={u.id}
-              className="flex items-center gap-4 rounded-xl border border-slate-800 bg-surface-raised p-4 transition-colors hover:border-slate-700"
+              to={`/u/${u.username}`}
+              className="flex items-center gap-4 rounded-xl border border-slate-800 bg-surface-raised p-4 transition-colors hover:border-slate-700 hover:bg-surface-raised/80"
             >
               <span
                 className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full text-sm font-bold text-slate-950"
@@ -94,7 +96,7 @@ export function SearchPage() {
               <span className="shrink-0 rounded-md border border-slate-700 bg-slate-800/60 px-2 py-0.5 text-[10px] font-medium uppercase text-ink-faint">
                 {u.role === "DEVELOPER" ? "Dev" : "Learner"}
               </span>
-            </div>
+            </Link>
           ))}
         </div>
       )}
