@@ -3,7 +3,7 @@ import { Loader2, Plus, Trash2, X } from "lucide-react";
 import { apiErrorMessage } from "../../lib/api";
 import { cn } from "../../lib/utils";
 import { DIFFICULTIES, DIFFICULTY_META, TASK_STATUSES, TECH_TAGS } from "../../lib/constants";
-import { useCourses, useCreateTask, useDeleteTask, useProjects, useUpdateTask } from "../../hooks/useQueries";
+import { useCourses, useCreateTask, useDeleteTask, useMe, useProjects, useUpdateTask } from "../../hooks/useQueries";
 import { Button } from "../ui/Button";
 import { Modal } from "../ui/Modal";
 import type { Difficulty, Task, TaskInput, TaskStatus } from "../../types";
@@ -30,7 +30,8 @@ interface FormState {
   courseId: string;
 }
 
-const SNIPPET_LANGS = [
+/** Common languages shown when the user has no skill data yet. */
+const FALLBACK_LANGS = [
   "typescript",
   "javascript",
   "python",
@@ -42,6 +43,9 @@ const SNIPPET_LANGS = [
   "html",
   "css",
 ];
+
+/** Heuristic: skill names that look like programming languages / tech. */
+const LANG_SKILL_RE = /^(typescript|ts|javascript|js|python|py|go|golang|rust|java|c\+\+|c#|csharp|ruby|php|swift|kotlin|scala|r|dart|lua|perl|haskell|elixir|sql|graphql|html|css|scss|sass|tailwind|bash|shell|zsh|dockerfile|yaml|json|toml|markdown|svelte|vue|react|next|nuxt)$/i;
 
 function emptyForm(defaultStatus: TaskStatus): FormState {
   return {
@@ -69,9 +73,18 @@ export function TaskModal({ open, onClose, task, defaultStatus = "BACKLOG" }: Ta
 
   const { data: projects = [] } = useProjects();
   const { data: courses = [] } = useCourses();
+  const { data: meData } = useMe();
   const createTask = useCreateTask();
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
+
+  /** Languages derived from the user's tracked skills, falling back to defaults. */
+  const snippetLangs = useMemo(() => {
+    const skillLangs = (meData?.skills ?? [])
+      .map((s) => s.name.trim().toLowerCase())
+      .filter((name) => LANG_SKILL_RE.test(name));
+    return skillLangs.length > 0 ? skillLangs : FALLBACK_LANGS;
+  }, [meData?.skills]);
 
   // Hydrate form whenever the modal opens for a different target
   useEffect(() => {
@@ -305,13 +318,13 @@ export function TaskModal({ open, onClose, task, defaultStatus = "BACKLOG" }: Ta
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="task-project" className="label-dark">
-              Project
+              Project <span className="normal-case text-ink-faint">(optional)</span>
             </label>
             <select
               id="task-project"
               className="input-dark"
               value={form.projectId}
-              onChange={(e) => patch({ projectId: e.target.value, courseId: "" })}
+              onChange={(e) => patch({ projectId: e.target.value })}
             >
               <option value="">— none —</option>
               {projects.map((p) => (
@@ -323,13 +336,13 @@ export function TaskModal({ open, onClose, task, defaultStatus = "BACKLOG" }: Ta
           </div>
           <div>
             <label htmlFor="task-course" className="label-dark">
-              Course / Roadmap
+              Course <span className="normal-case text-ink-faint">(optional)</span>
             </label>
             <select
               id="task-course"
               className="input-dark"
               value={form.courseId}
-              onChange={(e) => patch({ courseId: e.target.value, projectId: "" })}
+              onChange={(e) => patch({ courseId: e.target.value })}
             >
               <option value="">— none —</option>
               {courses.map((c) => (
@@ -340,6 +353,9 @@ export function TaskModal({ open, onClose, task, defaultStatus = "BACKLOG" }: Ta
             </select>
           </div>
         </div>
+        <p className="text-[11px] text-ink-faint">
+          Link tasks to a project, a course, or both — so you know which course each project task belongs to.
+        </p>
 
         {/* Due date + hours */}
         <div className="grid grid-cols-2 gap-4">
@@ -464,7 +480,7 @@ export function TaskModal({ open, onClose, task, defaultStatus = "BACKLOG" }: Ta
                 onChange={(e) => patch({ snippetLang: e.target.value })}
               >
                 <option value="">language…</option>
-                {SNIPPET_LANGS.map((l) => (
+                {snippetLangs.map((l) => (
                   <option key={l} value={l}>
                     {l}
                   </option>
