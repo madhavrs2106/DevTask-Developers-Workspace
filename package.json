@@ -1,0 +1,45 @@
+{
+  "name": "devtask",
+  "version": "1.0.0",
+  "private": true,
+  "description": "DevTask — productivity & learning tracker for software developers",
+  "workspaces": [
+    "client",
+    "server"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "setup": "npm install",
+    "dev": "concurrently -n api,web -c cyan,magenta \"npm run dev -w server\" \"npm run dev -w client\"",
+    "start": "npm run start -w server",
+    "dev:server": "npm run dev -w server",
+    "dev:client": "npm run dev -w client",
+    "build": "npm run build -w client",
+    "db:migrate": "npm run db:migrate -w server",
+    "db:seed": "node prisma/seed.mjs",
+    "db:studio": "npm run db:studio -w server",
+    "db:sqlite": "prisma generate --schema=prisma/schema.sqlite.prisma && prisma db push --schema=prisma/schema.sqlite.prisma",
+    "package": "node scripts/package.mjs"
+  },
+  "keywords": [
+    "developer-productivity",
+    "task-manager",
+    "kanban",
+    "react",
+    "express",
+    "prisma"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "archiver": "^7.0.1",
+    "concurrently": "^9.1.0"
+  },
+  "allowScripts": {
+    "@prisma/client@5.22.0": true,
+    "@prisma/engines@5.22.0": true,
+    "esbuild@0.21.5": true,
+    "prisma@5.22.0": true
+  }
+}

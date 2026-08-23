@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Builds
+dist/
+build/
+client/dist/
+server/dist/
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Packaged archive
+DevTask.zip
+
+# Prisma generated engines cache
+prisma/*.db

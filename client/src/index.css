@@ -1,0 +1,85 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Accent palette — overwritten at runtime from the user's avatarColor (lib/accent.ts).
+   Format: space-separated RGB channels so Tailwind tokens can apply opacity. */
+:root {
+  --accent-rgb: 6 182 212;        /* brand cyan  #06B6D4 */
+  --accent-bright-rgb: 103 232 249; /* cyan-300-ish */
+  --accent-soft-rgb: 165 243 252;   /* cyan-200-ish */
+  --accent-2-rgb: 20 184 166;       /* gradient partner #14B8A6 */
+}
+
+@layer base {
+  html {
+    @apply antialiased;
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    @apply bg-midnight font-sans text-slate-200;
+  }
+
+  ::selection {
+    background: rgb(var(--accent-rgb) / 0.35);
+    color: #f8fafc;
+  }
+
+  /* Slim neon scrollbars */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #1e293b transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: #1e293b;
+    border-radius: 8px;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(var(--accent-rgb) / 0.45);
+  }
+}
+
+@layer components {
+  /* Standard Midnight Neon card */
+  .card {
+    @apply rounded-xl border border-slate-800 bg-surface shadow-card;
+  }
+
+  .card-interactive {
+    @apply transition-all duration-200 hover:border-accent/40 hover:shadow-glow-sm;
+  }
+
+  .input-dark {
+    @apply w-full rounded-xl border border-slate-800 bg-surface-raised px-3 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition-colors focus:border-accent/60 focus:ring-1 focus:ring-accent/40;
+  }
+
+  .label-dark {
+    @apply mb-1.5 block text-[11px] font-semibold uppercase tracking-wider text-ink-muted;
+  }
+
+  .metric-mono {
+    @apply font-mono tabular-nums tracking-tight;
+  }
+}
+
+@layer utilities {
+  .text-gradient-neon {
+    @apply bg-neon-gradient bg-clip-text text-transparent;
+  }
+
+  .glow-text {
+    text-shadow:
+      0 0 18px rgb(var(--accent-rgb) / 0.55),
+      0 0 42px rgb(var(--accent-rgb) / 0.25);
+  }
+}

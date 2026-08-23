@@ -1,0 +1,33 @@
+# Render Blueprint — deploys DevTask as a single Node service + managed Postgres.
+# Docs: https://render.com/docs/blueprint-spec
+#
+# One-click: push this repo to GitHub → Render Dashboard → New → Blueprint.
+
+services:
+  - type: web
+    name: devtask
+    runtime: node
+    plan: free
+    region: oregon
+    branch: main
+    buildCommand: npm install && npx prisma generate --schema=prisma/schema.prisma && npm run build -w client
+    startCommand: npm run start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: devtask-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: NODE_ENV
+        value: production
+      # Seeds demo data on first boot only (empty database). Set to "false" to disable.
+      - key: AUTO_SEED
+        value: "true"
+
+databases:
+  - name: devtask-db
+    plan: free
+    region: oregon

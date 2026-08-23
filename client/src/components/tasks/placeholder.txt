@@ -1,0 +1,1 @@
+import type { DraggableAttributes } from "@dnd-kit/core";
