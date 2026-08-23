@@ -25,8 +25,6 @@ const NAV_ITEMS = [
   { to: "/tasks", label: "All Tasks", icon: ListChecks },
   { to: "/projects", label: "Projects", icon: FolderGit2 },
   { to: "/courses", label: "Courses", icon: GraduationCap },
-  { to: "/profile", label: "Profile", icon: UserRound },
-  { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
 export function Sidebar({ open, onClose }: SidebarProps) {
@@ -110,10 +108,78 @@ export function Sidebar({ open, onClose }: SidebarProps) {
           ))}
         </nav>
 
-        {/* Profile mini-card */}
-        <div className="border-t border-slate-800/70 p-4">
+        {/* Bottom: Profile + Settings */}
+        <nav className="mt-auto space-y-1 border-t border-slate-800/70 px-3 py-3">
+          <NavLink
+            to="/profile"
+            onClick={onClose}
+            className={({ isActive }) =>
+              cn(
+                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                isActive
+                  ? "bg-accent/10 text-white"
+                  : "text-ink-muted hover:bg-white/5 hover:text-slate-100"
+              )
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <span
+                  aria-hidden
+                  className={cn(
+                    "absolute -left-3 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-full bg-neon-gradient transition-all",
+                    isActive ? "shadow-glow opacity-100" : "opacity-0"
+                  )}
+                />
+                <UserRound
+                  size={18}
+                  className={cn(
+                    "transition-colors",
+                    isActive ? "text-accent-bright drop-shadow-[0_0_6px_rgb(var(--accent-rgb)/0.8)]" : ""
+                  )}
+                />
+                <span>Profile</span>
+              </>
+            )}
+          </NavLink>
           <NavLink
             to="/settings"
+            onClick={onClose}
+            className={({ isActive }) =>
+              cn(
+                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                isActive
+                  ? "bg-accent/10 text-white"
+                  : "text-ink-muted hover:bg-white/5 hover:text-slate-100"
+              )
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <span
+                  aria-hidden
+                  className={cn(
+                    "absolute -left-3 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-full bg-neon-gradient transition-all",
+                    isActive ? "shadow-glow opacity-100" : "opacity-0"
+                  )}
+                />
+                <Settings
+                  size={18}
+                  className={cn(
+                    "transition-colors",
+                    isActive ? "text-accent-bright drop-shadow-[0_0_6px_rgb(var(--accent-rgb)/0.8)]" : ""
+                  )}
+                />
+                <span>Settings</span>
+              </>
+            )}
+          </NavLink>
+        </nav>
+
+        {/* Profile mini-card */}
+        <div className="border-t border-slate-800/70 px-4 pb-3 pt-2">
+          <NavLink
+            to="/profile"
             onClick={onClose}
             className={({ isActive }) =>
               cn(
@@ -153,7 +219,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               </span>
             </span>
           </NavLink>
-          <p className="mt-3 px-3 font-mono text-[10px] uppercase tracking-widest text-slate-600">
+          <p className="mt-2 px-3 font-mono text-[10px] uppercase tracking-widest text-slate-600">
             DevTask v1.0
           </p>
         </div>
