@@ -179,13 +179,13 @@ export function UserProfile() {
                 )}
                 {profile.isFollowing ? "Unfollow" : "Follow"}
               </Button>
-              <span className="flex items-center gap-3 text-[11px] text-ink-faint">
-                <span className="inline-flex items-center gap-1">
-                  <Users size={12} className="text-accent-bright" />
-                  <strong className="text-white">{profile.followersCount}</strong> followers
+              <span className="flex items-center gap-4 text-xs text-ink-faint">
+                <span className="inline-flex items-center gap-1.5">
+                  <Users size={14} className="text-accent-bright" />
+                  <strong className="text-sm text-white">{profile.followersCount}</strong> followers
                 </span>
-                <span className="inline-flex items-center gap-1">
-                  <strong className="text-white">{profile.followingCount}</strong> following
+                <span className="inline-flex items-center gap-1.5">
+                  <strong className="text-sm text-white">{profile.followingCount}</strong> following
                 </span>
               </span>
             </div>
