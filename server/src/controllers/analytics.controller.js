@@ -18,7 +18,6 @@ export const getAnalytics = asyncHandler(async (req, res) => {
   const userId = req.user.id;
   const today = startOfDay(new Date());
   const weekAgo = new Date(today.getTime() - 6 * DAY);
-  const twoWeeksAgo = new Date(today.getTime() - 13 * DAY);
   const sevenDaysAgo = new Date(today.getTime() - 7 * DAY);
   const fourteenDaysAgo = new Date(today.getTime() - 14 * DAY);
 
@@ -31,11 +30,11 @@ export const getAnalytics = asyncHandler(async (req, res) => {
     doneLastWeek,
     completedCourses,
     totalCourses,
-    sessions,
+    tasksWithHours,
     skills,
     deadlines,
   ] = await Promise.all([
-    prisma.codingSession.aggregate({ where: { userId }, _sum: { hours: true } }),
+    prisma.task.aggregate({ where: { userId }, _sum: { actualHours: true } }),
     prisma.task.count({ where: { userId, status: { not: "DONE" } } }),
     prisma.task.count({ where: { userId } }),
     prisma.task.count({ where: { userId, status: "DONE" } }),
@@ -51,9 +50,9 @@ export const getAnalytics = asyncHandler(async (req, res) => {
     }),
     prisma.course.count({ where: { userId, status: "COMPLETED" } }),
     prisma.course.count({ where: { userId } }),
-    prisma.codingSession.findMany({
-      where: { userId, date: { gte: twoWeeksAgo } },
-      select: { date: true, hours: true },
+    prisma.task.findMany({
+      where: { userId, actualHours: { gt: 0 } },
+      select: { completedAt: true, actualHours: true },
     }),
     prisma.skillProgress.findMany({
       where: { userId },
@@ -71,11 +70,13 @@ export const getAnalytics = asyncHandler(async (req, res) => {
     }),
   ]);
 
-  /* Weekly coding hours — last 7 days */
+  /* Weekly coding hours — last 7 days from task actualHours */
   const byDay = new Map();
-  for (const s of sessions) {
-    const key = startOfDay(s.date).getTime();
-    byDay.set(key, (byDay.get(key) ?? 0) + s.hours);
+  for (const t of tasksWithHours) {
+    const at = t.completedAt ? startOfDay(t.completedAt).getTime() : null;
+    if (at !== null) {
+      byDay.set(at, (byDay.get(at) ?? 0) + (t.actualHours ?? 0));
+    }
   }
   const weeklyCodingHours = Array.from({ length: 7 }, (_, i) => {
     const day = new Date(weekAgo.getTime() + i * DAY);
@@ -116,7 +117,7 @@ export const getAnalytics = asyncHandler(async (req, res) => {
 
   res.json({
     stats: {
-      totalCodingHours: Math.round((hoursAgg._sum.hours ?? 0) * 10) / 10,
+      totalCodingHours: Math.round((hoursAgg._sum.actualHours ?? 0) * 10) / 10,
       activeTasks,
       completionRate: totalTasks === 0 ? 0 : Math.round((doneTotal / totalTasks) * 100),
       velocityThisWeek: doneThisWeek,
