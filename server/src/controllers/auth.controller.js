@@ -101,10 +101,14 @@ export const login = asyncHandler(async (req, res) => {
 
 /** GET /api/auth/me */
 export const me = asyncHandler(async (req, res) => {
-  const skills = await prisma.skillProgress.findMany({
-    where: { userId: req.user.id },
-    orderBy: [{ level: "desc" }, { name: "asc" }],
-  });
+  const [skills, followersCount, followingCount] = await Promise.all([
+    prisma.skillProgress.findMany({
+      where: { userId: req.user.id },
+      orderBy: [{ level: "desc" }, { name: "asc" }],
+    }),
+    prisma.follow.count({ where: { followingId: req.user.id } }),
+    prisma.follow.count({ where: { followerId: req.user.id } }),
+  ]);
 
-  res.json({ user: { ...req.user, skills } });
+  res.json({ user: { ...req.user, skills, followersCount, followingCount } });
 });
