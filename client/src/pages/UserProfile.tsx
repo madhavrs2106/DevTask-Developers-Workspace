@@ -156,14 +156,10 @@ export function UserProfile() {
                 <GraduationCap size={13} className="text-accent-bright" />
                 {completed.length} courses completed
               </span>
-              <span className="inline-flex items-center gap-1.5">
-                <Users size={13} className="text-accent-bright" />
-                {profile.followersCount} followers · {profile.followingCount} following
-              </span>
             </div>
 
-            {/* Follow button */}
-            <div className="mt-5">
+            {/* Follow button + followers/following */}
+            <div className="mt-5 flex items-center gap-4">
               <Button
                 onClick={() =>
                   profile.isFollowing
@@ -183,6 +179,15 @@ export function UserProfile() {
                 )}
                 {profile.isFollowing ? "Unfollow" : "Follow"}
               </Button>
+              <span className="flex items-center gap-3 text-[11px] text-ink-faint">
+                <span className="inline-flex items-center gap-1">
+                  <Users size={12} className="text-accent-bright" />
+                  <strong className="text-white">{profile.followersCount}</strong> followers
+                </span>
+                <span className="inline-flex items-center gap-1">
+                  <strong className="text-white">{profile.followingCount}</strong> following
+                </span>
+              </span>
             </div>
           </div>
         </div>
