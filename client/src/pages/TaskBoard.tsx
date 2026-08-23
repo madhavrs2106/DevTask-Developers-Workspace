@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { KanbanSquare, LayoutList, ListTodo, Plus, Search, Square } from "lucide-react";
+import { KanbanSquare, LayoutList, ListTodo, Plus, Search, Square, X } from "lucide-react";
 import { cn } from "../lib/utils";
 import { DIFFICULTIES, DIFFICULTY_META, TASK_STATUSES } from "../lib/constants";
 import { useReorderTasks, useTasks, useUpdateTask, type ReorderUpdate } from "../hooks/useQueries";
@@ -28,7 +28,7 @@ export function TaskBoard() {
 
   /* Filters */
   const [query, setQuery] = useState("");
-  const [tagFilter, setTagFilter] = useState("");
+  const [tagFilter, setTagFilter] = useState<string[]>([]);
   const [difficultyFilter, setDifficultyFilter] = useState<"" | Difficulty>("");
 
   /* ?new=1 (header CTA) opens the create dialog */
@@ -53,7 +53,7 @@ export function TaskBoard() {
         (!q ||
           t.title.toLowerCase().includes(q) ||
           (t.description ?? "").toLowerCase().includes(q)) &&
-        (!tagFilter || t.tags.includes(tagFilter)) &&
+        (tagFilter.length === 0 || tagFilter.every((tag) => t.tags.includes(tag))) &&
         (!difficultyFilter || t.difficulty === difficultyFilter)
     );
   }, [tasks, query, tagFilter, difficultyFilter]);
@@ -69,6 +69,12 @@ export function TaskBoard() {
     setEditingTask(null);
     setDefaultStatus(status);
     setModalOpen(true);
+  }
+
+  function toggleTag(tag: string) {
+    setTagFilter((prev) =>
+      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+    );
   }
 
   function openEdit(task: Task) {
@@ -154,20 +160,37 @@ export function TaskBoard() {
             />
           </div>
 
-          {/* Tag filter */}
-          <select
-            value={tagFilter}
-            onChange={(e) => setTagFilter(e.target.value)}
-            aria-label="Filter by tag"
-            className="input-dark !w-auto min-w-[120px]"
-          >
-            <option value="">All stacks</option>
-            {allTags.map((tag) => (
-              <option key={tag} value={tag}>
-                {tag}
-              </option>
-            ))}
-          </select>
+          {/* Tag filter — multi-select chips */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[11px] uppercase tracking-wide text-ink-faint mr-0.5">Tags</span>
+            {allTags.map((tag) => {
+              const active = tagFilter.includes(tag);
+              return (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => toggleTag(tag)}
+                  className={cn(
+                    "rounded-md border px-1.5 py-0.5 font-mono text-[10px] uppercase transition-colors",
+                    active
+                      ? "border-accent/40 bg-accent/15 text-accent-bright shadow-glow-sm"
+                      : "border-slate-700 text-ink-faint hover:border-slate-500 hover:text-slate-300"
+                  )}
+                >
+                  {tag}
+                </button>
+              );
+            })}
+          </div>
+          {tagFilter.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setTagFilter([])}
+              className="flex items-center gap-1 rounded-md border border-slate-700 px-1.5 py-0.5 text-[10px] text-ink-muted transition-colors hover:border-rose-400/40 hover:text-rose-300"
+            >
+              <X size={10} /> clear
+            </button>
+          )}
 
           {/* Difficulty filter */}
           <select
