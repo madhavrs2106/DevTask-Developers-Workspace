@@ -35,6 +35,20 @@ model User {
   courses        Course[]
   skills         SkillProgress[]
   codingSessions CodingSession[]
+  following      Follow[] @relation("follower")
+  followers      Follow[] @relation("following")
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("follower", fields: [followerId], references: [id])
+  following User @relation("following", fields: [followingId], references: [id])
+
+  @@unique([followerId, followingId])
 }
 
 model Project {

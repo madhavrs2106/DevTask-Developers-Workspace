@@ -8,16 +8,22 @@ import {
   Clock,
   GraduationCap,
   Layers,
+  Loader2,
+  UserPlus,
+  UserMinus,
   Sparkles,
   Trophy,
+  Users,
 } from "lucide-react";
 import { api } from "../lib/api";
 import { ROLE_META } from "../lib/constants";
 import { cn, formatDate } from "../lib/utils";
+import { useFollowUser, useUnfollowUser } from "../hooks/useQueries";
 import type { Course, SkillProgress, Task } from "../types";
 import { ProgressRing } from "../components/ui/ProgressRing";
 import { EmptyState } from "../components/ui/EmptyState";
 import { FullPageLoader } from "../components/ui/Spinner";
+import { Button } from "../components/ui/Button";
 
 interface PublicProfile {
   id: string;
@@ -35,10 +41,15 @@ interface PublicProfile {
   totalCodingHours: number;
   courses: Course[];
   tasks: Task[];
+  followersCount: number;
+  followingCount: number;
+  isFollowing: boolean;
 }
 
 export function UserProfile() {
   const { username } = useParams<{ username: string }>();
+  const followMutation = useFollowUser();
+  const unfollowMutation = useUnfollowUser();
 
   const { data, isLoading, error } = useQuery<{ user: PublicProfile }>({
     queryKey: ["userProfile", username],
@@ -132,7 +143,7 @@ export function UserProfile() {
               )}
             </p>
 
-            <div className="mt-4 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11px] text-ink-faint sm:justify-start">
+            <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11px] text-ink-faint sm:justify-start">
               <span className="inline-flex items-center gap-1.5">
                 <CalendarDays size={13} className="text-accent-bright" />
                 Joined {formatDate(profile.createdAt)}
@@ -145,6 +156,33 @@ export function UserProfile() {
                 <GraduationCap size={13} className="text-accent-bright" />
                 {completed.length} courses completed
               </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Users size={13} className="text-accent-bright" />
+                {profile.followersCount} followers · {profile.followingCount} following
+              </span>
+            </div>
+
+            {/* Follow button */}
+            <div className="mt-5">
+              <Button
+                onClick={() =>
+                  profile.isFollowing
+                    ? unfollowMutation.mutate(profile.username)
+                    : followMutation.mutate(profile.username)
+                }
+                disabled={followMutation.isPending || unfollowMutation.isPending}
+                variant={profile.isFollowing ? "outline" : "primary"}
+                className="gap-1.5"
+              >
+                {followMutation.isPending || unfollowMutation.isPending ? (
+                  <Loader2 size={14} className="animate-spin" />
+                ) : profile.isFollowing ? (
+                  <UserMinus size={14} />
+                ) : (
+                  <UserPlus size={14} />
+                )}
+                {profile.isFollowing ? "Unfollow" : "Follow"}
+              </Button>
             </div>
           </div>
         </div>

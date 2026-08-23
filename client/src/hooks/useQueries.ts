@@ -244,3 +244,27 @@ export function useSearchUsers(query: string) {
     enabled: query.trim().length >= 2,
   });
 }
+
+/* ── Follows ────────────────────────────────────────────────── */
+
+export function useFollowUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (username: string) =>
+      (await api.post<{ following: boolean }>(`/follows/${username}`)).data,
+    onSuccess: (_data, username) => {
+      void queryClient.invalidateQueries({ queryKey: ["userProfile", username] });
+    },
+  });
+}
+
+export function useUnfollowUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (username: string) =>
+      (await api.delete<{ following: boolean }>(`/follows/${username}`)).data,
+    onSuccess: (_data, username) => {
+      void queryClient.invalidateQueries({ queryKey: ["userProfile", username] });
+    },
+  });
+}

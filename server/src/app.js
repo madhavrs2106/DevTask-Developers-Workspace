@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { env } from "./config/env.js";
 import authRoutes from "./routes/auth.routes.js";
 import userRoutes from "./routes/user.routes.js";
+import followRoutes from "./routes/follow.routes.js";
 import projectRoutes from "./routes/project.routes.js";
 import courseRoutes from "./routes/course.routes.js";
 import taskRoutes from "./routes/task.routes.js";
@@ -28,6 +29,7 @@ app.get("/api/health", (_req, res) =>
 
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/follows", followRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/tasks", taskRoutes);

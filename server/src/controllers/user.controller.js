@@ -128,7 +128,7 @@ export const searchUsers = asyncHandler(async (req, res) => {
   res.json({ users });
 });
 
-/** GET /api/users/:username — public profile with skills, courses, tasks. */
+/** GET /api/users/:username — public profile with skills, courses, tasks, follows. */
 export const getUserProfile = asyncHandler(async (req, res) => {
   const { username } = req.params;
 
@@ -145,27 +145,26 @@ export const getUserProfile = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: "User not found." });
   }
 
-  const [tasksDone, totalTasks, courses, tasks] = await Promise.all([
-    prisma.task.count({ where: { userId: user.id, status: "DONE" } }),
-    prisma.task.count({ where: { userId: user.id } }),
-    prisma.course.findMany({
-      where: { userId: user.id },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.task.findMany({
-      where: { userId: user.id },
-      select: {
-        id: true,
-        title: true,
-        status: true,
-        difficulty: true,
-        tags: true,
-        dueDate: true,
-        actualHours: true,
-        completedAt: true,
-      },
-    }),
-  ]);
+  const [tasksDone, totalTasks, courses, tasks, followersCount, followingCount, isFollowing] =
+    await Promise.all([
+      prisma.task.count({ where: { userId: user.id, status: "DONE" } }),
+      prisma.task.count({ where: { userId: user.id } }),
+      prisma.course.findMany({ where: { userId: user.id }, orderBy: { createdAt: "desc" } }),
+      prisma.task.findMany({
+        where: { userId: user.id },
+        select: {
+          id: true, title: true, status: true, difficulty: true,
+          tags: true, dueDate: true, actualHours: true, completedAt: true,
+        },
+      }),
+      prisma.follow.count({ where: { followingId: user.id } }),
+      prisma.follow.count({ where: { followerId: user.id } }),
+      req.user.id !== user.id
+        ? prisma.follow.findUnique({
+            where: { followerId_followingId: { followerId: req.user.id, followingId: user.id } },
+          }).then(Boolean)
+        : false,
+    ]);
 
   const hoursAgg = await prisma.task.aggregate({
     where: { userId: user.id },
@@ -181,6 +180,9 @@ export const getUserProfile = asyncHandler(async (req, res) => {
       totalCodingHours,
       courses,
       tasks,
+      followersCount,
+      followingCount,
+      isFollowing,
     },
   });
 });
