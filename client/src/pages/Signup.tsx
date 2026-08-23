@@ -29,6 +29,7 @@ const ROLE_OPTIONS: {
 export function Signup() {
   const { register } = useAuth();
   const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<Role>("DEVELOPER");
@@ -46,7 +47,7 @@ export function Signup() {
 
     setPending(true);
     try {
-      await register({ name, email, password, role });
+      await register({ name, username, email, password, role });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to create account");
       setPending(false);
@@ -101,6 +102,25 @@ export function Signup() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
+            </div>
+            <div>
+              <label htmlFor="signup-username" className="label-dark">
+                Username
+              </label>
+              <input
+                id="signup-username"
+                required
+                minLength={3}
+                maxLength={30}
+                autoComplete="username"
+                placeholder="ada_dev"
+                className="input-dark"
+                value={username}
+                onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ""))}
+              />
+              <p className="mt-1.5 text-[11px] text-ink-faint">
+                Letters, numbers and underscores only — this is your public handle
+              </p>
             </div>
             <div>
               <label htmlFor="signup-email" className="label-dark">

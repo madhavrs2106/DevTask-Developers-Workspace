@@ -234,3 +234,13 @@ export function useReplaceSkills(): UseMutationResult<SkillProgress[], Error, Sk
       (await api.put<{ skills: SkillProgress[] }>("/users/me/skills", { skills })).data.skills,
   });
 }
+
+/* ── User search ─────────────────────────────────────────────── */
+
+export function useSearchUsers(query: string) {
+  return useQuery<User[]>({
+    queryKey: ["searchUsers", query],
+    queryFn: async () => (await api.get<{ users: User[] }>(`/users/search?q=${encodeURIComponent(query)}`)).data.users,
+    enabled: query.trim().length >= 2,
+  });
+}

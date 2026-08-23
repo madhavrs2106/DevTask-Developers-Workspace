@@ -96,8 +96,7 @@ export function Profile() {
                 {ROLE_META[profile.role].label}
               </span>
             </div>
-
-            <p className="mt-1 font-mono text-xs text-ink-faint">{profile.email}</p>
+            <p className="mt-1 font-mono text-sm text-accent-bright/70">@{profile.username}</p>
 
             <p className="mt-3 max-w-xl text-sm leading-relaxed text-slate-300">
               {profile.bio?.trim() || (

@@ -22,6 +22,12 @@ const emailSchema = z
 
 const registerSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters").max(60),
+  username: z
+    .string()
+    .trim()
+    .min(3, "Username must be at least 3 characters")
+    .max(30, "Username must be at most 30 characters")
+    .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers and underscores"),
   email: emailSchema,
   password: z
     .string()
@@ -50,9 +56,14 @@ const DEFAULT_SKILLS = {
 export const register = asyncHandler(async (req, res) => {
   const data = parse(registerSchema, req.body);
 
-  const existing = await prisma.user.findUnique({ where: { email: data.email } });
-  if (existing) {
+  const existingEmail = await prisma.user.findUnique({ where: { email: data.email } });
+  if (existingEmail) {
     return res.status(409).json({ message: "An account with this email already exists." });
+  }
+
+  const existingUsername = await prisma.user.findUnique({ where: { username: data.username } });
+  if (existingUsername) {
+    return res.status(409).json({ message: "This username is already taken." });
   }
 
   const passwordHash = await bcrypt.hash(data.password, 12);
@@ -60,6 +71,7 @@ export const register = asyncHandler(async (req, res) => {
   const user = await prisma.user.create({
     data: {
       email: data.email,
+      username: data.username,
       passwordHash,
       name: data.name,
       role: data.role,

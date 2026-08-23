@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
-import { toPublicUser } from "../utils/user.js";
+import { publicUserSelect, toPublicUser } from "../utils/user.js";
 import { asyncHandler } from "../utils/httpError.js";
 import { parse } from "../utils/validate.js";
 
@@ -9,6 +9,13 @@ const hexColor = z.string().regex(/^#([0-9a-fA-F]{6})$/, "Must be a hex color li
 const updateMeSchema = z
   .object({
     name: z.string().trim().min(2).max(60).optional(),
+    username: z
+      .string()
+      .trim()
+      .min(3)
+      .max(30)
+      .regex(/^[a-zA-Z0-9_]+$/, "Username can only contain letters, numbers and underscores")
+      .optional(),
     bio: z.string().trim().max(280).nullable().optional(),
     role: z.enum(["DEVELOPER", "LEARNER"]).optional(),
     avatarColor: hexColor.optional(),
@@ -46,6 +53,13 @@ const avatarSchema = z.object({
 /** PUT /api/users/me */
 export const updateMe = asyncHandler(async (req, res) => {
   const data = parse(updateMeSchema, req.body);
+
+  if (data.username) {
+    const existing = await prisma.user.findUnique({ where: { username: data.username } });
+    if (existing && existing.id !== req.user.id) {
+      return res.status(409).json({ message: "This username is already taken." });
+    }
+  }
 
   const user = await prisma.user.update({
     where: { id: req.user.id },
@@ -90,4 +104,26 @@ export const replaceSkills = asyncHandler(async (req, res) => {
   });
 
   res.json({ skills: updated });
+});
+
+/** GET /api/users/search?q= — search users by username or name. */
+export const searchUsers = asyncHandler(async (req, res) => {
+  const q = (req.query.q ?? "").toString().trim();
+
+  if (q.length < 2) {
+    return res.json({ users: [] });
+  }
+
+  const users = await prisma.user.findMany({
+    where: {
+      OR: [
+        { username: { contains: q, mode: "insensitive" } },
+        { name: { contains: q, mode: "insensitive" } },
+      ],
+    },
+    select: publicUserSelect,
+    take: 20,
+  });
+
+  res.json({ users });
 });

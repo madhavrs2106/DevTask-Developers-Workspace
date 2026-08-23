@@ -11,8 +11,8 @@ services:
     region: oregon
     branch: main
     # --include=dev keeps tooling (prisma CLI, vite, tsc) installed even with NODE_ENV=production
-    buildCommand: npm install --include=dev --no-audit --no-fund && npx prisma generate --schema=prisma/schema.prisma && npm run build -w client
-    startCommand: npm run start
+    buildCommand: npm install --include=dev --no-audit --no-fund && npx prisma generate --schema=prisma/schema.prisma && npx prisma migrate deploy --schema=prisma/schema.prisma && npm run build -w client
+    startCommand: node server/src/index.js
     healthCheckPath: /api/health
     autoDeploy: true
     envVars:

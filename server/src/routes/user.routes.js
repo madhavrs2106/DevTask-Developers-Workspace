@@ -1,8 +1,10 @@
 import { Router } from "express";
-import { updateMe, replaceSkills, updateAvatar } from "../controllers/user.controller.js";
+import { updateMe, replaceSkills, updateAvatar, searchUsers } from "../controllers/user.controller.js";
 import { requireAuth } from "../middleware/auth.js";
 
 const router = Router();
+
+router.get("/search", requireAuth, searchUsers);
 
 router.use(requireAuth);
 router.put("/me", updateMe);

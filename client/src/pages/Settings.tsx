@@ -19,6 +19,7 @@ export function Settings() {
   const { user, logout, setUser } = useAuth();
 
   const [name, setName] = useState(user?.name ?? "");
+  const [username, setUsername] = useState(user?.username ?? "");
   const [bio, setBio] = useState(user?.bio ?? "");
   const [role, setRole] = useState<Role>(user?.role ?? "DEVELOPER");
   const [avatarColor, setAvatarColor] = useState(user?.avatarColor ?? AVATAR_COLORS[0]);
@@ -39,6 +40,7 @@ export function Settings() {
   useEffect(() => {
     if (!user) return;
     setName(user.name);
+    setUsername(user.username);
     setBio(user.bio ?? "");
     setRole(user.role);
     setAvatarColor(user.avatarColor || AVATAR_COLORS[0]);
@@ -55,6 +57,7 @@ export function Settings() {
     try {
       const updated = await updateProfile.mutateAsync({
         name: name.trim(),
+        username: username.trim(),
         bio: bio.trim() || null,
         role,
         avatarColor,
@@ -239,6 +242,23 @@ export function Settings() {
                   disabled
                 />
               </div>
+            </div>
+
+            <div>
+              <label htmlFor="settings-username" className="label-dark">
+                Username
+              </label>
+              <input
+                id="settings-username"
+                className="input-dark"
+                value={username}
+                onChange={(e) => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ""))}
+                minLength={3}
+                maxLength={30}
+              />
+              <p className="mt-1 text-[11px] text-ink-faint">
+                Letters, numbers and underscores only — this is your public handle
+              </p>
             </div>
 
             <div>

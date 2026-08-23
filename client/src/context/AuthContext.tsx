@@ -17,6 +17,7 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<User>;
   register: (input: {
     name: string;
+    username: string;
     email: string;
     password: string;
     role: Role;

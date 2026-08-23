@@ -4,6 +4,7 @@ import {
   GraduationCap,
   LayoutDashboard,
   ListChecks,
+  Search,
   Settings,
   SquareKanban,
   UserRound,
@@ -11,7 +12,6 @@ import {
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useAuth } from "../../context/AuthContext";
-import { ROLE_META } from "../../lib/constants";
 import { LogoMark } from "../ui/LogoMark";
 
 interface SidebarProps {
@@ -25,6 +25,7 @@ const NAV_ITEMS = [
   { to: "/tasks", label: "All Tasks", icon: ListChecks },
   { to: "/projects", label: "Projects", icon: FolderGit2 },
   { to: "/courses", label: "Courses", icon: GraduationCap },
+  { to: "/search", label: "Find Devs", icon: Search },
 ] as const;
 
 export function Sidebar({ open, onClose }: SidebarProps) {
@@ -215,7 +216,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 {user?.name ?? "…"}
               </span>
               <span className="block truncate text-[11px] font-mono text-accent-bright/80">
-                @{ROLE_META[user?.role ?? "DEVELOPER"].label.toLowerCase()}
+                @{user?.username ?? "user"}
               </span>
             </span>
           </NavLink>
