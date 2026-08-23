@@ -14,7 +14,7 @@ interface StatCardProps {
 
 export function StatCard({ label, value, icon: Icon, sub, spark }: StatCardProps) {
   return (
-    <article className="card card-interactive group relative overflow-hidden p-5">
+    <article className="card card-interactive group relative overflow-hidden p-3 sm:p-5">
       {/* corner glow */}
       <span
         aria-hidden
@@ -22,13 +22,13 @@ export function StatCard({ label, value, icon: Icon, sub, spark }: StatCardProps
       />
 
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-muted">{label}</p>
+        <p className="text-[9px] font-semibold uppercase tracking-wider text-ink-muted sm:text-[11px]">{label}</p>
         <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-accent/10 text-accent-bright transition-all duration-300 group-hover:shadow-glow-sm">
           <Icon size={16} />
         </span>
       </div>
 
-      <p className="metric-mono mt-3 text-[28px] font-bold leading-none text-white">{value}</p>
+      <p className="metric-mono mt-3 text-xl font-bold leading-none text-white sm:text-[28px]">{value}</p>
 
       {sub ? <div className={cn("mt-2 text-xs", "text-ink-faint")}>{sub}</div> : null}
 
