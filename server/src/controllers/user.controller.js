@@ -128,7 +128,7 @@ export const searchUsers = asyncHandler(async (req, res) => {
   res.json({ users });
 });
 
-/** GET /api/users/:username — public profile with skills. */
+/** GET /api/users/:username — public profile with skills, courses, tasks. */
 export const getUserProfile = asyncHandler(async (req, res) => {
   const { username } = req.params;
 
@@ -145,15 +145,42 @@ export const getUserProfile = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: "User not found." });
   }
 
-  const tasksDone = await prisma.task.count({
-    where: { userId: user.id, status: "DONE" },
-  });
+  const [tasksDone, totalTasks, courses, tasks] = await Promise.all([
+    prisma.task.count({ where: { userId: user.id, status: "DONE" } }),
+    prisma.task.count({ where: { userId: user.id } }),
+    prisma.course.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.task.findMany({
+      where: { userId: user.id },
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        difficulty: true,
+        tags: true,
+        dueDate: true,
+        actualHours: true,
+        completedAt: true,
+      },
+    }),
+  ]);
 
-  const coursesCompleted = await prisma.course.count({
-    where: { userId: user.id, status: "COMPLETED" },
+  const hoursAgg = await prisma.task.aggregate({
+    where: { userId: user.id },
+    _sum: { actualHours: true },
   });
+  const totalCodingHours = Math.round((hoursAgg._sum.actualHours ?? 0) * 10) / 10;
 
   res.json({
-    user: { ...user, tasksDone, coursesCompleted },
+    user: {
+      ...user,
+      tasksDone,
+      totalTasks,
+      totalCodingHours,
+      courses,
+      tasks,
+    },
   });
 });
