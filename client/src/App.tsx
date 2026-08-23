@@ -9,6 +9,7 @@ import { TaskBoard } from "./pages/TaskBoard";
 import { TaskList } from "./pages/TaskList";
 import { Projects } from "./pages/Projects";
 import { Courses } from "./pages/Courses";
+import { Profile } from "./pages/Profile";
 import { Settings } from "./pages/Settings";
 import { useAuth } from "./context/AuthContext";
 import { applyAccent } from "./lib/accent";
@@ -49,6 +50,7 @@ export default function App() {
           <Route path="tasks" element={<TaskList />} />
           <Route path="projects" element={<Projects />} />
           <Route path="courses" element={<Courses />} />
+          <Route path="profile" element={<Profile />} />
           <Route path="settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

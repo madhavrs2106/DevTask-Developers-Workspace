@@ -194,6 +194,14 @@ export function useDeleteCourse(): UseMutationResult<unknown, Error, string> {
 
 /* ── Analytics / profile / skills ───────────────────────────────── */
 
+/** Fresh signed-in user incl. skills (GET /auth/me). */
+export function useMe() {
+  return useQuery<User>({
+    queryKey: ["me"],
+    queryFn: async () => (await api.get<{ user: User }>("/auth/me")).data.user,
+  });
+}
+
 export function useAnalytics() {
   return useQuery<Analytics>({
     queryKey: qk.analytics,
