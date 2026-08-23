@@ -106,6 +106,23 @@ export const replaceSkills = asyncHandler(async (req, res) => {
   res.json({ skills: updated });
 });
 
+/** DELETE /api/users/me — delete the current user's account and all related data. */
+export const deleteMe = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+
+  await prisma.$transaction([
+    prisma.follow.deleteMany({ where: { followerId: userId } }),
+    prisma.follow.deleteMany({ where: { followingId: userId } }),
+    prisma.task.deleteMany({ where: { userId } }),
+    prisma.project.deleteMany({ where: { userId } }),
+    prisma.course.deleteMany({ where: { userId } }),
+    prisma.skillProgress.deleteMany({ where: { userId } }),
+    prisma.user.delete({ where: { id: userId } }),
+  ]);
+
+  res.json({ message: "Account deleted." });
+});
+
 /** GET /api/users/search?q= — search users by username or name. */
 export const searchUsers = asyncHandler(async (req, res) => {
   const q = (req.query.q ?? "").toString().trim();

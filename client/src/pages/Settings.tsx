@@ -10,6 +10,7 @@ import {
   useReplaceSkills,
   useUpdateProfile,
   useUploadAvatar,
+  useDeleteAccount,
 } from "../hooks/useQueries";
 import type { Role, SkillProgress } from "../types";
 import { Button } from "../components/ui/Button";
@@ -34,7 +35,10 @@ export function Settings() {
   const updateProfile = useUpdateProfile();
   const replaceSkills = useReplaceSkills();
   const uploadAvatar = useUploadAvatar();
+  const deleteAccount = useDeleteAccount();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [deleteConfirm, setDeleteConfirm] = useState("");
 
   // Re-sync local state when the user object changes (e.g. after login)
   useEffect(() => {
@@ -481,6 +485,41 @@ export function Settings() {
         <Button variant="danger" onClick={logout}>
           <LogOut size={15} /> Sign out
         </Button>
+      </section>
+
+      {/* ── Danger zone ─────────────────────────────────────────── */}
+      <section className="card border-rose-400/20 p-6">
+        <h2 className="text-sm font-semibold text-rose-400">Danger zone</h2>
+        <p className="mt-1 text-xs text-ink-faint">
+          Permanently delete your account and all associated data. This action cannot be undone.
+        </p>
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <input
+            className="input-dark max-w-xs"
+            placeholder={`Type "${user.name}" to confirm`}
+            value={deleteConfirm}
+            onChange={(e) => setDeleteConfirm(e.target.value)}
+          />
+          <Button
+            variant="danger"
+            disabled={deleteConfirm !== user.name || deleteAccount.isPending}
+            onClick={() => {
+              deleteAccount.mutate(undefined, {
+                onSuccess: () => {
+                  logout();
+                },
+              });
+            }}
+          >
+            <Trash2 size={14} />
+            {deleteAccount.isPending ? "Deleting…" : "Delete account"}
+          </Button>
+        </div>
+        {deleteConfirm && deleteConfirm !== user.name && (
+          <p className="mt-2 text-[11px] text-rose-400">
+            Please type "{user.name}" exactly to confirm.
+          </p>
+        )}
       </section>
     </div>
   );

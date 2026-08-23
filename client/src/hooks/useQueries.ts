@@ -268,3 +268,11 @@ export function useUnfollowUser() {
     },
   });
 }
+
+/* ── Delete account ────────────────────────────────────────── */
+
+export function useDeleteAccount() {
+  return useMutation({
+    mutationFn: async () => api.delete("/users/me"),
+  });
+}
