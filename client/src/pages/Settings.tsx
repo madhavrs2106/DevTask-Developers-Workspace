@@ -1,11 +1,16 @@
-import { useEffect, useState } from "react";
-import { CheckCircle2, LogOut, Plus, Save, Trash2, UserCog } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Camera, CheckCircle2, LogOut, Plus, Save, Trash2, UserCog } from "lucide-react";
 import { apiErrorMessage } from "../lib/api";
 import { cn, formatDate } from "../lib/utils";
+import { fileToAvatarDataUri } from "../lib/image";
 import { AVATAR_COLORS, ROLE_META } from "../lib/constants";
 import { useAuth } from "../context/AuthContext";
 import { applyAccent } from "../lib/accent";
-import { useReplaceSkills, useUpdateProfile } from "../hooks/useQueries";
+import {
+  useReplaceSkills,
+  useUpdateProfile,
+  useUploadAvatar,
+} from "../hooks/useQueries";
 import type { Role, SkillProgress } from "../types";
 import { Button } from "../components/ui/Button";
 import { ProgressRing } from "../components/ui/ProgressRing";
@@ -27,6 +32,8 @@ export function Settings() {
 
   const updateProfile = useUpdateProfile();
   const replaceSkills = useReplaceSkills();
+  const uploadAvatar = useUploadAvatar();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Re-sync local state when the user object changes (e.g. after login)
   useEffect(() => {
@@ -56,6 +63,33 @@ export function Settings() {
       setProfileMsg({ ok: true, text: "Profile updated" });
     } catch (err) {
       setProfileMsg({ ok: false, text: apiErrorMessage(err, "Could not update profile") });
+    }
+  }
+
+  async function handleAvatarFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file
+    if (!file) return;
+
+    setProfileMsg(null);
+    try {
+      const dataUri = await fileToAvatarDataUri(file);
+      const updated = await uploadAvatar.mutateAsync(dataUri);
+      setUser(updated);
+      setProfileMsg({ ok: true, text: "Profile picture updated" });
+    } catch (err) {
+      setProfileMsg({ ok: false, text: apiErrorMessage(err, "Could not upload picture") });
+    }
+  }
+
+  async function handleAvatarRemove() {
+    setProfileMsg(null);
+    try {
+      const updated = await uploadAvatar.mutateAsync(null);
+      setUser(updated);
+      setProfileMsg({ ok: true, text: "Profile picture removed" });
+    } catch (err) {
+      setProfileMsg({ ok: false, text: apiErrorMessage(err, "Could not remove picture") });
     }
   }
 
@@ -115,24 +149,65 @@ export function Settings() {
         </header>
 
         <div className="mt-5 flex flex-col items-start gap-6 sm:flex-row">
-          {/* Avatar preview */}
+          {/* Avatar preview + upload */}
           <div className="flex flex-col items-center gap-2 self-center sm:self-start">
-            <ProgressRing percent={avgMastery} size={96} strokeWidth={6}>
-              <span
-                aria-hidden
-                className="flex h-[68px] w-[68px] items-center justify-center rounded-full font-mono text-lg font-bold text-slate-950"
-                style={{
-                  background: `linear-gradient(135deg, ${avatarColor}, rgb(var(--accent-2-rgb)))`,
-                }}
+            <div className="relative">
+              <ProgressRing percent={avgMastery} size={96} strokeWidth={6}>
+                {user?.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt="Your profile"
+                    className="h-[68px] w-[68px] rounded-full object-cover"
+                  />
+                ) : (
+                  <span
+                    aria-hidden
+                    className="flex h-[68px] w-[68px] items-center justify-center rounded-full font-mono text-lg font-bold text-slate-950"
+                    style={{
+                      background: `linear-gradient(135deg, ${avatarColor}, rgb(var(--accent-2-rgb)))`,
+                    }}
+                  >
+                    {(name || "?")
+                      .split(" ")
+                      .map((p) => p[0])
+                      .slice(0, 2)
+                      .join("")
+                      .toUpperCase()}
+                  </span>
+                )}
+              </ProgressRing>
+
+              {/* Upload / remove controls */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                onChange={(e) => void handleAvatarFile(e)}
+              />
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadAvatar.isPending}
+                aria-label="Upload profile picture"
+                title="Upload profile picture"
+                className="absolute -bottom-0.5 -right-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-neon-gradient text-slate-950 shadow-glow-sm transition-transform hover:scale-105 active:scale-95 disabled:opacity-60"
               >
-                {(name || "?")
-                  .split(" ")
-                  .map((p) => p[0])
-                  .slice(0, 2)
-                  .join("")
-                  .toUpperCase()}
-              </span>
-            </ProgressRing>
+                <Camera size={14} />
+              </button>
+              {user?.avatarUrl && (
+                <button
+                  type="button"
+                  onClick={() => void handleAvatarRemove()}
+                  disabled={uploadAvatar.isPending}
+                  aria-label="Remove profile picture"
+                  title="Remove profile picture"
+                  className="absolute -right-1 top-0 flex h-6 w-6 items-center justify-center rounded-full border border-slate-700 bg-surface-raised text-ink-faint transition-colors hover:border-rose-400/50 hover:text-rose-400 disabled:opacity-60"
+                >
+                  <Trash2 size={11} />
+                </button>
+              )}
+            </div>
             <p className="font-mono text-[10px] uppercase tracking-widest text-ink-faint">
               mastery ring
             </p>

@@ -21,6 +21,7 @@ export interface User {
   role: Role;
   bio: string | null;
   avatarColor: string;
+  avatarUrl?: string | null;
   createdAt: string;
   skills?: SkillProgress[];
 }

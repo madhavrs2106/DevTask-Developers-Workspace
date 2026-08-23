@@ -51,14 +51,18 @@ export function Profile() {
       <section className="card card-interactive p-6">
         <div className="flex flex-col gap-6 sm:flex-row sm:items-start">
           <span
-            aria-hidden
-            className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full font-mono text-xl font-bold text-slate-950 ring-2 ring-accent/40"
+            aria-hidden={!profile.avatarUrl}
+            className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-full font-mono text-xl font-bold text-slate-950 ring-2 ring-accent/40"
             style={{
               background: `linear-gradient(135deg, ${profile.avatarColor}, rgb(var(--accent-2-rgb)))`,
               boxShadow: `0 0 24px ${profile.avatarColor}55`,
             }}
           >
-            {initials}
+            {profile.avatarUrl ? (
+              <img src={profile.avatarUrl} alt="" className="h-full w-full object-cover" />
+            ) : (
+              initials
+            )}
           </span>
 
           <div className="min-w-0 flex-1">

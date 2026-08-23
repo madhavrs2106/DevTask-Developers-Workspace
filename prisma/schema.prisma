@@ -36,6 +36,7 @@ model User {
   role         Role            @default(DEVELOPER)
   bio          String?
   avatarColor  String          @default("#06B6D4")
+  avatarUrl    String?
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
 

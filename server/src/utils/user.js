@@ -6,6 +6,7 @@ export const publicUserSelect = {
   role: true,
   bio: true,
   avatarColor: true,
+  avatarUrl: true,
   createdAt: true,
 };
 
@@ -18,6 +19,7 @@ export function toPublicUser(user) {
     role: user.role,
     bio: user.bio ?? null,
     avatarColor: user.avatarColor ?? "#06B6D4",
+    avatarUrl: user.avatarUrl ?? null,
     createdAt: user.createdAt,
   };
 }

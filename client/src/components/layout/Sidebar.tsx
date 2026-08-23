@@ -123,18 +123,26 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             }
           >
             <span
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-slate-950"
+              className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full text-xs font-bold text-slate-950"
               style={{
                 background: `linear-gradient(135deg, ${user?.avatarColor ?? "#06B6D4"}, rgb(var(--accent-2-rgb)))`,
                 boxShadow: `0 0 14px ${(user?.avatarColor ?? "#06B6D4") + "55"}`,
               }}
             >
-              {(user?.name ?? "?")
-                .split(" ")
-                .map((p) => p[0])
-                .slice(0, 2)
-                .join("")
-                .toUpperCase()}
+              {user?.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt=""
+                  className="h-full w-full rounded-full object-cover"
+                />
+              ) : (
+                (user?.name ?? "?")
+                  .split(" ")
+                  .map((p) => p[0])
+                  .slice(0, 2)
+                  .join("")
+                  .toUpperCase()
+              )}
             </span>
             <span className="min-w-0">
               <span className="block truncate text-sm font-medium text-slate-200">

@@ -27,6 +27,22 @@ const skillsSchema = z.object({
     .max(24, "Too many skills"),
 });
 
+/** ~300 KB binary → ~400 KB base64. Client resizes before upload. */
+const MAX_AVATAR_CHARS = 400_000;
+
+const avatarSchema = z.object({
+  avatarUrl: z.union([
+    z.literal(null),
+    z
+      .string()
+      .max(MAX_AVATAR_CHARS, "Image is too large — keep it under ~300 KB")
+      .regex(
+        /^data:image\/(png|jpe?g|webp);base64,[A-Za-z0-9+/=]+$/,
+        "Avatar must be a PNG, JPEG or WebP image"
+      ),
+  ]),
+});
+
 /** PUT /api/users/me */
 export const updateMe = asyncHandler(async (req, res) => {
   const data = parse(updateMeSchema, req.body);
@@ -34,6 +50,18 @@ export const updateMe = asyncHandler(async (req, res) => {
   const user = await prisma.user.update({
     where: { id: req.user.id },
     data,
+  });
+
+  res.json({ user: toPublicUser(user) });
+});
+
+/** PUT /api/users/me/avatar — set (or clear with null) the profile picture. */
+export const updateAvatar = asyncHandler(async (req, res) => {
+  const { avatarUrl } = parse(avatarSchema, req.body);
+
+  const user = await prisma.user.update({
+    where: { id: req.user.id },
+    data: { avatarUrl },
   });
 
   res.json({ user: toPublicUser(user) });

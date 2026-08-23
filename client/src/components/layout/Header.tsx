@@ -73,18 +73,26 @@ export function Header({ onMenuClick }: HeaderProps) {
             aria-expanded={menuOpen}
           >
             <span
-              className="flex h-8 w-8 items-center justify-center rounded-full text-[11px] font-bold text-slate-950 ring-2 ring-accent/40"
+              className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full text-[11px] font-bold text-slate-950 ring-2 ring-accent/40"
               style={{
                 background: `linear-gradient(135deg, ${user?.avatarColor ?? "#06B6D4"}, rgb(var(--accent-2-rgb)))`,
                 boxShadow: `0 0 12px ${(user?.avatarColor ?? "#06B6D4") + "66"}`,
               }}
             >
-              {(user?.name ?? "?")
-                .split(" ")
-                .map((p) => p[0])
-                .slice(0, 2)
-                .join("")
-                .toUpperCase()}
+              {user?.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt=""
+                  className="h-full w-full rounded-full object-cover"
+                />
+              ) : (
+                (user?.name ?? "?")
+                  .split(" ")
+                  .map((p) => p[0])
+                  .slice(0, 2)
+                  .join("")
+                  .toUpperCase()
+              )}
             </span>
             <span className="hidden max-w-[120px] truncate font-mono text-xs text-slate-300 md:block">
               {user?.name}

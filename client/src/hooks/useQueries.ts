@@ -218,6 +218,16 @@ export function useUpdateProfile(): UseMutationResult<User, Error, Partial<User>
   });
 }
 
+/** Upload (or clear with null) the profile picture. Returns the updated user. */
+export function useUploadAvatar(): UseMutationResult<User, Error, string | null> {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (avatarUrl) =>
+      (await api.put<{ user: User }>("/users/me/avatar", { avatarUrl })).data.user,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["me"] }),
+  });
+}
+
 export function useReplaceSkills(): UseMutationResult<SkillProgress[], Error, SkillProgress[]> {
   return useMutation({
     mutationFn: async (skills) =>
