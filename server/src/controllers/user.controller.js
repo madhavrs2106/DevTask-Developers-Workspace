@@ -192,6 +192,15 @@ export const getUserProfile = asyncHandler(async (req, res) => {
       }),
     ]);
 
+    const coLearningRoomsWithMembership = await Promise.all(
+      coLearningRooms.map(async (room) => {
+        const member = await prisma.roomMember.findUnique({
+          where: { roomId_userId: { roomId: room.id, userId: req.user.id } },
+        });
+        return { ...room, isMember: !!member };
+      })
+    );
+
   const hoursAgg = await prisma.task.aggregate({
     where: { userId: user.id },
     _sum: { actualHours: true },
@@ -209,7 +218,7 @@ export const getUserProfile = asyncHandler(async (req, res) => {
       followersCount,
       followingCount,
       isFollowing,
-      coLearningRooms,
+      coLearningRooms: coLearningRoomsWithMembership,
     },
   });
 });

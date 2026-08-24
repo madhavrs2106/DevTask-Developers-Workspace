@@ -58,6 +58,7 @@ interface PublicProfile {
     maxMembers: number;
     createdAt: string;
     _count: { members: number };
+    isMember: boolean;
   }[];
 }
 
@@ -117,7 +118,11 @@ export function UserProfile() {
     .join("")
     .toUpperCase();
 
-  const handleRoomClick = (room: { id: string; name: string; visibility: string; inviteCode: string }) => {
+  const handleRoomClick = (room: { id: string; name: string; visibility: string; inviteCode: string; isMember: boolean }) => {
+    if (room.isMember) {
+      navigate(`/rooms/${room.id}`);
+      return;
+    }
     setSelectedRoom(room);
     setJoinPassword("");
     setJoinError("");
@@ -331,6 +336,9 @@ export function UserProfile() {
                     <Lock size={12} className="text-yellow-400 shrink-0" />
                   ) : (
                     <Globe size={12} className="text-green-400 shrink-0" />
+                  )}
+                  {room.isMember && (
+                    <span className="text-[10px] font-medium text-green-400 bg-green-400/10 px-1.5 py-0.5 rounded-full">Joined</span>
                   )}
                 </div>
                 <p className="text-xs text-[var(--accent)] mb-2">{room.topic}</p>
