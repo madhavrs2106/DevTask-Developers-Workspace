@@ -66,8 +66,8 @@ export function SyllabusTab({ room }: Props) {
             placeholder="Topic title (e.g. Arrays & Hashing)"
             required
           />
-          <input
-            className="w-full bg-[var(--bg-card)] border border-[var(--border)] rounded px-3 py-2 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent)]"
+          <textarea
+            className="w-full bg-[var(--bg-card)] border border-[var(--border)] rounded px-3 py-2 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent)] h-16 resize-none"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Description (optional)"
@@ -129,7 +129,7 @@ export function SyllabusTab({ room }: Props) {
                       {item.title}
                     </p>
                     {item.description && (
-                      <p className="text-xs text-[var(--text-secondary)] mt-0.5">{item.description}</p>
+                      <p className="text-xs text-[var(--text-secondary)] mt-0.5 whitespace-pre-line">{item.description}</p>
                     )}
                   </div>
                   {isAdmin && (
