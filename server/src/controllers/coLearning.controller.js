@@ -1,9 +1,8 @@
 import { z } from "zod";
 import crypto from "crypto";
-import { prisma } from "../db.js";
-import { parse } from "../utils/parse.js";
-import { NotFoundError, ForbiddenError } from "../utils/errors.js";
-import asyncHandler from "../utils/asyncHandler.js";
+import { prisma } from "../lib/prisma.js";
+import { parse } from "../utils/validate.js";
+import { HttpError, asyncHandler } from "../utils/httpError.js";
 
 function generateInviteCode() {
   return crypto.randomBytes(4).toString("hex").toUpperCase();
@@ -95,7 +94,7 @@ async function ensureMember(roomId, userId) {
   const member = await prisma.roomMember.findUnique({
     where: { userId_roomId: { userId, roomId } },
   });
-  if (!member) throw new ForbiddenError("You are not a member of this room");
+  if (!member) throw new HttpError(403, "You are not a member of this room");
   return member;
 }
 
@@ -127,7 +126,7 @@ export const getRoom = asyncHandler(async (req, res) => {
     where: { id },
     include: ROOM_INCLUDE_FULL,
   });
-  if (!room) throw new NotFoundError("Room not found");
+  if (!room) throw new HttpError(404, "Room not found");
 
   res.json({
     ...room,
@@ -160,16 +159,16 @@ export const joinRoom = asyncHandler(async (req, res) => {
     where: { inviteCode },
     include: { _count: { select: { members: true } } },
   });
-  if (!room) throw new NotFoundError("Room not found");
+  if (!room) throw new HttpError(404, "Room not found");
 
   if (room._count.members >= room.maxMembers) {
-    throw new ForbiddenError("Room is full");
+    throw new HttpError(403,"Room is full");
   }
 
   const existing = await prisma.roomMember.findUnique({
     where: { userId_roomId: { userId: req.user.id, roomId: room.id } },
   });
-  if (existing) throw new ForbiddenError("Already a member");
+  if (existing) throw new HttpError(403,"Already a member");
 
   const membership = await prisma.roomMember.create({
     data: { userId: req.user.id, roomId: room.id },
@@ -188,7 +187,7 @@ export const leaveRoom = asyncHandler(async (req, res) => {
       await prisma.coLearningRoom.delete({ where: { id } });
       return res.json({ deleted: true });
     }
-    throw new ForbiddenError("Admin cannot leave. Transfer ownership or delete the room.");
+    throw new HttpError(403,"Admin cannot leave. Transfer ownership or delete the room.");
   }
 
   await prisma.roomMember.delete({
@@ -201,7 +200,7 @@ export const leaveRoom = asyncHandler(async (req, res) => {
 export const deleteRoom = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const member = await ensureMember(id, req.user.id);
-  if (member.role !== "ADMIN") throw new ForbiddenError("Only admins can delete rooms");
+  if (member.role !== "ADMIN") throw new HttpError(403,"Only admins can delete rooms");
 
   await prisma.coLearningRoom.delete({ where: { id } });
   res.json({ deleted: true });
@@ -315,9 +314,9 @@ export const deleteDiscussion = asyncHandler(async (req, res) => {
   const member = await ensureMember(id, req.user.id);
 
   const post = await prisma.roomDiscussion.findUnique({ where: { id: postId } });
-  if (!post) throw new NotFoundError("Post not found");
+  if (!post) throw new HttpError(404,"Post not found");
   if (post.authorId !== req.user.id && member.role !== "ADMIN") {
-    throw new ForbiddenError("Cannot delete this post");
+    throw new HttpError(403,"Cannot delete this post");
   }
 
   await prisma.roomDiscussion.delete({ where: { id: postId } });
@@ -338,7 +337,7 @@ export const startFocusSession = asyncHandler(async (req, res) => {
       status: { in: ["ACTIVE", "PAUSED"] },
     },
   });
-  if (existingActive) throw new ForbiddenError("You already have an active focus session");
+  if (existingActive) throw new HttpError(403,"You already have an active focus session");
 
   const session = await prisma.focusSession.create({
     data: {
@@ -361,8 +360,8 @@ export const updateFocusStatus = asyncHandler(async (req, res) => {
   const { status } = req.body;
 
   const session = await prisma.focusSession.findUnique({ where: { id: sessionId } });
-  if (!session || session.roomId !== id) throw new NotFoundError("Session not found");
-  if (session.userId !== req.user.id) throw new ForbiddenError("Not your session");
+  if (!session || session.roomId !== id) throw new HttpError(404,"Session not found");
+  if (session.userId !== req.user.id) throw new HttpError(403,"Not your session");
 
   const updated = await prisma.focusSession.update({
     where: { id: sessionId },
@@ -380,7 +379,7 @@ export const updateFocusStatus = asyncHandler(async (req, res) => {
 export const removeMember = asyncHandler(async (req, res) => {
   const { id, memberId } = req.params;
   const admin = await ensureMember(id, req.user.id);
-  if (admin.role !== "ADMIN") throw new ForbiddenError("Only admins can remove members");
+  if (admin.role !== "ADMIN") throw new HttpError(403,"Only admins can remove members");
 
   await prisma.roomMember.delete({ where: { userId_roomId: { userId: memberId, roomId: id } } });
   res.json({ removed: true });
