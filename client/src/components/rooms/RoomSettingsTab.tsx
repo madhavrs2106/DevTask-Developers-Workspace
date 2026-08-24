@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { useUpdateRoom, useDeleteRoom, useRemoveRoomMember } from "../../hooks/useQueries";
 import { Button } from "../ui/Button";
 import type { CoLearningRoomFull } from "../../types";
+import { Lock, Globe } from "lucide-react";
 
 interface Props {
   room: CoLearningRoomFull;
@@ -18,6 +19,8 @@ export function RoomSettingsTab({ room }: Props) {
   const [topic, setTopic] = useState(room.topic);
   const [description, setDescription] = useState(room.description ?? "");
   const [maxMembers, setMaxMembers] = useState(room.maxMembers);
+  const [visibility, setVisibility] = useState<"PUBLIC" | "PRIVATE">(room.visibility);
+  const [password, setPassword] = useState("");
   const [saved, setSaved] = useState(false);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -27,7 +30,10 @@ export function RoomSettingsTab({ room }: Props) {
       topic,
       description: description || undefined,
       maxMembers,
+      visibility,
+      password: visibility === "PRIVATE" && password ? password : undefined,
     });
+    setPassword("");
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -89,6 +95,50 @@ export function RoomSettingsTab({ room }: Props) {
               onChange={(e) => setMaxMembers(Number(e.target.value))}
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Visibility</label>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => { setVisibility("PUBLIC"); setPassword(""); }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm transition-colors ${
+                  visibility === "PUBLIC"
+                    ? "border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]"
+                    : "border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--accent)]"
+                }`}
+              >
+                <Globe size={16} />
+                Public
+              </button>
+              <button
+                type="button"
+                onClick={() => setVisibility("PRIVATE")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm transition-colors ${
+                  visibility === "PRIVATE"
+                    ? "border-yellow-400 bg-yellow-400/10 text-yellow-400"
+                    : "border-[var(--border)] text-[var(--text-secondary)] hover:border-yellow-400"
+                }`}
+              >
+                <Lock size={16} />
+                Private
+              </button>
+            </div>
+          </div>
+          {visibility === "PRIVATE" && (
+            <div>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+                {room.passwordHash ? "Change Password (leave blank to keep current)" : "Set Password"}
+              </label>
+              <input
+                type="password"
+                className="w-full bg-[var(--bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent)]"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={room.passwordHash ? "Min 4 characters" : "Min 4 characters"}
+                minLength={4}
+              />
+            </div>
+          )}
           <div className="flex items-center gap-3">
             <Button variant="primary" type="submit" disabled={updateRoom.isPending} className="text-sm">
               {updateRoom.isPending ? "Saving..." : "Save Changes"}

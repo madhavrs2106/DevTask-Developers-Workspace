@@ -211,6 +211,7 @@ export interface CoLearningRoom {
   topic: string;
   inviteCode: string;
   description: string | null;
+  visibility: "PUBLIC" | "PRIVATE";
   streakCount: number;
   lastStreakDate: string | null;
   maxMembers: number;
@@ -226,6 +227,7 @@ export interface CoLearningRoomFull extends CoLearningRoom {
   resources: RoomResource[];
   discussions: RoomDiscussion[];
   focusSessions: FocusSession[];
+  passwordHash?: string | null;
 }
 
 export interface RoomStats {

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import crypto from "crypto";
+import bcrypt from "bcryptjs";
 import { prisma } from "../lib/prisma.js";
 import { parse } from "../utils/validate.js";
 import { HttpError, asyncHandler } from "../utils/httpError.js";
@@ -12,6 +13,8 @@ const createRoomSchema = z.object({
   name: z.string().min(1).max(100),
   topic: z.string().min(1).max(100),
   description: z.string().optional(),
+  visibility: z.enum(["PUBLIC", "PRIVATE"]).optional(),
+  password: z.string().min(4).max(100).optional(),
   maxMembers: z.number().int().min(2).max(50).optional(),
 });
 
@@ -19,7 +22,13 @@ const updateRoomSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   topic: z.string().min(1).max(100).optional(),
   description: z.string().optional(),
+  visibility: z.enum(["PUBLIC", "PRIVATE"]).optional(),
+  password: z.string().min(4).max(100).optional(),
   maxMembers: z.number().int().min(2).max(50).optional(),
+});
+
+const joinRoomSchema = z.object({
+  password: z.string().optional(),
 });
 
 const addSyllabusSchema = z.object({
@@ -52,6 +61,7 @@ const ROOM_SELECT = {
   topic: true,
   inviteCode: true,
   description: true,
+  visibility: true,
   streakCount: true,
   lastStreakDate: true,
   maxMembers: true,
@@ -152,9 +162,20 @@ export const getRoom = asyncHandler(async (req, res) => {
 export const createRoom = asyncHandler(async (req, res) => {
   const data = parse(createRoomSchema, req.body);
 
+  const visibility = data.visibility ?? "PUBLIC";
+  const passwordHash =
+    visibility === "PRIVATE" && data.password
+      ? await bcrypt.hash(data.password, 10)
+      : null;
+
   const room = await prisma.coLearningRoom.create({
     data: {
-      ...data,
+      name: data.name,
+      topic: data.topic,
+      description: data.description,
+      visibility,
+      passwordHash,
+      maxMembers: data.maxMembers,
       inviteCode: generateInviteCode(),
       creatorId: req.user.id,
       members: {
@@ -169,6 +190,7 @@ export const createRoom = asyncHandler(async (req, res) => {
 
 export const joinRoom = asyncHandler(async (req, res) => {
   const { inviteCode } = req.params;
+  const body = parse(joinRoomSchema, req.body || {});
 
   const room = await prisma.coLearningRoom.findUnique({
     where: { inviteCode },
@@ -178,6 +200,13 @@ export const joinRoom = asyncHandler(async (req, res) => {
 
   if (room._count.members >= room.maxMembers) {
     throw new HttpError(403,"Room is full");
+  }
+
+  // Password check for private rooms
+  if (room.visibility === "PRIVATE" && room.passwordHash) {
+    if (!body.password) throw new HttpError(403, "Password required for private room");
+    const valid = await bcrypt.compare(body.password, room.passwordHash);
+    if (!valid) throw new HttpError(403, "Incorrect password");
   }
 
   const existing = await prisma.roomMember.findUnique({
@@ -228,9 +257,22 @@ export const updateRoom = asyncHandler(async (req, res) => {
 
   const data = parse(updateRoomSchema, req.body);
 
+  const updateData: Record<string, unknown> = {};
+  if (data.name !== undefined) updateData.name = data.name;
+  if (data.topic !== undefined) updateData.topic = data.topic;
+  if (data.description !== undefined) updateData.description = data.description;
+  if (data.maxMembers !== undefined) updateData.maxMembers = data.maxMembers;
+  if (data.visibility !== undefined) {
+    updateData.visibility = data.visibility;
+    if (data.visibility === "PUBLIC") updateData.passwordHash = null;
+  }
+  if (data.password !== undefined) {
+    updateData.passwordHash = data.password ? await bcrypt.hash(data.password, 10) : null;
+  }
+
   const room = await prisma.coLearningRoom.update({
     where: { id },
-    data,
+    data: updateData,
     select: ROOM_SELECT,
   });
 

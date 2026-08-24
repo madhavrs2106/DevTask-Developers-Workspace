@@ -326,7 +326,7 @@ export function useRoomStats(id: string) {
 export function useCreateRoom() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { name: string; topic: string; description?: string; maxMembers?: number }) =>
+    mutationFn: async (input: { name: string; topic: string; description?: string; visibility?: "PUBLIC" | "PRIVATE"; password?: string; maxMembers?: number }) =>
       (await api.post<CoLearningRoom>("/rooms", input)).data,
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: qk.myRooms }),
   });
@@ -335,8 +335,8 @@ export function useCreateRoom() {
 export function useJoinRoom() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (inviteCode: string) =>
-      (await api.post<{ room: CoLearningRoom }>(`/rooms/join/${inviteCode}`)).data,
+    mutationFn: async ({ inviteCode, password }: { inviteCode: string; password?: string }) =>
+      (await api.post<{ room: CoLearningRoom }>(`/rooms/join/${inviteCode}`, { password })).data,
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: qk.myRooms }),
   });
 }
@@ -360,7 +360,7 @@ export function useDeleteRoom() {
 export function useUpdateRoom(id: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (data: { name?: string; topic?: string; description?: string; maxMembers?: number }) =>
+    mutationFn: async (data: { name?: string; topic?: string; description?: string; maxMembers?: number; visibility?: "PUBLIC" | "PRIVATE"; password?: string }) =>
       (await api.put(`/rooms/${id}`, data)).data,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: qk.room(id) });

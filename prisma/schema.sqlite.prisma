@@ -154,6 +154,8 @@ model CoLearningRoom {
   topic           String
   inviteCode      String   @unique
   description     String?
+  visibility      String   @default("PUBLIC") // PUBLIC | PRIVATE
+  passwordHash    String?
   streakCount     Int      @default(0)
   lastStreakDate  DateTime?
   maxMembers      Int      @default(20)

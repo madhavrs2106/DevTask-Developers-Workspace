@@ -8,7 +8,7 @@ import {
 import { Modal } from "../components/ui/Modal";
 import { Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
-import { Users } from "lucide-react";
+import { Users, Lock, Globe } from "lucide-react";
 
 export default function CoLearningRoomsPage() {
   const { data: rooms, isLoading } = useMyRooms();
@@ -20,21 +20,36 @@ export default function CoLearningRoomsPage() {
   const [name, setName] = useState("");
   const [topic, setTopic] = useState("");
   const [description, setDescription] = useState("");
+  const [visibility, setVisibility] = useState<"PUBLIC" | "PRIVATE">("PUBLIC");
+  const [password, setPassword] = useState("");
   const [inviteCode, setInviteCode] = useState("");
+  const [joinPassword, setJoinPassword] = useState("");
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    await createRoom.mutateAsync({ name, topic, description: description || undefined });
+    await createRoom.mutateAsync({
+      name,
+      topic,
+      description: description || undefined,
+      visibility,
+      password: visibility === "PRIVATE" ? password : undefined,
+    });
     setName("");
     setTopic("");
     setDescription("");
+    setVisibility("PUBLIC");
+    setPassword("");
     setShowCreate(false);
   };
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
-    await joinRoom.mutateAsync(inviteCode.toUpperCase());
+    await joinRoom.mutateAsync({
+      inviteCode: inviteCode.toUpperCase(),
+      password: joinPassword || undefined,
+    });
     setInviteCode("");
+    setJoinPassword("");
     setShowJoin(false);
   };
 
@@ -75,7 +90,14 @@ export default function CoLearningRoomsPage() {
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="min-w-0">
-                  <h3 className="font-semibold text-[var(--text-primary)] truncate">{room.name}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-[var(--text-primary)] truncate">{room.name}</h3>
+                    {room.visibility === "PRIVATE" ? (
+                      <Lock size={14} className="text-yellow-400 shrink-0" />
+                    ) : (
+                      <Globe size={14} className="text-green-400 shrink-0" />
+                    )}
+                  </div>
                   <p className="text-sm text-[var(--accent)]">{room.topic}</p>
                 </div>
                 {room.role === "ADMIN" && (
@@ -135,6 +157,49 @@ export default function CoLearningRoomsPage() {
               placeholder="What will you study together?"
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Visibility</label>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => { setVisibility("PUBLIC"); setPassword(""); }}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm transition-colors ${
+                  visibility === "PUBLIC"
+                    ? "border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]"
+                    : "border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--accent)]"
+                }`}
+              >
+                <Globe size={16} />
+                Public
+              </button>
+              <button
+                type="button"
+                onClick={() => setVisibility("PRIVATE")}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm transition-colors ${
+                  visibility === "PRIVATE"
+                    ? "border-yellow-400 bg-yellow-400/10 text-yellow-400"
+                    : "border-[var(--border)] text-[var(--text-secondary)] hover:border-yellow-400"
+                }`}
+              >
+                <Lock size={16} />
+                Private
+              </button>
+            </div>
+          </div>
+          {visibility === "PRIVATE" && (
+            <div>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Room Password</label>
+              <input
+                type="password"
+                className="w-full bg-[var(--bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Min 4 characters"
+                required
+                minLength={4}
+              />
+            </div>
+          )}
           <div className="flex justify-end gap-2">
             <Button variant="ghost" type="button" onClick={() => setShowCreate(false)}>
               Cancel
@@ -159,6 +224,16 @@ export default function CoLearningRoomsPage() {
               maxLength={8}
             />
             <p className="text-xs text-[var(--text-secondary)] mt-1">Ask a room admin for the 8-character invite code.</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Password (if private room)</label>
+            <input
+              type="password"
+              className="w-full bg-[var(--bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
+              value={joinPassword}
+              onChange={(e) => setJoinPassword(e.target.value)}
+              placeholder="Leave blank if public room"
+            />
           </div>
           <div className="flex justify-end gap-2">
             <Button variant="ghost" type="button" onClick={() => setShowJoin(false)}>
