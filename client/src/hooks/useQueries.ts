@@ -15,6 +15,9 @@ import type {
   Task,
   TaskInput,
   User,
+  CoLearningRoom,
+  CoLearningRoomFull,
+  RoomStats,
 } from "../types";
 
 export const qk = {
@@ -22,6 +25,9 @@ export const qk = {
   analytics: ["analytics"] as const,
   projects: ["projects"] as const,
   courses: ["courses"] as const,
+  myRooms: ["myRooms"] as const,
+  room: (id: string) => ["room", id] as const,
+  roomStats: (id: string) => ["roomStats", id] as const,
 };
 
 /* ── Tasks ──────────────────────────────────────────────────────── */
@@ -274,5 +280,118 @@ export function useUnfollowUser() {
 export function useDeleteAccount() {
   return useMutation({
     mutationFn: async () => api.delete("/users/me"),
+  });
+}
+
+/* ── Co-Learning Rooms ─────────────────────────────────────── */
+
+export function useMyRooms() {
+  return useQuery<CoLearningRoom[]>({
+    queryKey: qk.myRooms,
+    queryFn: async () => (await api.get<CoLearningRoom[]>("/rooms")).data,
+  });
+}
+
+export function useRoom(id: string) {
+  return useQuery<CoLearningRoomFull>({
+    queryKey: qk.room(id),
+    queryFn: async () => (await api.get<CoLearningRoomFull>(`/rooms/${id}`)).data,
+    enabled: !!id,
+  });
+}
+
+export function useRoomStats(id: string) {
+  return useQuery<RoomStats>({
+    queryKey: qk.roomStats(id),
+    queryFn: async () => (await api.get<RoomStats>(`/rooms/${id}/stats`)).data,
+    enabled: !!id,
+  });
+}
+
+export function useCreateRoom() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { name: string; topic: string; description?: string; maxMembers?: number }) =>
+      (await api.post<CoLearningRoom>("/rooms", input)).data,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: qk.myRooms }),
+  });
+}
+
+export function useJoinRoom() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (inviteCode: string) =>
+      (await api.post<{ room: CoLearningRoom }>(`/rooms/join/${inviteCode}`)).data,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: qk.myRooms }),
+  });
+}
+
+export function useLeaveRoom() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => (await api.post(`/rooms/${id}/leave`)).data,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: qk.myRooms }),
+  });
+}
+
+export function useDeleteRoom() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => (await api.delete(`/rooms/${id}`)).data,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: qk.myRooms }),
+  });
+}
+
+export function useAddSyllabusItem(roomId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { title: string; description?: string; resourceUrl?: string }) =>
+      (await api.post(`/rooms/${roomId}/syllabus`, input)).data,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: qk.room(roomId) }),
+  });
+}
+
+export function useToggleSyllabusComplete(roomId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (itemId: string) =>
+      (await api.post(`/rooms/${roomId}/syllabus/${itemId}/toggle`)).data,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: qk.room(roomId) }),
+  });
+}
+
+export function useAddResource(roomId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { title: string; url: string; type?: string }) =>
+      (await api.post(`/rooms/${roomId}/resources`, input)).data,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: qk.room(roomId) }),
+  });
+}
+
+export function useAddDiscussion(roomId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { content: string; itemId?: string }) =>
+      (await api.post(`/rooms/${roomId}/discussions`, input)).data,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: qk.room(roomId) }),
+  });
+}
+
+export function useStartFocusSession(roomId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { task: string; duration?: number }) =>
+      (await api.post(`/rooms/${roomId}/focus`, input)).data,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: qk.room(roomId) }),
+  });
+}
+
+export function useUpdateFocusStatus(roomId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ sessionId, status }: { sessionId: string; status: string }) =>
+      (await api.put(`/rooms/${roomId}/focus/${sessionId}`, { status })).data,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: qk.room(roomId) }),
   });
 }

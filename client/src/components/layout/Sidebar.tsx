@@ -8,6 +8,7 @@ import {
   Settings,
   SquareKanban,
   UserRound,
+  Users,
   X,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
   { to: "/tasks", label: "All Tasks", icon: ListChecks },
   { to: "/projects", label: "Projects", icon: FolderGit2 },
   { to: "/courses", label: "Courses", icon: GraduationCap },
+  { to: "/rooms", label: "Co-Learning", icon: Users },
   { to: "/search", label: "Find Devs", icon: Search },
 ] as const;
 
@@ -221,7 +223,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             </span>
           </NavLink>
           <p className="mt-2 px-3 font-mono text-[10px] uppercase tracking-widest text-slate-600">
-            DevTask v1.0
+            DevTask v2.0
           </p>
         </div>
       </aside>

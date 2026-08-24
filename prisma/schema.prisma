@@ -48,6 +48,13 @@ model User {
   codingSessions CodingSession[]
   following      Follow[] @relation("follower")
   followers      Follow[] @relation("following")
+
+  createdRooms     CoLearningRoom[]
+  roomMemberships  RoomMember[]
+  roomResources    RoomResource[]
+  roomDiscussions  RoomDiscussion[]
+  focusSessions    FocusSession[]
+  syllabusCompletions RoomSyllabusCompletion[]
 }
 
 model Follow {
@@ -150,4 +157,137 @@ model CodingSession {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, date])
+}
+
+// ─── Co-Learning Rooms ─────────────────────────────────────────────
+
+model CoLearningRoom {
+  id              String   @id @default(cuid())
+  name            String
+  topic           String
+  inviteCode      String   @unique
+  description     String?
+  streakCount     Int      @default(0)
+  lastStreakDate  DateTime?
+  maxMembers      Int      @default(20)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  creator   User          @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  creatorId String
+
+  members        RoomMember[]
+  syllabusItems  RoomSyllabusItem[]
+  resources      RoomResource[]
+  discussions    RoomDiscussion[]
+  focusSessions  FocusSession[]
+  streaks        RoomStreak[]
+
+  @@index([creatorId])
+  @@index([inviteCode])
+}
+
+model RoomMember {
+  id       String   @id @default(cuid())
+  role     String   @default("MEMBER") // ADMIN | MEMBER
+  joinedAt DateTime @default(now())
+
+  user   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  room   CoLearningRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomId String
+
+  @@unique([userId, roomId])
+  @@index([roomId])
+}
+
+model RoomSyllabusItem {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  resourceUrl String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  room   CoLearningRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomId String
+
+  completions RoomSyllabusCompletion[]
+  discussions RoomDiscussion[]
+
+  @@index([roomId])
+}
+
+model RoomSyllabusCompletion {
+  id        String   @id @default(cuid())
+  completedAt DateTime @default(now())
+
+  user   User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  item   RoomSyllabusItem  @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  itemId String
+
+  @@unique([userId, itemId])
+  @@index([itemId])
+}
+
+model RoomResource {
+  id        String   @id @default(cuid())
+  title     String
+  url       String
+  type      String   @default("LINK") // LINK | NOTE | REPO | VIDEO
+  createdAt DateTime @default(now())
+
+  room   CoLearningRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomId String
+  addedBy User          @relation(fields: [addedByUserId], references: [id], onDelete: Cascade)
+  addedByUserId String
+
+  @@index([roomId])
+}
+
+model RoomDiscussion {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+
+  room   CoLearningRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomId String
+  author User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId String
+  syllabusItem RoomSyllabusItem? @relation(fields: [itemId], references: [id], onDelete: SetNull)
+  itemId String?
+
+  @@index([roomId])
+  @@index([itemId])
+}
+
+model FocusSession {
+  id        String   @id @default(cuid())
+  task      String
+  duration  Int      @default(25) // minutes
+  status    String   @default("ACTIVE") // ACTIVE | PAUSED | COMPLETED
+  startedAt DateTime @default(now())
+  endsAt    DateTime
+
+  room   CoLearningRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomId String
+  user   User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  @@index([roomId])
+  @@index([userId])
+}
+
+model RoomStreak {
+  id       String   @id @default(cuid())
+  date     DateTime @db.Date
+  membersActive Int @default(0)
+  targetMet Boolean @default(false)
+
+  room   CoLearningRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomId String
+
+  @@unique([roomId, date])
+  @@index([roomId])
 }

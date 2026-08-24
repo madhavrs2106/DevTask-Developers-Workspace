@@ -11,6 +11,7 @@ import projectRoutes from "./routes/project.routes.js";
 import courseRoutes from "./routes/course.routes.js";
 import taskRoutes from "./routes/task.routes.js";
 import analyticsRoutes from "./routes/analytics.routes.js";
+import coLearningRoutes from "./routes/coLearning.routes.js";
 import { notFoundHandler, errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
@@ -34,6 +35,7 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/rooms", coLearningRoutes);
 
 /* ── Production: serve the built React app from client/dist (single origin) ── */
 const __dirname = dirname(fileURLToPath(import.meta.url));

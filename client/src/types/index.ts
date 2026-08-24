@@ -152,3 +152,81 @@ export interface Analytics {
     courseTitle: string | null;
   }[];
 }
+
+// ─── Co-Learning Rooms ─────────────────────────────────────────────
+
+export type RoomRole = "ADMIN" | "MEMBER";
+
+export interface RoomMember {
+  id: string;
+  role: RoomRole;
+  joinedAt: string;
+  user: Pick<User, "id" | "name" | "username" | "avatarColor" | "avatarUrl">;
+}
+
+export interface SyllabusItem {
+  id: string;
+  title: string;
+  description: string | null;
+  resourceUrl: string | null;
+  order: number;
+  completions: { userId: string; completedAt: string }[];
+  _count: { completions: number };
+}
+
+export interface RoomResource {
+  id: string;
+  title: string;
+  url: string;
+  type: "LINK" | "NOTE" | "REPO" | "VIDEO";
+  createdAt: string;
+  addedBy: Pick<User, "id" | "name" | "username">;
+}
+
+export interface RoomDiscussion {
+  id: string;
+  content: string;
+  createdAt: string;
+  author: Pick<User, "id" | "name" | "username" | "avatarColor">;
+  syllabusItem: { id: string; title: string } | null;
+}
+
+export interface FocusSession {
+  id: string;
+  task: string;
+  duration: number;
+  status: "ACTIVE" | "PAUSED" | "COMPLETED";
+  startedAt: string;
+  endsAt: string;
+  user: Pick<User, "id" | "name" | "username" | "avatarColor">;
+}
+
+export interface CoLearningRoom {
+  id: string;
+  name: string;
+  topic: string;
+  inviteCode: string;
+  description: string | null;
+  streakCount: number;
+  lastStreakDate: string | null;
+  maxMembers: number;
+  createdAt: string;
+  creator: Pick<User, "id" | "name" | "username" | "avatarColor">;
+  memberCount: number;
+  role?: RoomRole;
+}
+
+export interface CoLearningRoomFull extends CoLearningRoom {
+  members: RoomMember[];
+  syllabusItems: SyllabusItem[];
+  resources: RoomResource[];
+  discussions: RoomDiscussion[];
+  focusSessions: FocusSession[];
+}
+
+export interface RoomStats {
+  memberCount: number;
+  syllabusCount: number;
+  resourceCount: number;
+  completionsByUser: Record<string, number>;
+}

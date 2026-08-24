@@ -13,6 +13,8 @@ import { SearchPage } from "./pages/SearchPage";
 import { UserProfile } from "./pages/UserProfile";
 import { Profile } from "./pages/Profile";
 import { Settings } from "./pages/Settings";
+import CoLearningRoomsPage from "./pages/CoLearningRoomsPage";
+import CoLearningRoomPage from "./pages/CoLearningRoomPage";
 import { useAuth } from "./context/AuthContext";
 import { applyAccent } from "./lib/accent";
 
@@ -52,6 +54,8 @@ export default function App() {
           <Route path="tasks" element={<TaskList />} />
           <Route path="projects" element={<Projects />} />
           <Route path="courses" element={<Courses />} />
+          <Route path="rooms" element={<CoLearningRoomsPage />} />
+          <Route path="rooms/:id" element={<CoLearningRoomPage />} />
           <Route path="search" element={<SearchPage />} />
           <Route path="u/:username" element={<UserProfile />} />
           <Route path="profile" element={<Profile />} />
