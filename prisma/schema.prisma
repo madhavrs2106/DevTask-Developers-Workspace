@@ -55,6 +55,7 @@ model User {
   roomDiscussions  RoomDiscussion[]
   focusSessions    FocusSession[]
   syllabusCompletions RoomSyllabusCompletion[]
+  roomNotes        RoomNote[]
 }
 
 model Follow {
@@ -184,6 +185,7 @@ model CoLearningRoom {
   discussions    RoomDiscussion[]
   focusSessions  FocusSession[]
   streaks        RoomStreak[]
+  notes          RoomNote[]
 
   @@index([creatorId])
   @@index([inviteCode])
@@ -298,4 +300,29 @@ model RoomStreak {
 
   @@unique([roomId, date])
   @@index([roomId])
+}
+
+model RoomNote {
+  id        String   @id @default(cuid())
+  title     String
+  type      String   @default("FOLDER") // FOLDER | FILE
+  fileType  String?  // TEXT | CODE | IMAGE | VIDEO | DOC
+  content   String?  // text for TEXT/CODE, URL for IMAGE/VIDEO/DOC
+  fileName  String?  // original filename
+  fileSize  Int?     // bytes
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  room   CoLearningRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomId String
+  author User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  authorId String
+
+  parent   RoomNote?  @relation("NoteChildren", fields: [parentId], references: [id], onDelete: Cascade)
+  parentId String?
+  children RoomNote[] @relation("NoteChildren")
+
+  @@index([roomId])
+  @@index([parentId])
 }

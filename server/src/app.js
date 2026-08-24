@@ -12,6 +12,7 @@ import courseRoutes from "./routes/course.routes.js";
 import taskRoutes from "./routes/task.routes.js";
 import analyticsRoutes from "./routes/analytics.routes.js";
 import coLearningRoutes from "./routes/coLearning.routes.js";
+import notesRoutes from "./routes/notes.routes.js";
 import { notFoundHandler, errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
@@ -23,6 +24,14 @@ app.use(
   })
 );
 app.use(express.json({ limit: "1mb" }));
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// Serve uploaded files
+const uploadsDir = join(__dirname, "../uploads");
+if (existsSync(uploadsDir)) {
+  app.use("/uploads", express.static(uploadsDir));
+}
 
 app.get("/api/health", (_req, res) =>
   res.json({ status: "ok", service: "devtask-api", time: new Date().toISOString() })
@@ -36,9 +45,9 @@ app.use("/api/courses", courseRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/rooms", coLearningRoutes);
+app.use("/api/rooms", notesRoutes);
 
 /* ── Production: serve the built React app from client/dist (single origin) ── */
-const __dirname = dirname(fileURLToPath(import.meta.url));
 const clientDist = join(__dirname, "../../client/dist");
 
 if (existsSync(clientDist)) {

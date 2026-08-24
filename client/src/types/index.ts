@@ -223,6 +223,22 @@ export interface CoLearningRoom {
   role?: RoomRole;
 }
 
+export interface RoomNote {
+  id: string;
+  title: string;
+  type: "FOLDER" | "FILE";
+  fileType?: "TEXT" | "CODE" | "IMAGE" | "VIDEO" | "DOC" | null;
+  content?: string | null;
+  fileName?: string | null;
+  fileSize?: number | null;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+  author: Pick<User, "id" | "name" | "username" | "avatarColor">;
+  parentId?: string | null;
+  children?: RoomNote[];
+}
+
 export interface CoLearningRoomFull extends CoLearningRoom {
   members: RoomMember[];
   syllabusItems: SyllabusItem[];
