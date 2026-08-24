@@ -18,8 +18,11 @@ import {
   removeMember,
   getRoomStats,
 } from "../controllers/coLearning.controller.js";
+import { requireAuth } from "../middleware/auth.js";
 
 const router = Router();
+
+router.use(requireAuth);
 
 router.get("/", listMyRooms);
 router.post("/", createRoom);
