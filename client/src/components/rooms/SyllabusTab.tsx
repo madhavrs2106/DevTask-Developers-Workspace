@@ -125,7 +125,7 @@ export function SyllabusTab({ room }: Props) {
                     )}
                   </button>
                   <div className="min-w-0 flex-1">
-                    <p className={`text-sm font-medium ${isComplete ? "line-through text-[var(--text-secondary)]" : "text-[var(--text-primary)]"}`}>
+                    <p className={`text-base font-semibold ${isComplete ? "line-through text-[var(--text-secondary)]" : "text-[var(--text-primary)]"}`}>
                       {item.title}
                     </p>
                     {item.description && (
