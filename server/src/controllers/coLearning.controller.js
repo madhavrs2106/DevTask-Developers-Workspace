@@ -15,6 +15,13 @@ const createRoomSchema = z.object({
   maxMembers: z.number().int().min(2).max(50).optional(),
 });
 
+const updateRoomSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  topic: z.string().min(1).max(100).optional(),
+  description: z.string().optional(),
+  maxMembers: z.number().int().min(2).max(50).optional(),
+});
+
 const addSyllabusSchema = z.object({
   title: z.string().min(1).max(200),
   description: z.string().optional(),
@@ -212,6 +219,22 @@ export const deleteRoom = asyncHandler(async (req, res) => {
 
   await prisma.coLearningRoom.delete({ where: { id } });
   res.json({ deleted: true });
+});
+
+export const updateRoom = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const member = await ensureMember(id, req.user.id);
+  if (member.role !== "ADMIN") throw new HttpError(403, "Only admins can update rooms");
+
+  const data = parse(updateRoomSchema, req.body);
+
+  const room = await prisma.coLearningRoom.update({
+    where: { id },
+    data,
+    select: ROOM_SELECT,
+  });
+
+  res.json(room);
 });
 
 // ─── Syllabus ───────────────────────────────────────────────────────

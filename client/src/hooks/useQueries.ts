@@ -357,6 +357,27 @@ export function useDeleteRoom() {
   });
 }
 
+export function useUpdateRoom(id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { name?: string; topic?: string; description?: string; maxMembers?: number }) =>
+      (await api.put(`/rooms/${id}`, data)).data,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: qk.room(id) });
+      void queryClient.invalidateQueries({ queryKey: qk.myRooms });
+    },
+  });
+}
+
+export function useRemoveRoomMember(roomId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (memberId: string) =>
+      (await api.delete(`/rooms/${roomId}/members/${memberId}`)).data,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: qk.room(roomId) }),
+  });
+}
+
 export function useAddSyllabusItem(roomId: string) {
   const queryClient = useQueryClient();
   return useMutation({

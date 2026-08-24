@@ -3,6 +3,7 @@ import {
   listMyRooms,
   getRoom,
   createRoom,
+  updateRoom,
   joinRoom,
   leaveRoom,
   deleteRoom,
@@ -27,6 +28,7 @@ router.use(requireAuth);
 router.get("/", listMyRooms);
 router.post("/", createRoom);
 router.get("/:id", getRoom);
+router.put("/:id", updateRoom);
 router.delete("/:id", deleteRoom);
 router.post("/join/:inviteCode", joinRoom);
 router.post("/:id/leave", leaveRoom);

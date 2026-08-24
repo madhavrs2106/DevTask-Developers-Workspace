@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router";
-import { useRoom, useLeaveRoom, useDeleteRoom } from "../hooks/useQueries";
+import { useRoom, useLeaveRoom } from "../hooks/useQueries";
 import { useAuth } from "../context/AuthContext";
 import { SyllabusTab } from "../components/rooms/SyllabusTab";
 import { ResourcesTab } from "../components/rooms/ResourcesTab";
 import { DiscussionTab } from "../components/rooms/DiscussionTab";
 import { FocusTab } from "../components/rooms/FocusTab";
 import { MembersTab } from "../components/rooms/MembersTab";
+import { RoomSettingsTab } from "../components/rooms/RoomSettingsTab";
 import { Button } from "../components/ui/Button";
 
 const TABS = [
@@ -15,6 +16,7 @@ const TABS = [
   { key: "discussions", label: "Discussions" },
   { key: "focus", label: "Focus" },
   { key: "members", label: "Members" },
+  { key: "settings", label: "Settings", adminOnly: true },
 ] as const;
 
 export default function CoLearningRoomPage() {
@@ -23,7 +25,6 @@ export default function CoLearningRoomPage() {
   const { data: room, isLoading } = useRoom(id!);
   const { user } = useAuth();
   const leaveRoom = useLeaveRoom();
-  const deleteRoom = useDeleteRoom();
 
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]["key"]>("syllabus");
   const [copied, setCopied] = useState(false);
@@ -51,6 +52,8 @@ export default function CoLearningRoomPage() {
     (m) => m.user.id === user?.id && m.role === "ADMIN"
   );
 
+  const visibleTabs = TABS.filter((t) => !("adminOnly" in t && t.adminOnly) || isAdmin);
+
   const handleCopyInvite = () => {
     navigator.clipboard.writeText(room.inviteCode);
     setCopied(true);
@@ -60,13 +63,6 @@ export default function CoLearningRoomPage() {
   const handleLeave = async () => {
     await leaveRoom.mutateAsync(room.id);
     navigate("/rooms");
-  };
-
-  const handleDelete = async () => {
-    if (confirm("Delete this room and all its data?")) {
-      await deleteRoom.mutateAsync(room.id);
-      navigate("/rooms");
-    }
   };
 
   return (
@@ -101,18 +97,13 @@ export default function CoLearningRoomPage() {
                 Leave
               </Button>
             )}
-            {isAdmin && (
-              <Button variant="ghost" onClick={handleDelete} className="text-sm text-red-400">
-                Delete Room
-              </Button>
-            )}
           </div>
         </div>
       </div>
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-[var(--border)] mb-6 overflow-x-auto">
-        {TABS.map((tab) => (
+        {visibleTabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
@@ -133,6 +124,7 @@ export default function CoLearningRoomPage() {
       {activeTab === "discussions" && <DiscussionTab room={room} />}
       {activeTab === "focus" && <FocusTab room={room} />}
       {activeTab === "members" && <MembersTab room={room} isAdmin={isAdmin} />}
+      {activeTab === "settings" && isAdmin && <RoomSettingsTab room={room} />}
     </div>
   );
 }
