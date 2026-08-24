@@ -41,17 +41,6 @@ const loginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
-const DEFAULT_SKILLS = {
-  DEVELOPER: [
-    { name: "JavaScript", level: 10 },
-    { name: "Git", level: 15 },
-  ],
-  LEARNER: [
-    { name: "Python", level: 10 },
-    { name: "Data Structures", level: 5 },
-  ],
-};
-
 /** POST /api/auth/register */
 export const register = asyncHandler(async (req, res) => {
   const data = parse(registerSchema, req.body);
@@ -75,7 +64,6 @@ export const register = asyncHandler(async (req, res) => {
       passwordHash,
       name: data.name,
       role: data.role,
-      skills: { create: DEFAULT_SKILLS[data.role] },
     },
   });
 
