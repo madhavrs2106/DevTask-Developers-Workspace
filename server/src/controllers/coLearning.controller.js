@@ -257,7 +257,7 @@ export const updateRoom = asyncHandler(async (req, res) => {
 
   const data = parse(updateRoomSchema, req.body);
 
-  const updateData: Record<string, unknown> = {};
+  const updateData = {};
   if (data.name !== undefined) updateData.name = data.name;
   if (data.topic !== undefined) updateData.topic = data.topic;
   if (data.description !== undefined) updateData.description = data.description;
