@@ -98,12 +98,12 @@ const ROOM_INCLUDE_FULL = {
     orderBy: { createdAt: "desc" },
     take: 50,
     include: {
-      author: { select: { id: true, name: true, username: true, avatarColor: true } },
+      author: { select: { id: true, name: true, username: true, avatarColor: true, avatarUrl: true } },
       syllabusItem: { select: { id: true, title: true } },
       replies: {
         orderBy: { createdAt: "asc" },
         include: {
-          author: { select: { id: true, name: true, username: true, avatarColor: true } },
+          author: { select: { id: true, name: true, username: true, avatarColor: true, avatarUrl: true } },
         },
       },
     },
@@ -111,7 +111,7 @@ const ROOM_INCLUDE_FULL = {
   focusSessions: {
     where: { status: { in: ["ACTIVE", "PAUSED"] } },
     include: {
-      user: { select: { id: true, name: true, username: true, avatarColor: true } },
+      user: { select: { id: true, name: true, username: true, avatarColor: true, avatarUrl: true } },
     },
   },
   _count: { select: { members: true } },

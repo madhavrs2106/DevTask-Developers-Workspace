@@ -1,11 +1,21 @@
 import { useState } from "react";
 import {
+  CheckCircle2,
+  Circle,
+  Plus,
+  Trash2,
+  Link as LinkIcon,
+  ExternalLink,
+  ListChecks,
+} from "lucide-react";
+import {
   useAddSyllabusItem,
   useToggleSyllabusComplete,
   useDeleteSyllabusItem,
 } from "../../hooks/useQueries";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../ui/Button";
+import { cn } from "../../lib/utils";
 import type { CoLearningRoomFull } from "../../types";
 
 interface Props {
@@ -46,119 +56,179 @@ export function SyllabusTab({ room }: Props) {
     }
   };
 
+  const completedCount = room.syllabusItems.filter((item) =>
+    item.completions.some((c) => c.userId === user?.id)
+  ).length;
+
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="font-semibold text-[var(--text-primary)]">Syllabus & Milestones</h2>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+            Syllabus & Milestones
+          </h2>
+          <p className="text-sm text-[var(--text-secondary)]">
+            {completedCount} / {room.syllabusItems.length} completed
+          </p>
+        </div>
         {isAdmin && (
-          <Button variant="ghost" onClick={() => setShowForm(!showForm)} className="text-sm">
-            {showForm ? "Cancel" : "+ Add Topic"}
+          <Button
+            variant="ghost"
+            onClick={() => setShowForm(!showForm)}
+            className="gap-2"
+          >
+            <Plus size={16} />
+            Add Topic
           </Button>
         )}
       </div>
 
+      {/* Add Form */}
       {showForm && (
-        <form onSubmit={handleAdd} className="bg-[var(--bg)] border border-[var(--border)] rounded-lg p-4 mb-4 space-y-3">
+        <form
+          onSubmit={handleAdd}
+          className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border)] space-y-3"
+        >
           <input
-            className="w-full bg-[var(--bg-card)] border border-[var(--border)] rounded px-3 py-2 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent)]"
+            className="w-full bg-[var(--bg)] border border-[var(--border)] rounded-lg px-4 py-2.5 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent)]"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Topic title (e.g. Arrays & Hashing)"
             required
           />
           <textarea
-            className="w-full bg-[var(--bg-card)] border border-[var(--border)] rounded px-3 py-2 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent)] h-16 resize-none"
+            className="w-full bg-[var(--bg)] border border-[var(--border)] rounded-lg px-4 py-2.5 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent)] h-20 resize-none"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Description (optional)"
           />
           <input
-            className="w-full bg-[var(--bg-card)] border border-[var(--border)] rounded px-3 py-2 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent)]"
+            className="w-full bg-[var(--bg)] border border-[var(--border)] rounded-lg px-4 py-2.5 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent)]"
             value={resourceUrl}
             onChange={(e) => setResourceUrl(e.target.value)}
             placeholder="Resource URL (optional)"
           />
-          <Button variant="primary" type="submit" disabled={addItem.isPending} className="text-sm">
-            {addItem.isPending ? "Adding..." : "Add Topic"}
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="primary" type="submit" disabled={addItem.isPending} className="gap-2">
+              <Plus size={14} />
+              {addItem.isPending ? "Adding..." : "Add Topic"}
+            </Button>
+            <Button variant="ghost" onClick={() => setShowForm(false)}>
+              Cancel
+            </Button>
+          </div>
         </form>
       )}
 
+      {/* Items List */}
       {room.syllabusItems.length === 0 ? (
-        <p className="text-[var(--text-secondary)] text-sm py-8 text-center">
-          {isAdmin
-            ? "No topics yet. Add topics and milestones to track group progress."
-            : "No syllabus items yet. The admin will add topics soon."}
-        </p>
+        <div className="text-center py-12 rounded-xl bg-[var(--bg-card)] border border-[var(--border)] border-dashed">
+          <ListChecks size={40} className="mx-auto mb-3 text-[var(--text-secondary)] opacity-40" />
+          <p className="text-sm text-[var(--text-secondary)]">No topics yet</p>
+          <p className="text-xs text-[var(--text-secondary)] mt-1">
+            {isAdmin ? "Add topics to track group progress" : "The admin will add topics soon"}
+          </p>
+        </div>
       ) : (
-        <div className="space-y-2">
-          {room.syllabusItems.map((item) => {
+        <div className="space-y-3">
+          {room.syllabusItems.map((item, index) => {
             const isComplete = item.completions.some((c) => c.userId === user?.id);
-            const completedMembers = item.completions.map((c) => {
-              const member = room.members.find((m) => m.user.id === c.userId);
-              return member?.user;
-            }).filter(Boolean);
+            const completedMembers = item.completions
+              .map((c) => room.members.find((m) => m.user.id === c.userId)?.user)
+              .filter(Boolean);
             const memberCount = room.members.length;
 
             return (
               <div
                 key={item.id}
-                className={`p-3 rounded-lg border transition-colors ${
+                className={cn(
+                  "group p-4 rounded-xl border transition-all",
                   isComplete
-                    ? "bg-[var(--accent)]/5 border-[var(--accent)]/30"
-                    : "bg-[var(--bg-card)] border-[var(--border)]"
-                }`}
+                    ? "bg-green-400/5 border-green-400/20"
+                    : "bg-[var(--bg-card)] border-[var(--border)] hover:border-[var(--accent)]/30"
+                )}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-start gap-3">
+                  {/* Completion Toggle */}
                   <button
                     onClick={() => toggleComplete.mutateAsync(item.id)}
-                    className={`w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
-                      isComplete
-                        ? "bg-[var(--accent)] border-[var(--accent)] text-white"
-                        : "border-[var(--border)] hover:border-[var(--accent)]"
-                    }`}
+                    className="mt-0.5 shrink-0"
                   >
-                    {isComplete && (
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
+                    {isComplete ? (
+                      <CheckCircle2 size={22} className="text-green-400" />
+                    ) : (
+                      <Circle size={22} className="text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors" />
                     )}
                   </button>
-                  <div className="min-w-0 flex-1">
-                    <p className={`text-base font-semibold ${isComplete ? "line-through text-[var(--text-secondary)]" : "text-[var(--text-primary)]"}`}>
-                      {item.title}
-                    </p>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono text-[var(--text-secondary)]">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <p
+                        className={cn(
+                          "text-base font-semibold",
+                          isComplete ? "line-through text-[var(--text-secondary)]" : "text-[var(--text-primary)]"
+                        )}
+                      >
+                        {item.title}
+                      </p>
+                    </div>
+
                     {item.description && (
-                      <p className="text-xs text-[var(--text-secondary)] mt-0.5 whitespace-pre-line">{item.description}</p>
+                      <p className="text-sm text-[var(--text-secondary)] mt-1 whitespace-pre-line">
+                        {item.description}
+                      </p>
                     )}
+
+                    {item.resourceUrl && (
+                      <a
+                        href={item.resourceUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 mt-2 text-xs text-[var(--accent)] hover:underline"
+                      >
+                        <ExternalLink size={12} />
+                        Resource
+                      </a>
+                    )}
+
+                    {/* Member Completion */}
+                    <div className="flex items-center gap-2 mt-3">
+                      <div className="flex -space-x-1.5">
+                        {completedMembers.slice(0, 10).map((m) => (
+                          <div
+                            key={m!.id}
+                            className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[9px] font-bold border-2 border-[var(--bg-card)]"
+                            style={{ backgroundColor: m!.avatarColor }}
+                            title={m!.username}
+                          >
+                            {m!.avatarUrl ? (
+                              <img src={m!.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+                            ) : (
+                              m!.username[0].toUpperCase()
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      <span className="text-xs text-[var(--text-secondary)]">
+                        {completedMembers.length}/{memberCount}
+                      </span>
+                    </div>
                   </div>
+
+                  {/* Delete */}
                   {isAdmin && (
                     <button
                       onClick={() => handleDelete(item.id)}
-                      className="text-xs text-red-400 hover:text-red-300 shrink-0 px-1"
-                      title="Delete topic"
+                      className="p-1.5 rounded-lg text-[var(--text-secondary)] hover:text-red-400 hover:bg-red-400/10 transition-colors opacity-0 group-hover:opacity-100"
                     >
-                      ✕
+                      <Trash2 size={14} />
                     </button>
                   )}
-                </div>
-                {/* Member completion avatars */}
-                <div className="flex items-center gap-1 mt-2 ml-9">
-                  <div className="flex -space-x-1.5">
-                    {completedMembers.slice(0, 8).map((m) => (
-                      <div
-                        key={m!.id}
-                        className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[8px] font-bold border border-[var(--bg-card)]"
-                        style={{ backgroundColor: m!.avatarColor }}
-                        title={m!.username}
-                      >
-                        {m!.username[0].toUpperCase()}
-                      </div>
-                    ))}
-                  </div>
-                  <span className="text-[10px] text-[var(--text-secondary)] ml-1">
-                    {completedMembers.length}/{memberCount}
-                  </span>
                 </div>
               </div>
             );

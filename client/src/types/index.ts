@@ -191,7 +191,7 @@ export interface RoomDiscussion {
   id: string;
   content: string;
   createdAt: string;
-  author: Pick<User, "id" | "name" | "username" | "avatarColor">;
+  author: Pick<User, "id" | "name" | "username" | "avatarColor" | "avatarUrl">;
   syllabusItem: { id: string; title: string } | null;
   parentId: string | null;
   replies?: RoomDiscussion[];
@@ -204,7 +204,7 @@ export interface FocusSession {
   status: "ACTIVE" | "PAUSED" | "COMPLETED";
   startedAt: string;
   endsAt: string;
-  user: Pick<User, "id" | "name" | "username" | "avatarColor">;
+  user: Pick<User, "id" | "name" | "username" | "avatarColor" | "avatarUrl">;
 }
 
 export interface CoLearningRoom {

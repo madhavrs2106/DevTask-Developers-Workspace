@@ -1,6 +1,14 @@
 import { useState } from "react";
+import {
+  MessageSquare,
+  Reply,
+  Tag,
+  ChevronDown,
+  ChevronRight,
+} from "lucide-react";
 import { useAddDiscussion } from "../../hooks/useQueries";
 import { Button } from "../ui/Button";
+import { cn } from "../../lib/utils";
 import type { CoLearningRoomFull, RoomDiscussion } from "../../types";
 
 interface Props {
@@ -28,7 +36,7 @@ function ReplyForm({
   };
 
   return (
-    <form onSubmit={handlePost} className="mt-2 flex gap-2">
+    <form onSubmit={handlePost} className="mt-3 flex gap-2">
       <input
         className="flex-1 bg-[var(--bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent)]"
         value={content}
@@ -36,10 +44,16 @@ function ReplyForm({
         placeholder="Write a reply..."
         autoFocus
       />
-      <Button variant="primary" type="submit" disabled={!content.trim() || addDiscussion.isPending} className="text-xs px-3 py-1.5 shrink-0">
+      <Button
+        variant="primary"
+        type="submit"
+        disabled={!content.trim() || addDiscussion.isPending}
+        className="text-xs gap-1.5"
+      >
+        <Reply size={12} />
         Reply
       </Button>
-      <Button variant="ghost" type="button" onClick={onCancel} className="text-xs px-2 py-1.5 shrink-0">
+      <Button variant="ghost" type="button" onClick={onCancel} className="text-xs">
         Cancel
       </Button>
     </form>
@@ -56,47 +70,91 @@ function DiscussionPost({
   depth?: number;
 }) {
   const [showReply, setShowReply] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const hasReplies = post.replies && post.replies.length > 0;
 
   return (
-    <div className={depth > 0 ? "ml-6 pl-3 border-l-2 border-[var(--border)]" : ""}>
-      <div className="p-3 rounded-lg bg-[var(--bg-card)] border border-[var(--border)]">
-        <div className="flex items-center gap-2 mb-2">
+    <div className={cn(depth > 0 && "ml-6 pl-4 border-l-2 border-[var(--border)]")}>
+      <div className="group p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border)] hover:border-[var(--accent)]/20 transition-all">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-3">
           <div
-            className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold shrink-0"
             style={{ backgroundColor: post.author.avatarColor }}
           >
-            {post.author.username[0].toUpperCase()}
+            {post.author.avatarUrl ? (
+              <img src={post.author.avatarUrl} alt="" className="w-full h-full rounded-full object-cover" />
+            ) : (
+              post.author.name.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase()
+            )}
           </div>
-          <span className="text-sm font-medium text-[var(--text-primary)]">
-            {post.author.username}
-          </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-[var(--text-primary)]">
+                {post.author.name}
+              </span>
+              <span className="text-xs text-[var(--text-secondary)]">
+                @{post.author.username}
+              </span>
+            </div>
+            <p className="text-xs text-[var(--text-secondary)]">
+              {new Date(post.createdAt).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+              })}
+            </p>
+          </div>
           {post.syllabusItem && (
-            <span className="text-xs bg-[var(--accent)]/10 text-[var(--accent)] px-2 py-0.5 rounded-full">
+            <span className="flex items-center gap-1 px-2 py-1 rounded-full bg-[var(--accent)]/10 text-[var(--accent)] text-xs">
+              <Tag size={10} />
               {post.syllabusItem.title}
             </span>
           )}
-          <span className="text-xs text-[var(--text-secondary)] ml-auto">
-            {new Date(post.createdAt).toLocaleDateString()}
-          </span>
         </div>
-        <p className="text-sm text-[var(--text-primary)] whitespace-pre-wrap">{post.content}</p>
-        <button
-          onClick={() => setShowReply(!showReply)}
-          className="mt-2 text-xs text-[var(--accent)] hover:underline"
-        >
-          Reply
-        </button>
+
+        {/* Content */}
+        <p className="text-sm text-[var(--text-primary)] whitespace-pre-wrap leading-relaxed">
+          {post.content}
+        </p>
+
+        {/* Actions */}
+        <div className="flex items-center gap-3 mt-3">
+          <button
+            onClick={() => setShowReply(!showReply)}
+            className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors"
+          >
+            <Reply size={12} />
+            Reply
+          </button>
+          {hasReplies && (
+            <button
+              onClick={() => setCollapsed(!collapsed)}
+              className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors"
+            >
+              {collapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
+              {post.replies!.length} repl{post.replies!.length === 1 ? "y" : "ies"}
+            </button>
+          )}
+        </div>
       </div>
 
+      {/* Reply Form */}
       {showReply && (
         <div className="ml-6 mt-2">
-          <ReplyForm parentId={post.id} roomId={roomId} onCancel={() => setShowReply(false)} />
+          <ReplyForm
+            parentId={post.id}
+            roomId={roomId}
+            onCancel={() => setShowReply(false)}
+          />
         </div>
       )}
 
-      {post.replies && post.replies.length > 0 && (
-        <div className="mt-2 space-y-2">
-          {post.replies.map((reply) => (
+      {/* Replies */}
+      {hasReplies && !collapsed && (
+        <div className="mt-3 space-y-3">
+          {post.replies!.map((reply) => (
             <DiscussionPost key={reply.id} post={reply} roomId={roomId} depth={depth + 1} />
           ))}
         </div>
@@ -122,13 +180,25 @@ export function DiscussionTab({ room }: Props) {
   };
 
   return (
-    <div>
-      <h2 className="font-semibold text-[var(--text-primary)] mb-4">Discussions & Doubts</h2>
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+          Discussions
+        </h2>
+        <p className="text-sm text-[var(--text-secondary)]">
+          Ask questions, share insights, help each other
+        </p>
+      </div>
 
-      <form onSubmit={handlePost} className="mb-6 space-y-3">
+      {/* New Post Form */}
+      <form
+        onSubmit={handlePost}
+        className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border)]"
+      >
         {room.syllabusItems.length > 0 && (
           <select
-            className="w-full bg-[var(--bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent)]"
+            className="w-full bg-[var(--bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent)] mb-3"
             value={selectedItemId}
             onChange={(e) => setSelectedItemId(e.target.value)}
           >
@@ -140,25 +210,36 @@ export function DiscussionTab({ room }: Props) {
             ))}
           </select>
         )}
-        <div className="flex gap-2">
-          <textarea
-            className="flex-1 bg-[var(--bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent)] h-20 resize-none"
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="Ask a question, share a doubt, or discuss a concept..."
-          />
+        <textarea
+          className="w-full bg-[var(--bg)] border border-[var(--border)] rounded-lg px-4 py-3 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent)] h-24 resize-none"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="What's on your mind? Ask a question or share an insight..."
+        />
+        <div className="flex justify-end mt-3">
+          <Button
+            variant="primary"
+            type="submit"
+            disabled={!content.trim() || addDiscussion.isPending}
+            className="gap-2"
+          >
+            <MessageSquare size={14} />
+            {addDiscussion.isPending ? "Posting..." : "Post"}
+          </Button>
         </div>
-        <Button variant="primary" type="submit" disabled={!content.trim() || addDiscussion.isPending} className="text-sm">
-          {addDiscussion.isPending ? "Posting..." : "Post"}
-        </Button>
       </form>
 
+      {/* Posts */}
       {room.discussions.length === 0 ? (
-        <p className="text-[var(--text-secondary)] text-sm py-8 text-center">
-          No discussions yet. Start a conversation about your study topic.
-        </p>
+        <div className="text-center py-12 rounded-xl bg-[var(--bg-card)] border border-[var(--border)] border-dashed">
+          <MessageSquare size={40} className="mx-auto mb-3 text-[var(--text-secondary)] opacity-40" />
+          <p className="text-sm text-[var(--text-secondary)]">No discussions yet</p>
+          <p className="text-xs text-[var(--text-secondary)] mt-1">
+            Start a conversation about your study topic
+          </p>
+        </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-4">
           {room.discussions.map((post) => (
             <DiscussionPost key={post.id} post={post} roomId={room.id} />
           ))}
