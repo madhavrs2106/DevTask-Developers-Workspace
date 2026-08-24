@@ -1,4 +1,5 @@
-import { useParams, Link } from "react-router-dom";
+import { useState } from "react";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   BookOpen,
@@ -20,12 +21,13 @@ import {
 import { api } from "../lib/api";
 import { ROLE_META } from "../lib/constants";
 import { cn, formatDate } from "../lib/utils";
-import { useFollowUser, useUnfollowUser } from "../hooks/useQueries";
+import { useFollowUser, useUnfollowUser, useJoinRoom } from "../hooks/useQueries";
 import type { Course, SkillProgress, Task } from "../types";
 import { ProgressRing } from "../components/ui/ProgressRing";
 import { EmptyState } from "../components/ui/EmptyState";
 import { FullPageLoader } from "../components/ui/Spinner";
 import { Button } from "../components/ui/Button";
+import { Modal } from "../components/ui/Modal";
 
 interface PublicProfile {
   id: string;
@@ -61,8 +63,19 @@ interface PublicProfile {
 
 export function UserProfile() {
   const { username } = useParams<{ username: string }>();
+  const navigate = useNavigate();
   const followMutation = useFollowUser();
   const unfollowMutation = useUnfollowUser();
+  const joinRoom = useJoinRoom();
+
+  const [selectedRoom, setSelectedRoom] = useState<{
+    id: string;
+    name: string;
+    visibility: string;
+    inviteCode: string;
+  } | null>(null);
+  const [joinPassword, setJoinPassword] = useState("");
+  const [joinError, setJoinError] = useState("");
 
   const { data, isLoading, error } = useQuery<{ user: PublicProfile }>({
     queryKey: ["userProfile", username],
@@ -103,6 +116,27 @@ export function UserProfile() {
     .slice(0, 2)
     .join("")
     .toUpperCase();
+
+  const handleRoomClick = (room: { id: string; name: string; visibility: string; inviteCode: string }) => {
+    setSelectedRoom(room);
+    setJoinPassword("");
+    setJoinError("");
+  };
+
+  const handleJoinRoom = async () => {
+    if (!selectedRoom) return;
+    try {
+      await joinRoom.mutateAsync({
+        inviteCode: selectedRoom.inviteCode,
+        password: selectedRoom.visibility === "PRIVATE" ? joinPassword : undefined,
+      });
+      setSelectedRoom(null);
+      navigate(`/rooms/${selectedRoom.id}`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to join room";
+      setJoinError(msg.includes("password") ? "Incorrect password" : msg);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -286,10 +320,10 @@ export function UserProfile() {
           </header>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {profile.coLearningRooms.map((room) => (
-              <Link
+              <button
                 key={room.id}
-                to={`/rooms/${room.id}`}
-                className="block p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border)] hover:border-[var(--accent)] transition-colors"
+                onClick={() => handleRoomClick(room)}
+                className="text-left p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border)] hover:border-[var(--accent)] transition-colors"
               >
                 <div className="flex items-center gap-2 mb-2">
                   <h4 className="font-medium text-[var(--text-primary)] text-sm truncate">{room.name}</h4>
@@ -304,11 +338,53 @@ export function UserProfile() {
                   <span>{room._count.members} member{room._count.members !== 1 ? "s" : ""}</span>
                   {room.streakCount > 0 && <span className="text-orange-400">🔥 {room.streakCount}d</span>}
                 </div>
-              </Link>
+              </button>
             ))}
           </div>
         </section>
       )}
+
+      {/* ── Join Room Modal ────────────────────────────────────── */}
+      <Modal
+        open={!!selectedRoom}
+        onClose={() => setSelectedRoom(null)}
+        title={selectedRoom?.visibility === "PRIVATE" ? "Join Private Room" : "Join Room"}
+      >
+        {selectedRoom && (
+          <div className="space-y-4">
+            <p className="text-sm text-[var(--text-primary)]">
+              Join <span className="font-semibold">{selectedRoom.name}</span>?
+            </p>
+            {selectedRoom.visibility === "PRIVATE" && (
+              <div>
+                <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Password</label>
+                <input
+                  type="password"
+                  className="w-full bg-[var(--bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent)]"
+                  value={joinPassword}
+                  onChange={(e) => { setJoinPassword(e.target.value); setJoinError(""); }}
+                  placeholder="Enter room password"
+                  autoFocus
+                />
+                {joinError && <p className="text-xs text-red-400 mt-1">{joinError}</p>}
+              </div>
+            )}
+            <div className="flex justify-end gap-2">
+              <Button variant="ghost" onClick={() => setSelectedRoom(null)} className="text-sm">
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                onClick={handleJoinRoom}
+                disabled={joinRoom.isPending || (selectedRoom.visibility === "PRIVATE" && !joinPassword)}
+                className="text-sm"
+              >
+                {joinRoom.isPending ? "Joining..." : "Join"}
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       {/* ── Empty state ──────────────────────────────────────────── */}
       {allCourses.length === 0 && skills.length === 0 && (
