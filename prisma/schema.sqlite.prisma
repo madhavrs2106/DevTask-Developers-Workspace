@@ -244,9 +244,13 @@ model RoomDiscussion {
   authorId String
   syllabusItem RoomSyllabusItem? @relation(fields: [itemId], references: [id], onDelete: SetNull)
   itemId String?
+  parent   RoomDiscussion? @relation("DiscussionReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  parentId String?
+  replies  RoomDiscussion[] @relation("DiscussionReplies")
 
   @@index([roomId])
   @@index([itemId])
+  @@index([parentId])
 }
 
 model FocusSession {

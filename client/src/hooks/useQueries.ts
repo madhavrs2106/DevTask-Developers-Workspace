@@ -387,7 +387,7 @@ export function useAddResource(roomId: string) {
 export function useAddDiscussion(roomId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { content: string; itemId?: string }) =>
+    mutationFn: async (input: { content: string; itemId?: string; parentId?: string }) =>
       (await api.post(`/rooms/${roomId}/discussions`, input)).data,
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: qk.room(roomId) }),
   });

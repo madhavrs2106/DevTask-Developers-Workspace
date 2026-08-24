@@ -31,6 +31,7 @@ const addResourceSchema = z.object({
 const addDiscussionSchema = z.object({
   content: z.string().min(1),
   itemId: z.string().optional(),
+  parentId: z.string().optional(),
 });
 
 const startFocusSchema = z.object({
@@ -74,11 +75,18 @@ const ROOM_INCLUDE_FULL = {
     },
   },
   discussions: {
+    where: { parentId: null },
     orderBy: { createdAt: "desc" },
     take: 50,
     include: {
       author: { select: { id: true, name: true, username: true, avatarColor: true } },
       syllabusItem: { select: { id: true, title: true } },
+      replies: {
+        orderBy: { createdAt: "asc" },
+        include: {
+          author: { select: { id: true, name: true, username: true, avatarColor: true } },
+        },
+      },
     },
   },
   focusSessions: {
@@ -299,6 +307,7 @@ export const addDiscussion = asyncHandler(async (req, res) => {
       roomId: id,
       authorId: req.user.id,
       itemId: data.itemId || null,
+      parentId: data.parentId || null,
     },
     include: {
       author: { select: { id: true, name: true, username: true, avatarColor: true } },

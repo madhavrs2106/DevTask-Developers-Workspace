@@ -191,6 +191,8 @@ export interface RoomDiscussion {
   createdAt: string;
   author: Pick<User, "id" | "name" | "username" | "avatarColor">;
   syllabusItem: { id: string; title: string } | null;
+  parentId: string | null;
+  replies?: RoomDiscussion[];
 }
 
 export interface FocusSession {
