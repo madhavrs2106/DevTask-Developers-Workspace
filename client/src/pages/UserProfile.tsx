@@ -14,6 +14,8 @@ import {
   Sparkles,
   Trophy,
   Users,
+  Lock,
+  Globe,
 } from "lucide-react";
 import { api } from "../lib/api";
 import { ROLE_META } from "../lib/constants";
@@ -44,6 +46,17 @@ interface PublicProfile {
   followersCount: number;
   followingCount: number;
   isFollowing: boolean;
+  coLearningRooms: {
+    id: string;
+    name: string;
+    topic: string;
+    visibility: string;
+    inviteCode: string;
+    streakCount: number;
+    maxMembers: number;
+    createdAt: string;
+    _count: { members: number };
+  }[];
 }
 
 export function UserProfile() {
@@ -259,6 +272,41 @@ export function UserProfile() {
               </div>
             </div>
           )}
+        </section>
+      )}
+
+      {/* ── Co-Learning Rooms ──────────────────────────────────── */}
+      {profile.coLearningRooms && profile.coLearningRooms.length > 0 && (
+        <section className="card p-6">
+          <header className="mb-5">
+            <h3 className="inline-flex items-center gap-2 text-sm font-semibold text-white">
+              <Users size={16} className="text-accent-bright" />
+              Co-Learning Rooms
+            </h3>
+          </header>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {profile.coLearningRooms.map((room) => (
+              <Link
+                key={room.id}
+                to={`/rooms/${room.id}`}
+                className="block p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border)] hover:border-[var(--accent)] transition-colors"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <h4 className="font-medium text-[var(--text-primary)] text-sm truncate">{room.name}</h4>
+                  {room.visibility === "PRIVATE" ? (
+                    <Lock size={12} className="text-yellow-400 shrink-0" />
+                  ) : (
+                    <Globe size={12} className="text-green-400 shrink-0" />
+                  )}
+                </div>
+                <p className="text-xs text-[var(--accent)] mb-2">{room.topic}</p>
+                <div className="flex items-center gap-3 text-xs text-[var(--text-secondary)]">
+                  <span>{room._count.members} member{room._count.members !== 1 ? "s" : ""}</span>
+                  {room.streakCount > 0 && <span className="text-orange-400">🔥 {room.streakCount}d</span>}
+                </div>
+              </Link>
+            ))}
+          </div>
         </section>
       )}
 

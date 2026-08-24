@@ -162,7 +162,7 @@ export const getUserProfile = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: "User not found." });
   }
 
-  const [tasksDone, totalTasks, courses, tasks, followersCount, followingCount, isFollowing] =
+  const [tasksDone, totalTasks, courses, tasks, followersCount, followingCount, isFollowing, coLearningRooms] =
     await Promise.all([
       prisma.task.count({ where: { userId: user.id, status: "DONE" } }),
       prisma.task.count({ where: { userId: user.id } }),
@@ -181,6 +181,15 @@ export const getUserProfile = asyncHandler(async (req, res) => {
             where: { followerId_followingId: { followerId: req.user.id, followingId: user.id } },
           }).then(Boolean)
         : false,
+      prisma.coLearningRoom.findMany({
+        where: { creatorId: user.id },
+        select: {
+          id: true, name: true, topic: true, visibility: true,
+          inviteCode: true, streakCount: true, maxMembers: true, createdAt: true,
+          _count: { select: { members: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      }),
     ]);
 
   const hoursAgg = await prisma.task.aggregate({
@@ -200,6 +209,7 @@ export const getUserProfile = asyncHandler(async (req, res) => {
       followersCount,
       followingCount,
       isFollowing,
+      coLearningRooms,
     },
   });
 });
