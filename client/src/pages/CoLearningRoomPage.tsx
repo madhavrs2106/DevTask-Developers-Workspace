@@ -68,7 +68,7 @@ export default function CoLearningRoomPage() {
   return (
     <div className="p-4 sm:p-6 max-w-6xl mx-auto">
       {/* Header */}
-      <div className="mb-6">
+      <div className="mb-6 rounded-xl bg-[var(--accent)]/5 border border-[var(--accent)]/20 p-4 sm:p-5">
         <button onClick={() => navigate("/rooms")} className="text-sm text-[var(--text-secondary)] hover:text-[var(--accent)] mb-2">
           ← Back to Rooms
         </button>
