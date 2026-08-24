@@ -11,6 +11,7 @@ import { Projects } from "./pages/Projects";
 import { Courses } from "./pages/Courses";
 import { SearchPage } from "./pages/SearchPage";
 import { UserProfile } from "./pages/UserProfile";
+import { FollowList } from "./pages/FollowList";
 import { Profile } from "./pages/Profile";
 import { Settings } from "./pages/Settings";
 import CoLearningRoomsPage from "./pages/CoLearningRoomsPage";
@@ -58,6 +59,7 @@ export default function App() {
           <Route path="rooms/:id" element={<CoLearningRoomPage />} />
           <Route path="search" element={<SearchPage />} />
           <Route path="u/:username" element={<UserProfile />} />
+          <Route path="u/:username/:type" element={<FollowList />} />
           <Route path="profile" element={<Profile />} />
           <Route path="settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/" replace />} />

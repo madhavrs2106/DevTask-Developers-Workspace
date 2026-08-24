@@ -322,7 +322,7 @@ export function Courses() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label htmlFor="course-provider" className="label-dark">
                 Provider
@@ -365,7 +365,7 @@ export function Courses() {
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div>
               <label htmlFor="course-total" className="label-dark">
                 Total lessons

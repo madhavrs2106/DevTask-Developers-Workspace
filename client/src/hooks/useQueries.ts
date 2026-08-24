@@ -260,6 +260,7 @@ export function useFollowUser() {
       (await api.post<{ following: boolean }>(`/follows/${username}`)).data,
     onSuccess: (_data, username) => {
       void queryClient.invalidateQueries({ queryKey: ["userProfile", username] });
+      void queryClient.invalidateQueries({ queryKey: ["followList"] });
     },
   });
 }
@@ -271,7 +272,21 @@ export function useUnfollowUser() {
       (await api.delete<{ following: boolean }>(`/follows/${username}`)).data,
     onSuccess: (_data, username) => {
       void queryClient.invalidateQueries({ queryKey: ["userProfile", username] });
+      void queryClient.invalidateQueries({ queryKey: ["followList"] });
     },
+  });
+}
+
+/* ── Follow lists ─────────────────────────────────────────── */
+
+export type FollowListUser = User & { isFollowing: boolean };
+
+export function useFollowList(username: string | undefined, type: "followers" | "following") {
+  return useQuery<FollowListUser[]>({
+    queryKey: ["followList", username, type],
+    queryFn: async () =>
+      (await api.get<{ users: FollowListUser[] }>(`/follows/${username}/${type}`)).data.users,
+    enabled: Boolean(username),
   });
 }
 

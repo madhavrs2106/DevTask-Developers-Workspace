@@ -25,6 +25,8 @@ export interface User {
   avatarUrl?: string | null;
   createdAt: string;
   skills?: SkillProgress[];
+  followersCount?: number;
+  followingCount?: number;
 }
 
 export interface AuthResponse {
