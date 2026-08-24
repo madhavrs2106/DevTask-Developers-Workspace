@@ -10,8 +10,6 @@ import {
   addSyllabusItem,
   toggleSyllabusComplete,
   deleteSyllabusItem,
-  addResource,
-  deleteResource,
   addDiscussion,
   deleteDiscussion,
   startFocusSession,
@@ -38,9 +36,6 @@ router.get("/:id/stats", getRoomStats);
 router.post("/:id/syllabus", addSyllabusItem);
 router.post("/:id/syllabus/:itemId/toggle", toggleSyllabusComplete);
 router.delete("/:id/syllabus/:itemId", deleteSyllabusItem);
-
-router.post("/:id/resources", addResource);
-router.delete("/:id/resources/:resourceId", deleteResource);
 
 router.post("/:id/discussions", addDiscussion);
 router.delete("/:id/discussions/:postId", deleteDiscussion);

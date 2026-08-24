@@ -226,7 +226,6 @@ export interface CoLearningRoom {
 export interface CoLearningRoomFull extends CoLearningRoom {
   members: RoomMember[];
   syllabusItems: SyllabusItem[];
-  resources: RoomResource[];
   discussions: RoomDiscussion[];
   focusSessions: FocusSession[];
   passwordHash?: string | null;

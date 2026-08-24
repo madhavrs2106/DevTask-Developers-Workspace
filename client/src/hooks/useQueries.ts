@@ -405,24 +405,6 @@ export function useDeleteSyllabusItem(roomId: string) {
   });
 }
 
-export function useAddResource(roomId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (input: { title: string; url: string; type?: string; description?: string; path?: string }) =>
-      (await api.post(`/rooms/${roomId}/resources`, input)).data,
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: qk.room(roomId) }),
-  });
-}
-
-export function useDeleteResource(roomId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (resourceId: string) =>
-      (await api.delete(`/rooms/${roomId}/resources/${resourceId}`)).data,
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: qk.room(roomId) }),
-  });
-}
-
 export function useAddDiscussion(roomId: string) {
   const queryClient = useQueryClient();
   return useMutation({

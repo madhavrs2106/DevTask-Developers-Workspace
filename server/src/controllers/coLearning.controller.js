@@ -38,14 +38,6 @@ const addSyllabusSchema = z.object({
   order: z.number().int().optional(),
 });
 
-const addResourceSchema = z.object({
-  title: z.string().min(1).max(200),
-  url: z.string().url(),
-  type: z.enum(["LINK", "NOTE", "REPO", "VIDEO"]).optional(),
-  description: z.string().max(500).optional(),
-  path: z.string().max(200).optional(),
-});
-
 const addDiscussionSchema = z.object({
   content: z.string().min(1),
   itemId: z.string().optional(),
@@ -86,11 +78,6 @@ const ROOM_INCLUDE_FULL = {
         include: { user: { select: { id: true, name: true, username: true } } },
       },
       _count: { select: { completions: true } },
-    },
-  },
-  resources: {
-    include: {
-      addedBy: { select: { id: true, name: true, username: true } },
     },
   },
   discussions: {
@@ -329,35 +316,6 @@ export const deleteSyllabusItem = asyncHandler(async (req, res) => {
   await ensureMember(id, req.user.id);
 
   await prisma.roomSyllabusItem.delete({ where: { id: itemId } });
-  res.json({ deleted: true });
-});
-
-// ─── Resources ──────────────────────────────────────────────────────
-
-export const addResource = asyncHandler(async (req, res) => {
-  const { id } = req.params;
-  await ensureMember(id, req.user.id);
-  const data = parse(addResourceSchema, req.body);
-
-  const resource = await prisma.roomResource.create({
-    data: {
-      ...data,
-      roomId: id,
-      addedByUserId: req.user.id,
-    },
-    include: {
-      addedBy: { select: { id: true, name: true, username: true } },
-    },
-  });
-
-  res.status(201).json(resource);
-});
-
-export const deleteResource = asyncHandler(async (req, res) => {
-  const { id, resourceId } = req.params;
-  await ensureMember(id, req.user.id);
-
-  await prisma.roomResource.delete({ where: { id: resourceId } });
   res.json({ deleted: true });
 });
 

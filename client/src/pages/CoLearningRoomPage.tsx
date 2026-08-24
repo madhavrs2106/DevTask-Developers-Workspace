@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router";
 import { useRoom, useLeaveRoom } from "../hooks/useQueries";
 import { useAuth } from "../context/AuthContext";
 import { SyllabusTab } from "../components/rooms/SyllabusTab";
-import { ResourcesTab } from "../components/rooms/ResourcesTab";
 import { DiscussionTab } from "../components/rooms/DiscussionTab";
 import { FocusTab } from "../components/rooms/FocusTab";
 import { MembersTab } from "../components/rooms/MembersTab";
@@ -12,7 +11,6 @@ import { Button } from "../components/ui/Button";
 
 const TABS = [
   { key: "syllabus", label: "Syllabus" },
-  { key: "resources", label: "Resources" },
   { key: "discussions", label: "Discussions" },
   { key: "focus", label: "Focus" },
   { key: "members", label: "Members" },
@@ -120,7 +118,6 @@ export default function CoLearningRoomPage() {
 
       {/* Tab Content */}
       {activeTab === "syllabus" && <SyllabusTab room={room} />}
-      {activeTab === "resources" && <ResourcesTab room={room} />}
       {activeTab === "discussions" && <DiscussionTab room={room} />}
       {activeTab === "focus" && <FocusTab room={room} />}
       {activeTab === "members" && <MembersTab room={room} isAdmin={isAdmin} />}
