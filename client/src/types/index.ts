@@ -181,6 +181,8 @@ export interface RoomResource {
   title: string;
   url: string;
   type: "LINK" | "NOTE" | "REPO" | "VIDEO";
+  description?: string | null;
+  path: string;
   createdAt: string;
   addedBy: Pick<User, "id" | "name" | "username">;
 }

@@ -42,6 +42,8 @@ const addResourceSchema = z.object({
   title: z.string().min(1).max(200),
   url: z.string().url(),
   type: z.enum(["LINK", "NOTE", "REPO", "VIDEO"]).optional(),
+  description: z.string().max(500).optional(),
+  path: z.string().max(200).optional(),
 });
 
 const addDiscussionSchema = z.object({

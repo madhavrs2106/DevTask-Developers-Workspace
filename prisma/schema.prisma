@@ -234,11 +234,13 @@ model RoomSyllabusCompletion {
 }
 
 model RoomResource {
-  id        String   @id @default(cuid())
-  title     String
-  url       String
-  type      String   @default("LINK") // LINK | NOTE | REPO | VIDEO
-  createdAt DateTime @default(now())
+  id          String   @id @default(cuid())
+  title       String
+  url         String
+  type        String   @default("LINK") // LINK | NOTE | REPO | VIDEO
+  description String?
+  path        String   @default("") // folder path like "docs/", "src/utils/"
+  createdAt   DateTime @default(now())
 
   room   CoLearningRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
   roomId String
