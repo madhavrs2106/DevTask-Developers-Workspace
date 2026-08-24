@@ -11,9 +11,11 @@ import {
   Sparkles,
   Trophy,
   Users,
+  Lock,
+  Globe,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
-import { useAnalytics, useCourses, useMe, useTasks } from "../hooks/useQueries";
+import { useAnalytics, useCourses, useMe, useTasks, useMyRooms } from "../hooks/useQueries";
 import { ROLE_META } from "../lib/constants";
 import { cn, formatDate } from "../lib/utils";
 import type { Course, SkillProgress, Task } from "../types";
@@ -27,6 +29,7 @@ export function Profile() {
   const courses = useCourses();
   const tasks = useTasks();
   const analytics = useAnalytics();
+  const myRooms = useMyRooms();
 
   if (me.isLoading || !user) return <FullPageLoader />;
   const profile = me.data ?? user;
@@ -240,6 +243,47 @@ export function Profile() {
               </div>
             </div>
           )}
+        </section>
+      )}
+
+      {/* ── Co-Learning Rooms ──────────────────────────────────── */}
+      {myRooms.data && myRooms.data.length > 0 && (
+        <section className="card p-6">
+          <header className="mb-5 flex items-center justify-between">
+            <h3 className="inline-flex items-center gap-2 text-sm font-semibold text-white">
+              <Users size={16} className="text-accent-bright" />
+              Co-Learning Rooms
+            </h3>
+            <Link
+              to="/rooms"
+              className="text-[11px] text-ink-faint transition-colors hover:text-accent-bright"
+            >
+              view all →
+            </Link>
+          </header>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {myRooms.data.filter((r) => r.role === "ADMIN").map((room) => (
+              <Link
+                key={room.id}
+                to={`/rooms/${room.id}`}
+                className="block p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border)] hover:border-[var(--accent)] transition-colors"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <h4 className="font-medium text-[var(--text-primary)] text-sm truncate">{room.name}</h4>
+                  {room.visibility === "PRIVATE" ? (
+                    <Lock size={12} className="text-yellow-400 shrink-0" />
+                  ) : (
+                    <Globe size={12} className="text-green-400 shrink-0" />
+                  )}
+                </div>
+                <p className="text-xs text-[var(--accent)] mb-2">{room.topic}</p>
+                <div className="flex items-center gap-3 text-xs text-[var(--text-secondary)]">
+                  <span>{room.memberCount} member{room.memberCount !== 1 ? "s" : ""}</span>
+                  {room.streakCount > 0 && <span className="text-orange-400">🔥 {room.streakCount}d</span>}
+                </div>
+              </Link>
+            ))}
+          </div>
         </section>
       )}
 
