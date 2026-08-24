@@ -195,7 +195,7 @@ export const getUserProfile = asyncHandler(async (req, res) => {
     const coLearningRoomsWithMembership = await Promise.all(
       coLearningRooms.map(async (room) => {
         const member = await prisma.roomMember.findUnique({
-          where: { roomId_userId: { roomId: room.id, userId: req.user.id } },
+          where: { userId_roomId: { roomId: room.id, userId: req.user.id } },
         });
         return { ...room, isMember: !!member };
       })
