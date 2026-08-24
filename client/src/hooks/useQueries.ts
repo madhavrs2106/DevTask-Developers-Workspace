@@ -375,6 +375,15 @@ export function useToggleSyllabusComplete(roomId: string) {
   });
 }
 
+export function useDeleteSyllabusItem(roomId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (itemId: string) =>
+      (await api.delete(`/rooms/${roomId}/syllabus/${itemId}`)).data,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: qk.room(roomId) }),
+  });
+}
+
 export function useAddResource(roomId: string) {
   const queryClient = useQueryClient();
   return useMutation({
