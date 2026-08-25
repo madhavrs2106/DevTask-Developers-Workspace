@@ -21,6 +21,7 @@ const createNoteSchema = z.object({
 const updateNoteSchema = z.object({
   title: z.string().min(1).max(200).optional(),
   content: z.string().optional(),
+  parentId: z.string().nullable().optional(),
   order: z.number().int().optional(),
 });
 

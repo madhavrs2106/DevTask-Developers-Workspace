@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef, useMemo } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import {
   Folder,
   FolderOpen,
@@ -11,23 +11,12 @@ import {
   Upload,
   Trash2,
   ChevronRight,
-  ChevronDown,
-  Edit3,
-  Check,
-  X,
   Play,
   Terminal,
-  Search,
-  MoreVertical,
-  Save,
-  Undo,
-  Redo,
-  Copy,
-  Scissors,
-  Clipboard,
   Settings,
-  PanelLeft,
-  PanelRight,
+  X,
+  Save,
+  GripVertical,
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "../../lib/api";
@@ -129,52 +118,102 @@ function getLanguageFromFileName(fileName: string): string {
   return map[ext] || ext;
 }
 
+interface TreeItemProps {
+  note: RoomNote;
+  depth: number;
+  selectedId: string | null;
+  onSelect: (note: RoomNote) => void;
+  onFolderSelect: (note: RoomNote) => void;
+  expandedIds: Set<string>;
+  onToggleExpand: (id: string) => void;
+  onDelete: (id: string) => void;
+  onMove: (noteId: string, targetParentId: string | null) => void;
+  isAdmin: boolean;
+  dragOverId: string | null;
+  onDragOver: (id: string | null) => void;
+}
+
 function TreeItem({
   note,
   depth,
   selectedId,
   onSelect,
+  onFolderSelect,
   expandedIds,
   onToggleExpand,
   onDelete,
+  onMove,
   isAdmin,
-}: {
-  note: RoomNote;
-  depth: number;
-  selectedId: string | null;
-  onSelect: (note: RoomNote) => void;
-  expandedIds: Set<string>;
-  onToggleExpand: (id: string) => void;
-  onDelete: (id: string) => void;
-  isAdmin: boolean;
-}) {
+  dragOverId,
+  onDragOver,
+}: TreeItemProps) {
   const isFolder = note.type === "FOLDER";
   const isExpanded = expandedIds.has(note.id);
   const isSelected = selectedId === note.id;
+  const isDragOver = dragOverId === note.id;
   const Icon = isFolder ? (isExpanded ? FolderOpen : Folder) : getFileIcon(note.title);
+
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.setData("text/plain", note.id);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (isFolder) {
+      onDragOver(note.id);
+    }
+  };
+
+  const handleDragLeave = () => {
+    onDragOver(null);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const draggedId = e.dataTransfer.getData("text/plain");
+    if (draggedId === note.id) return;
+    if (isFolder) {
+      onMove(draggedId, note.id);
+    } else {
+      onMove(draggedId, note.parentId || null);
+    }
+    onDragOver(null);
+  };
 
   return (
     <div>
       <div
         className={cn(
-          "flex items-center gap-1.5 px-2 py-1 cursor-pointer text-xs group hover:bg-[var(--accent)]/10",
+          "flex items-center gap-1 px-2 py-1 cursor-pointer text-xs group transition-colors",
           isSelected && "bg-[var(--accent)]/20 text-[var(--accent)]",
-          !isSelected && "text-[var(--text-primary)]"
+          !isSelected && "text-[var(--text-primary)]",
+          isDragOver && "bg-[var(--accent)]/30 ring-1 ring-[var(--accent)]"
         )}
-        style={{ paddingLeft: `${depth * 12 + 8}px` }}
+        style={{ paddingLeft: `${depth * 16 + 8}px` }}
         onClick={() => {
           if (isFolder) {
             onToggleExpand(note.id);
+            onFolderSelect(note);
           } else {
             onSelect(note);
           }
         }}
+        draggable={isAdmin}
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
       >
         {isFolder && (
           <ChevronRight
             size={12}
             className={cn("shrink-0 transition-transform", isExpanded && "rotate-90")}
           />
+        )}
+        {isAdmin && (
+          <GripVertical size={12} className="shrink-0 opacity-0 group-hover:opacity-50 cursor-grab" />
         )}
         <Icon size={14} className="shrink-0 text-[var(--text-secondary)]" />
         <span className="truncate flex-1">{note.title}</span>
@@ -199,10 +238,14 @@ function TreeItem({
               depth={depth + 1}
               selectedId={selectedId}
               onSelect={onSelect}
+              onFolderSelect={onFolderSelect}
               expandedIds={expandedIds}
               onToggleExpand={onToggleExpand}
               onDelete={onDelete}
+              onMove={onMove}
               isAdmin={isAdmin}
+              dragOverId={dragOverId}
+              onDragOver={onDragOver}
             />
           ))}
         </div>
@@ -227,7 +270,6 @@ function CodeEditorView({
   isModified: boolean;
 }) {
   const [content, setContent] = useState(note.content || "");
-  const [running, setRunning] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lineNumbersRef = useRef<HTMLDivElement>(null);
 
@@ -261,8 +303,13 @@ function CodeEditorView({
     }
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setContent(e.target.value);
+  };
+
   const lang = getLanguageFromFileName(note.title);
   const canRun = ["javascript", "js", "typescript", "ts", "html", "htm", "python", "py"].includes(lang);
+  const isIpynb = note.title.endsWith(".ipynb");
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-[var(--bg)]">
@@ -276,11 +323,11 @@ function CodeEditorView({
           <span className="text-xs text-[var(--text-primary)] truncate">{note.title}</span>
           {isModified && <span className="text-xs text-yellow-400">●</span>}
           <span className="text-xs text-[var(--text-secondary)] bg-[var(--bg)] px-1.5 py-0.5 rounded">
-            {lang}
+            {isIpynb ? "python notebook" : lang}
           </span>
         </div>
         <div className="flex items-center gap-1">
-          {isAdmin && (
+          {isAdmin && !isIpynb && (
             <Button
               variant="ghost"
               onClick={() => onSave(content)}
@@ -291,82 +338,77 @@ function CodeEditorView({
               Save
             </Button>
           )}
-          {canRun && (
-            <Button variant="ghost" className="text-xs px-2 py-1 gap-1 text-green-400">
-              <Play size={12} />
-              Run
-            </Button>
-          )}
           <button onClick={onClose} className="p-1 rounded hover:bg-[var(--accent)]/10 text-[var(--text-secondary)]">
             <X size={12} />
           </button>
         </div>
       </div>
 
-      {/* Editor body */}
-      <div className="flex-1 flex min-h-0 overflow-hidden">
-        {/* Line numbers */}
-        <div
-          ref={lineNumbersRef}
-          className="w-12 shrink-0 bg-[var(--bg-card)] border-r border-[var(--border)] overflow-hidden select-none"
-          style={{ fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace" }}
-        >
-          {Array.from({ length: lineCount }, (_, i) => (
-            <div key={i} className="text-xs text-[var(--text-secondary)] text-right pr-2 leading-5 h-5">
-              {i + 1}
-            </div>
-          ))}
-        </div>
-
-        {/* Code area */}
-        <div className="flex-1 relative">
-          {isAdmin ? (
-            <textarea
-              ref={textareaRef}
-              className="absolute inset-0 w-full h-full bg-transparent text-[var(--text-primary)] p-2 resize-none focus:outline-none overflow-auto"
-              style={{
-                fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
-                fontSize: "13px",
-                lineHeight: "20px",
-                tabSize: 2,
-                whiteSpace: "pre",
-              }}
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              onScroll={handleScroll}
-              onKeyDown={handleKeyDown}
-              spellCheck={false}
-              readOnly={false}
-            />
-          ) : (
-            <pre
-              className="absolute inset-0 w-full h-full p-2 overflow-auto text-[var(--text-primary)]"
-              style={{
-                fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
-                fontSize: "13px",
-                lineHeight: "20px",
-                tabSize: 2,
-                whiteSpace: "pre",
-              }}
-            >
-              {content || "Empty file"}
-            </pre>
-          )}
-        </div>
-      </div>
-
-      {/* Code runner for code files */}
-      {canRun && (
-        <div className="border-t border-[var(--border)]">
-          <CodeRunner code={content} language={lang} fileName={note.title} />
-        </div>
-      )}
-
-      {/* Jupyter notebook for .ipynb */}
-      {note.title.endsWith(".ipynb") && (
+      {/* Jupyter notebook */}
+      {isIpynb ? (
         <div className="flex-1 overflow-auto p-4">
           <JupyterNotebook initialContent={content} />
         </div>
+      ) : (
+        <>
+          {/* Editor body */}
+          <div className="flex-1 flex min-h-0 overflow-hidden">
+            {/* Line numbers */}
+            <div
+              ref={lineNumbersRef}
+              className="w-12 shrink-0 bg-[var(--bg-card)] border-r border-[var(--border)] overflow-hidden select-none"
+              style={{ fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace" }}
+            >
+              {Array.from({ length: lineCount }, (_, i) => (
+                <div key={i} className="text-xs text-[var(--text-secondary)] text-right pr-2 leading-5 h-5">
+                  {i + 1}
+                </div>
+              ))}
+            </div>
+
+            {/* Code area */}
+            <div className="flex-1 relative">
+              {isAdmin ? (
+                <textarea
+                  ref={textareaRef}
+                  className="absolute inset-0 w-full h-full bg-transparent text-[var(--text-primary)] p-2 resize-none focus:outline-none overflow-auto"
+                  style={{
+                    fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
+                    fontSize: "13px",
+                    lineHeight: "20px",
+                    tabSize: 2,
+                    whiteSpace: "pre",
+                  }}
+                  value={content}
+                  onChange={handleChange}
+                  onScroll={handleScroll}
+                  onKeyDown={handleKeyDown}
+                  spellCheck={false}
+                />
+              ) : (
+                <pre
+                  className="absolute inset-0 w-full h-full p-2 overflow-auto text-[var(--text-primary)]"
+                  style={{
+                    fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
+                    fontSize: "13px",
+                    lineHeight: "20px",
+                    tabSize: 2,
+                    whiteSpace: "pre",
+                  }}
+                >
+                  {content || "Empty file"}
+                </pre>
+              )}
+            </div>
+          </div>
+
+          {/* Code runner */}
+          {canRun && (
+            <div className="border-t border-[var(--border)]">
+              <CodeRunner code={content} language={lang} fileName={note.title} />
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -378,6 +420,7 @@ export function CodeEditor({ room }: Props) {
   const isAdmin = room.creator.id === user?.id;
 
   const [selectedNote, setSelectedNote] = useState<RoomNote | null>(null);
+  const [activeFolder, setActiveFolder] = useState<RoomNote | null>(null);
   const [openTabs, setOpenTabs] = useState<OpenTab[]>([]);
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
@@ -385,10 +428,9 @@ export function CodeEditor({ room }: Props) {
   const [showNewFile, setShowNewFile] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [newFileName, setNewFileName] = useState("");
-  const [parentId, setParentId] = useState<string | null>(null);
-  const [sidebarWidth, setSidebarWidth] = useState(220);
+  const [dragOverId, setDragOverId] = useState<string | null>(null);
 
-  const { data, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: qk.notes(room.id),
     queryFn: async () => (await api.get<{ notes: RoomNote[] }>(`/rooms/${room.id}/notes`)).data,
   });
@@ -406,7 +448,7 @@ export function CodeEditor({ room }: Props) {
   });
 
   const uploadFile = useMutation({
-    mutationFn: async (file: File) => {
+    mutationFn: async ({ file, parentId }: { file: File; parentId?: string | null }) => {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("title", file.name);
@@ -415,7 +457,6 @@ export function CodeEditor({ room }: Props) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: qk.notes(room.id) });
-      setParentId(null);
     },
   });
 
@@ -435,6 +476,14 @@ export function CodeEditor({ room }: Props) {
       setSelectedNote(null);
       setOpenTabs([]);
       setActiveTabId(null);
+    },
+  });
+
+  const moveNote = useMutation({
+    mutationFn: async ({ id, parentId }: { id: string; parentId: string | null }) =>
+      (await api.put(`/rooms/${room.id}/notes/${id}`, { parentId })).data,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: qk.notes(room.id) });
     },
   });
 
@@ -486,6 +535,10 @@ export function CodeEditor({ room }: Props) {
     [openTabs]
   );
 
+  const selectFolder = useCallback((note: RoomNote) => {
+    setActiveFolder(note);
+  }, []);
+
   const closeTab = useCallback(
     (noteId: string) => {
       const tab = openTabs.find((t) => t.noteId === noteId);
@@ -514,31 +567,44 @@ export function CodeEditor({ room }: Props) {
     [activeTabId, isAdmin, updateNote]
   );
 
-  const handleContentChange = useCallback(
-    (content: string) => {
-      setOpenTabs((prev) =>
-        prev.map((t) => (t.noteId === activeTabId ? { ...t, modified: true } : t))
-      );
-    },
-    [activeTabId]
-  );
-
   const handleCreateFolder = () => {
     if (!newFolderName.trim()) return;
-    createNote.mutate({ title: newFolderName, type: "FOLDER", parentId });
+    createNote.mutate({
+      title: newFolderName,
+      type: "FOLDER",
+      parentId: activeFolder?.id || null,
+    });
   };
 
   const handleCreateFile = () => {
     if (!newFileName.trim()) return;
-    createNote.mutate({ title: newFileName, type: "FILE", fileType: "TEXT", parentId });
+    createNote.mutate({
+      title: newFileName,
+      type: "FILE",
+      fileType: "TEXT",
+      parentId: activeFolder?.id || null,
+    });
   };
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
-    Array.from(files).forEach((file) => uploadFile.mutate(file));
+    Array.from(files).forEach((file) => {
+      uploadFile.mutate({ file, parentId: activeFolder?.id || null });
+    });
     e.target.value = "";
   };
+
+  const handleMove = useCallback(
+    (noteId: string, targetParentId: string | null) => {
+      if (noteId === targetParentId) return;
+      const note = notes.find((n) => n.id === noteId);
+      if (!note) return;
+      if (note.parentId === targetParentId) return;
+      moveNote.mutate({ id: noteId, parentId: targetParentId });
+    },
+    [notes, moveNote]
+  );
 
   return (
     <div className="flex flex-col h-full">
@@ -547,6 +613,11 @@ export function CodeEditor({ room }: Props) {
         <div className="flex items-center gap-2">
           <Code2 size={16} className="text-[var(--accent)]" />
           <span className="text-sm font-medium text-[var(--text-primary)]">Code Editor</span>
+          {activeFolder && (
+            <span className="text-xs text-[var(--text-secondary)]">
+              / {activeFolder.title}
+            </span>
+          )}
         </div>
         {isAdmin && (
           <div className="flex items-center gap-2">
@@ -571,13 +642,18 @@ export function CodeEditor({ room }: Props) {
 
       {/* New Folder Form */}
       {showNewFolder && (
-        <div className="flex gap-2 px-3 py-2 bg-[var(--bg-card)] border-b border-[var(--border)]">
+        <div className="flex items-center gap-2 px-3 py-2 bg-[var(--bg-card)] border-b border-[var(--border)]">
+          <Folder size={12} className="text-[var(--text-secondary)]" />
           <input
             className="flex-1 bg-[var(--bg)] border border-[var(--border)] rounded-lg px-3 py-1.5 text-[var(--text-primary)] text-xs focus:outline-none focus:border-[var(--accent)]"
             value={newFolderName}
             onChange={(e) => setNewFolderName(e.target.value)}
-            placeholder="Folder name"
+            placeholder={`Folder name${activeFolder ? ` (inside ${activeFolder.title})` : " (root)"}`}
             autoFocus
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleCreateFolder();
+              if (e.key === "Escape") setShowNewFolder(false);
+            }}
           />
           <Button variant="primary" onClick={handleCreateFolder} disabled={createNote.isPending} className="text-xs">
             Create
@@ -590,13 +666,18 @@ export function CodeEditor({ room }: Props) {
 
       {/* New File Form */}
       {showNewFile && (
-        <div className="flex gap-2 px-3 py-2 bg-[var(--bg-card)] border-b border-[var(--border)]">
+        <div className="flex items-center gap-2 px-3 py-2 bg-[var(--bg-card)] border-b border-[var(--border)]">
+          <FileText size={12} className="text-[var(--text-secondary)]" />
           <input
             className="flex-1 bg-[var(--bg)] border border-[var(--border)] rounded-lg px-3 py-1.5 text-[var(--text-primary)] text-xs focus:outline-none focus:border-[var(--accent)]"
             value={newFileName}
             onChange={(e) => setNewFileName(e.target.value)}
-            placeholder="File name (e.g., index.js)"
+            placeholder={`File name (e.g., index.js)${activeFolder ? ` inside ${activeFolder.title}` : " (root)"}`}
             autoFocus
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleCreateFile();
+              if (e.key === "Escape") setShowNewFile(false);
+            }}
           />
           <Button variant="primary" onClick={handleCreateFile} disabled={createNote.isPending} className="text-xs">
             Create
@@ -610,12 +691,17 @@ export function CodeEditor({ room }: Props) {
       {/* Main layout */}
       <div className="flex flex-1 min-h-0">
         {/* Sidebar - File Explorer */}
-        <div
-          className="shrink-0 border-r border-[var(--border)] overflow-y-auto bg-[var(--bg-card)]"
-          style={{ width: sidebarWidth }}
-        >
-          <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-[var(--text-secondary)] border-b border-[var(--border)]">
-            Explorer
+        <div className="w-56 shrink-0 border-r border-[var(--border)] overflow-y-auto bg-[var(--bg-card)] flex flex-col">
+          <div className="px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-[var(--text-secondary)] border-b border-[var(--border)] flex items-center justify-between">
+            <span>Explorer</span>
+            {activeFolder && (
+              <button
+                onClick={() => setActiveFolder(null)}
+                className="text-[var(--accent)] normal-case tracking-normal"
+              >
+                Root
+              </button>
+            )}
           </div>
           {tree.length === 0 ? (
             <div className="p-4 text-center text-xs text-[var(--text-secondary)]">
@@ -623,7 +709,7 @@ export function CodeEditor({ room }: Props) {
               No files yet
             </div>
           ) : (
-            <div className="py-1">
+            <div className="py-1 flex-1">
               {tree.map((note) => (
                 <TreeItem
                   key={note.id}
@@ -631,14 +717,40 @@ export function CodeEditor({ room }: Props) {
                   depth={0}
                   selectedId={activeTabId}
                   onSelect={openNote}
+                  onFolderSelect={selectFolder}
                   expandedIds={expandedIds}
                   onToggleExpand={toggleExpand}
                   onDelete={(id) => {
-                    if (confirm("Delete this file?")) deleteNote.mutate(id);
+                    if (confirm("Delete this item?")) deleteNote.mutate(id);
                   }}
+                  onMove={handleMove}
                   isAdmin={isAdmin}
+                  dragOverId={dragOverId}
+                  onDragOver={setDragOverId}
                 />
               ))}
+            </div>
+          )}
+          {/* Drop zone for root level */}
+          {isAdmin && (
+            <div
+              className={cn(
+                "border-t border-[var(--border)] p-2 text-center text-[10px] text-[var(--text-secondary)] transition-colors",
+                dragOverId === "__root__" && "bg-[var(--accent)]/20"
+              )}
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOverId("__root__");
+              }}
+              onDragLeave={() => setDragOverId(null)}
+              onDrop={(e) => {
+                e.preventDefault();
+                const draggedId = e.dataTransfer.getData("text/plain");
+                handleMove(draggedId, null);
+                setDragOverId(null);
+              }}
+            >
+              Drop here for root
             </div>
           )}
         </div>
@@ -713,15 +825,14 @@ export function CodeEditor({ room }: Props) {
       {/* Status bar */}
       <div className="flex items-center justify-between px-3 py-1 bg-[var(--accent)]/10 border-t border-[var(--border)] text-[10px] text-[var(--text-secondary)]">
         <div className="flex items-center gap-3">
-          <span>{notes.length} files</span>
+          <span>{notes.length} items</span>
           {selectedNote && (
             <span>
-              Ln 1, Col 1 • {getLanguageFromFileName(selectedNote.title)}
+              {getLanguageFromFileName(selectedNote.title)}
             </span>
           )}
         </div>
         <div className="flex items-center gap-3">
-          <span>Spaces: 2</span>
           <span>UTF-8</span>
           {!isAdmin && <span className="text-yellow-400">Read Only</span>}
         </div>
