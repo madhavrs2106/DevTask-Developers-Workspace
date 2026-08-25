@@ -48,6 +48,8 @@ export function NotesTab({ roomId, isAdmin }: NotesTabProps) {
   const [uploadingTo, setUploadingTo] = useState<string | null>(null);
   const [showNewFile, setShowNewFile] = useState<string | null>(null);
   const [newFileName, setNewFileName] = useState("");
+  const [showNewFolder, setShowNewFolder] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
 
   const { data, isLoading } = useQuery({
     queryKey: ["roomNotes", roomId],
@@ -78,6 +80,16 @@ export function NotesTab({ roomId, isAdmin }: NotesTabProps) {
   const deleteNote = useMutation({
     mutationFn: async (noteId: string) => (await api.delete(`/rooms/${roomId}/notes/${noteId}`)).data,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["roomNotes", roomId] }),
+  });
+
+  const createFolder = useMutation({
+    mutationFn: async (title: string) =>
+      (await api.post(`/rooms/${roomId}/notes`, { title, type: "FOLDER" })).data,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["roomNotes", roomId] });
+      setShowNewFolder(false);
+      setNewFolderName("");
+    },
   });
 
   const notes = data?.notes || [];
@@ -116,18 +128,59 @@ export function NotesTab({ roomId, isAdmin }: NotesTabProps) {
     );
   }
 
-  if (folders.length === 0) {
+  if (folders.length === 0 && !isAdmin) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-[var(--text-secondary)]">
         <Folder size={40} className="mb-3 opacity-30" />
         <p className="text-sm">No folders yet</p>
-        <p className="text-xs mt-1 opacity-60">Create syllabus items to generate folders</p>
+        <p className="text-xs mt-1 opacity-60">Admin will create folders from syllabus</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-2">
+      {/* New folder button */}
+      {isAdmin && (
+        <div className="flex items-center gap-2 mb-3">
+          {showNewFolder ? (
+            <div className="flex items-center gap-2 flex-1">
+              <Folder size={16} className="text-[var(--accent)]" />
+              <input
+                className="flex-1 bg-[var(--bg-card)] border border-[var(--border)] rounded-lg px-3 py-1.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+                placeholder="Folder name"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && newFolderName.trim()) createFolder.mutate(newFolderName);
+                  if (e.key === "Escape") { setShowNewFolder(false); setNewFolderName(""); }
+                }}
+              />
+              <Button
+                size="sm"
+                onClick={() => createFolder.mutate(newFolderName)}
+                disabled={!newFolderName.trim() || createFolder.isPending}
+              >
+                {createFolder.isPending ? <Loader2 size={14} className="animate-spin" /> : "Create"}
+              </Button>
+              <button
+                onClick={() => { setShowNewFolder(false); setNewFolderName(""); }}
+                className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowNewFolder(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-[var(--accent)] hover:bg-[var(--accent)]/10 rounded-lg transition-colors"
+            >
+              <Plus size={14} /> New Folder
+            </button>
+          )}
+        </div>
+      )}
       {folders.map((folder) => {
         const isExpanded = expandedFolders.has(folder.id);
         const files = folder.children || [];
@@ -168,6 +221,15 @@ export function NotesTab({ roomId, isAdmin }: NotesTabProps) {
                     title="Create file"
                   >
                     <Plus size={14} />
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (confirm(`Delete folder "${folder.title}" and all its files?`)) deleteNote.mutate(folder.id);
+                    }}
+                    className="p-1.5 text-[var(--text-secondary)] hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                    title="Delete folder"
+                  >
+                    <Trash2 size={14} />
                   </button>
                 </div>
               )}
