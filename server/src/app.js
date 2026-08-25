@@ -55,7 +55,7 @@ if (existsSync(clientDist)) {
 
   // SPA fallback — any non-API GET returns the app shell
   app.use((req, res, next) => {
-    if (req.method !== "GET" || req.path.startsWith("/api")) return next();
+    if (req.method !== "GET" || req.path.startsWith("/api") || req.path.startsWith("/uploads")) return next();
     res.sendFile(join(clientDist, "index.html"));
   });
 }
