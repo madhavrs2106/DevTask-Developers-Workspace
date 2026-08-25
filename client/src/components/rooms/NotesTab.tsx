@@ -411,7 +411,7 @@ export function NotesTab({ room }: Props) {
             ref={fileInputRef}
             type="file"
             className="hidden"
-            accept="video/*,image/*,.pdf,.md,.txt,.js,.ts,.py,.java,.html,.css,.json,.c,.cpp"
+            accept="video/*,image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.md,.txt,.csv,.rtf,.js,.ts,.jsx,.tsx,.py,.java,.html,.css,.json,.c,.cpp,.cs,.go,.rs,.sh,.rb,.php,.sql,.yaml,.yml,.xml,.toml,.dart,.swift,.kt,.scala,.r,.lua,.pl,.zip,.tar,.gz,.7z,.rar"
             onChange={handleFileUpload}
           />
         </div>
