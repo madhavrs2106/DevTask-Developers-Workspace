@@ -7,13 +7,13 @@ import {
   Upload,
   Plus,
   Trash2,
-  ChevronRight,
   Download,
   Image,
   Video,
   File,
   Loader2,
   FolderPlus,
+  Eye,
 } from "lucide-react";
 import { api } from "../../lib/api";
 import { Button } from "../ui/Button";
@@ -25,21 +25,43 @@ interface NotesTabProps {
   isAdmin: boolean;
 }
 
+const IMAGE_EXTS = new Set(["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp", "ico"]);
+const DOC_EXTS = new Set(["pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "rtf"]);
+const VIDEO_EXTS = new Set(["mp4", "mkv", "webm", "avi", "mov", "wmv", "mpeg"]);
+
+function getExt(title: string) {
+  return title.split(".").pop()?.toLowerCase() || "";
+}
+
+function isImage(title: string) {
+  return IMAGE_EXTS.has(getExt(title));
+}
+
+function isVideo(title: string) {
+  return VIDEO_EXTS.has(getExt(title));
+}
+
+function isDoc(title: string) {
+  return DOC_EXTS.has(getExt(title));
+}
+
 function getFileIcon(title: string, size = 14) {
-  const ext = title.split(".").pop()?.toLowerCase() || "";
-  const iconMap: Record<string, typeof File> = {
-    png: Image, jpg: Image, jpeg: Image, gif: Image, webp: Image, svg: Image,
-    mp4: Video, mkv: Video, webm: Video,
-    pdf: FileText, doc: FileText, docx: FileText, xls: FileText, xlsx: FileText,
-  };
+  const ext = getExt(title);
+  if (isImage(title)) return <Image size={size} className="text-purple-400" />;
+  if (isVideo(title)) return <Video size={size} className="text-pink-400" />;
+  if (isDoc(title)) return <FileText size={size} className="text-orange-400" />;
   const colorMap: Record<string, string> = {
     js: "text-yellow-400", jsx: "text-cyan-400", ts: "text-blue-400", py: "text-green-400",
     html: "text-orange-400", css: "text-blue-400", json: "text-yellow-300",
     md: "text-blue-300", txt: "text-[var(--text-secondary)]",
   };
-  const Icon = iconMap[ext] || FileText;
-  const color = colorMap[ext] || "text-[var(--text-secondary)]";
-  return <Icon size={size} className={color} />;
+  return <FileText size={size} className={colorMap[ext] || "text-[var(--text-secondary)]"} />;
+}
+
+function formatSize(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 export function NotesTab({ roomId, isAdmin }: NotesTabProps) {
@@ -49,6 +71,7 @@ export function NotesTab({ roomId, isAdmin }: NotesTabProps) {
   const [newFileName, setNewFileName] = useState("");
   const [showNewFolder, setShowNewFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
+  const [previewFile, setPreviewFile] = useState<RoomNote | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["roomNotes", roomId],
@@ -107,6 +130,7 @@ export function NotesTab({ roomId, isAdmin }: NotesTabProps) {
     const input = document.createElement("input");
     input.type = "file";
     input.multiple = true;
+    input.accept = "image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.rtf,.txt,.csv,.md,.json,.js,.ts,.py,.html,.css,.zip,.tar,.gz";
     input.onchange = (e: any) => {
       const files = e.target.files as FileList;
       Array.from(files).forEach((f: File) => uploadFile.mutate({ file: f, parentId: folderId }));
@@ -134,7 +158,7 @@ export function NotesTab({ roomId, isAdmin }: NotesTabProps) {
         <div>
           <h2 className="font-semibold text-[var(--text-primary)]">Notes & Files</h2>
           <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-            {folders.length} {folders.length === 1 ? "folder" : "folders"}
+            {folders.length} {folders.length === 1 ? "folder" : "folders"} · Images, documents & code
           </p>
         </div>
         {isAdmin && (
@@ -178,19 +202,17 @@ export function NotesTab({ roomId, isAdmin }: NotesTabProps) {
         </p>
       ) : (
         <ul className="space-y-2">
-          {folders.map((folder, index) => {
+          {folders.map((folder) => {
             const isExpanded = expandedFolders.has(folder.id);
             const files = folder.children || [];
 
             return (
               <li key={folder.id}>
-                {/* Folder card */}
                 <article className="card group">
                   <div
                     className="flex items-center gap-3 px-4 py-3 cursor-pointer"
                     onClick={() => toggleFolder(folder.id)}
                   >
-                    {/* Number */}
                     <div className={cn(
                       "w-8 h-8 rounded-lg flex items-center justify-center shrink-0",
                       isExpanded ? "bg-[var(--accent)]/20" : "bg-[var(--bg-secondary)]"
@@ -198,11 +220,10 @@ export function NotesTab({ roomId, isAdmin }: NotesTabProps) {
                       {isExpanded ? (
                         <FolderOpen size={16} className="text-[var(--accent)]" />
                       ) : (
-                        <Folder size={16} className={cn(isExpanded ? "text-[var(--accent)]" : "text-[var(--text-secondary)]")} />
+                        <Folder size={16} className="text-[var(--text-secondary)]" />
                       )}
                     </div>
 
-                    {/* Title + meta */}
                     <div className="min-w-0 flex-1">
                       <h4 className="text-sm font-medium text-[var(--text-primary)] truncate">{folder.title}</h4>
                       <p className="text-[11px] text-[var(--text-secondary)]">
@@ -210,7 +231,6 @@ export function NotesTab({ roomId, isAdmin }: NotesTabProps) {
                       </p>
                     </div>
 
-                    {/* Actions */}
                     <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100 max-md:opacity-100">
                       {isAdmin && (
                         <>
@@ -266,19 +286,60 @@ export function NotesTab({ roomId, isAdmin }: NotesTabProps) {
 
                   {/* Files */}
                   {isExpanded && files.length > 0 && (
-                    <div className="border-t border-[var(--border)]">
+                    <div className="border-t border-[var(--border)] divide-y divide-[var(--border)]">
                       {files.map((file) => (
                         <div
                           key={file.id}
-                          className="flex items-center gap-3 px-4 py-2.5 hover:bg-[var(--bg-secondary)] border-b border-[var(--border)] last:border-b-0 group/file"
+                          className="flex items-center gap-3 px-4 py-2.5 hover:bg-[var(--bg-secondary)] group/file"
                         >
-                          <span className="ml-8">{getFileIcon(file.title)}</span>
-                          <span className="flex-1 text-sm text-[var(--text-primary)] truncate">{file.title}</span>
-                          <span className="text-[11px] text-[var(--text-secondary)]">
-                            {file.fileSize ? `${(file.fileSize / 1024).toFixed(1)} KB` : ""}
-                          </span>
+                          {/* Icon or thumbnail */}
+                          <div className="ml-6 shrink-0">
+                            {isImage(file.title) && file.content ? (
+                              <div
+                                className="w-10 h-10 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border)] overflow-hidden cursor-pointer hover:border-[var(--accent)] transition-colors"
+                                onClick={() => setPreviewFile(file)}
+                              >
+                                <img
+                                  src={file.content}
+                                  alt={file.title}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                                />
+                              </div>
+                            ) : isVideo(file.title) && file.content ? (
+                              <div className="w-10 h-10 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border)] flex items-center justify-center">
+                                <Video size={16} className="text-pink-400" />
+                              </div>
+                            ) : (
+                              <div className="w-10 h-10 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border)] flex items-center justify-center">
+                                {getFileIcon(file.title, 16)}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Info */}
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm text-[var(--text-primary)] truncate">{file.title}</p>
+                            <p className="text-[11px] text-[var(--text-secondary)]">
+                              {file.fileSize ? formatSize(file.fileSize) : ""}
+                              {isImage(file.title) && " · Image"}
+                              {isVideo(file.title) && " · Video"}
+                              {isDoc(file.title) && " · Document"}
+                            </p>
+                          </div>
+
+                          {/* Actions */}
                           <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover/file:opacity-100 max-md:opacity-100">
-                            {file.content && file.fileType !== "TEXT" && file.fileType !== "CODE" && (
+                            {isImage(file.title) && file.content && (
+                              <button
+                                onClick={() => setPreviewFile(file)}
+                                className="p-1 text-[var(--text-secondary)] hover:text-[var(--accent)] transition-colors"
+                                title="Preview"
+                              >
+                                <Eye size={13} />
+                              </button>
+                            )}
+                            {file.content && (
                               <a
                                 href={file.content}
                                 download={file.fileName || file.title}
@@ -309,7 +370,7 @@ export function NotesTab({ roomId, isAdmin }: NotesTabProps) {
                   {isExpanded && files.length === 0 && (
                     <div className="px-4 py-6 text-center border-t border-[var(--border)]">
                       <p className="text-xs text-[var(--text-secondary)] opacity-60">
-                        No files yet. {isAdmin ? "Upload or create a file." : ""}
+                        No files yet. {isAdmin ? "Upload images, documents, or code files." : ""}
                       </p>
                     </div>
                   )}
@@ -318,6 +379,29 @@ export function NotesTab({ roomId, isAdmin }: NotesTabProps) {
             );
           })}
         </ul>
+      )}
+
+      {/* Image preview modal */}
+      {previewFile && previewFile.content && (
+        <div
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+          onClick={() => setPreviewFile(null)}
+        >
+          <div className="relative max-w-4xl max-h-[90vh] w-full" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setPreviewFile(null)}
+              className="absolute -top-10 right-0 text-white hover:text-gray-300 text-sm"
+            >
+              Close ✕
+            </button>
+            <img
+              src={previewFile.content}
+              alt={previewFile.title}
+              className="max-w-full max-h-[85vh] mx-auto rounded-lg object-contain"
+            />
+            <p className="text-center text-white/70 text-sm mt-3">{previewFile.title}</p>
+          </div>
+        </div>
       )}
     </div>
   );
