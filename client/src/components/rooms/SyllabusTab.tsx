@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   useAddSyllabusItem,
   useToggleSyllabusComplete,
@@ -6,12 +6,108 @@ import {
 } from "../../hooks/useQueries";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../ui/Button";
-import { Trash2, ExternalLink, CheckCircle2, Circle, Hash } from "lucide-react";
+import { Trash2, ExternalLink, CheckCircle2, Circle, Hash, Users } from "lucide-react";
 import { cn } from "../../lib/utils";
 import type { CoLearningRoomFull } from "../../types";
 
 interface Props {
   room: CoLearningRoomFull;
+}
+
+function MemberCompletionAvatars({
+  completedMembers,
+  memberCount,
+  completionPct,
+}: {
+  completedMembers: { id: string; name: string; username: string; avatarColor: string; avatarUrl?: string | null }[];
+  memberCount: number;
+  completionPct: number;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
+  return (
+    <div ref={ref} className="relative flex items-center gap-1.5 mt-1.5">
+      <button
+        type="button"
+        onClick={() => completedMembers.length > 0 && setOpen(!open)}
+        className="flex items-center gap-1.5"
+      >
+        <div className="flex -space-x-1.5">
+          {completedMembers.slice(0, 6).map((m) =>
+            m!.avatarUrl ? (
+              <img
+                key={m!.id}
+                src={m!.avatarUrl}
+                alt={m!.username}
+                className="w-5 h-5 rounded-full object-cover border-2 border-[var(--bg-card)]"
+                title={m!.username}
+              />
+            ) : (
+              <div
+                key={m!.id}
+                className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[8px] font-bold border-2 border-[var(--bg-card)]"
+                style={{ backgroundColor: m!.avatarColor }}
+                title={m!.username}
+              >
+                {m!.username[0].toUpperCase()}
+              </div>
+            )
+          )}
+        </div>
+        <span className="text-[10px] text-[var(--text-secondary)]">
+          {completedMembers.length}/{memberCount}
+        </span>
+        {completionPct > 0 && (
+          <div className="w-16 h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden ml-1">
+            <div
+              className="h-full bg-[var(--accent)] rounded-full transition-all"
+              style={{ width: `${completionPct}%` }}
+            />
+          </div>
+        )}
+      </button>
+
+      {open && completedMembers.length > 0 && (
+        <div className="absolute left-0 top-full z-50 mt-1 w-56 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] py-2 shadow-xl">
+          <div className="flex items-center gap-2 px-3 pb-2 border-b border-[var(--border)]">
+            <Users size={12} className="text-[var(--accent)]" />
+            <span className="text-xs font-medium text-[var(--text-primary)]">Completed by</span>
+          </div>
+          <ul className="mt-1 max-h-48 overflow-y-auto">
+            {completedMembers.map((m) => (
+              <li key={m!.id} className="flex items-center gap-2 px-3 py-1.5 hover:bg-white/5">
+                {m!.avatarUrl ? (
+                  <img
+                    src={m!.avatarUrl}
+                    alt={m!.username}
+                    className="w-5 h-5 rounded-full object-cover"
+                  />
+                ) : (
+                  <div
+                    className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[8px] font-bold"
+                    style={{ backgroundColor: m!.avatarColor }}
+                  >
+                    {m!.username[0].toUpperCase()}
+                  </div>
+                )}
+                <span className="text-xs text-[var(--text-primary)]">{m!.name}</span>
+                <span className="text-[10px] text-[var(--text-secondary)] ml-auto">@{m!.username}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function SyllabusTab({ room }: Props) {
@@ -114,7 +210,7 @@ export function SyllabusTab({ room }: Props) {
             const completedMembers = item.completions.map((c) => {
               const member = room.members.find((m) => m.user.id === c.userId);
               return member?.user;
-            }).filter(Boolean);
+            }).filter((m): m is { id: string; name: string; username: string; avatarColor: string; avatarUrl?: string | null } => !!m);
             const memberCount = room.members.length;
             const completionPct = memberCount > 0 ? Math.round((completedMembers.length / memberCount) * 100) : 0;
 
@@ -164,31 +260,11 @@ export function SyllabusTab({ room }: Props) {
                       <p className="text-xs text-[var(--text-secondary)] mt-0.5 line-clamp-2">{item.description}</p>
                     )}
                     {/* Member completion avatars */}
-                    <div className="flex items-center gap-1.5 mt-1.5">
-                      <div className="flex -space-x-1.5">
-                        {completedMembers.slice(0, 6).map((m) => (
-                          <div
-                            key={m!.id}
-                            className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[8px] font-bold border-2 border-[var(--bg-card)]"
-                            style={{ backgroundColor: m!.avatarColor }}
-                            title={m!.username}
-                          >
-                            {m!.username[0].toUpperCase()}
-                          </div>
-                        ))}
-                      </div>
-                      <span className="text-[10px] text-[var(--text-secondary)]">
-                        {completedMembers.length}/{memberCount}
-                      </span>
-                      {completionPct > 0 && (
-                        <div className="w-16 h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden ml-1">
-                          <div
-                            className="h-full bg-[var(--accent)] rounded-full transition-all"
-                            style={{ width: `${completionPct}%` }}
-                          />
-                        </div>
-                      )}
-                    </div>
+                    <MemberCompletionAvatars
+                      completedMembers={completedMembers}
+                      memberCount={memberCount}
+                      completionPct={completionPct}
+                    />
                   </div>
 
                   {/* Actions */}
