@@ -8,7 +8,9 @@ import {
 import { Modal } from "../components/ui/Modal";
 import { Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
-import { Users, Lock, Globe } from "lucide-react";
+import { Users, Lock, Globe, Flame, Crown } from "lucide-react";
+import { AVATAR_COLORS } from "../lib/constants";
+import { formatDate } from "../lib/utils";
 
 export default function CoLearningRoomsPage() {
   const { data: rooms, isLoading } = useMyRooms();
@@ -24,6 +26,7 @@ export default function CoLearningRoomsPage() {
   const [password, setPassword] = useState("");
   const [inviteCode, setInviteCode] = useState("");
   const [joinPassword, setJoinPassword] = useState("");
+  const [accentColor, setAccentColor] = useState(AVATAR_COLORS[0]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,6 +42,7 @@ export default function CoLearningRoomsPage() {
     setDescription("");
     setVisibility("PUBLIC");
     setPassword("");
+    setAccentColor(AVATAR_COLORS[0]);
     setShowCreate(false);
   };
 
@@ -81,40 +85,70 @@ export default function CoLearningRoomsPage() {
       </div>
 
       {rooms && rooms.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {rooms.map((room) => (
             <Link
               key={room.id}
               to={`/rooms/${room.id}`}
-              className="block bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-4 hover:border-[var(--accent)] transition-colors"
+              className="card card-interactive group relative overflow-hidden p-5"
             >
-              <div className="flex items-start justify-between mb-3">
+              {/* Color top bar */}
+              <span
+                aria-hidden
+                className="absolute inset-x-0 top-0 h-[3px]"
+                style={{
+                  background: `linear-gradient(90deg, ${accentColor}, ${accentColor}66)`,
+                  boxShadow: `0 0 14px ${accentColor}66`,
+                }}
+              />
+
+              <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-[var(--text-primary)] truncate">{room.name}</h3>
+                    <h3 className="text-base font-semibold text-white truncate">{room.name}</h3>
                     {room.visibility === "PRIVATE" ? (
                       <Lock size={14} className="text-yellow-400 shrink-0" />
                     ) : (
                       <Globe size={14} className="text-green-400 shrink-0" />
                     )}
                   </div>
-                  <p className="text-sm text-[var(--accent)]">{room.topic}</p>
+                  <p className="text-sm text-[var(--accent)] mt-0.5">{room.topic}</p>
                 </div>
                 {room.role === "ADMIN" && (
-                  <span className="text-xs bg-[var(--accent)]/10 text-[var(--accent)] px-2 py-0.5 rounded-full shrink-0">
-                    Admin
+                  <span className="flex items-center gap-1 text-[10px] font-medium bg-amber-400/10 text-amber-400 px-2 py-0.5 rounded-full shrink-0">
+                    <Crown size={10} /> Admin
                   </span>
                 )}
               </div>
+
               {room.description && (
-                <p className="text-sm text-[var(--text-secondary)] mb-3 line-clamp-2">{room.description}</p>
+                <p className="mt-2 line-clamp-2 min-h-[32px] text-xs leading-relaxed text-ink-muted">
+                  {room.description}
+                </p>
               )}
-              <div className="flex items-center gap-4 text-xs text-[var(--text-secondary)]">
-                <span>{room.memberCount} member{room.memberCount !== 1 ? "s" : ""}</span>
+
+              {/* Stats */}
+              <div className="mt-4 flex items-center gap-4 text-xs text-ink-faint">
+                <span className="inline-flex items-center gap-1">
+                  <Users size={12} />
+                  {room.memberCount} member{room.memberCount !== 1 ? "s" : ""}
+                </span>
                 {room.streakCount > 0 && (
-                  <span className="text-orange-400">🔥 {room.streakCount} day streak</span>
+                  <span className="inline-flex items-center gap-1 text-orange-400">
+                    <Flame size={12} /> {room.streakCount} day streak
+                  </span>
                 )}
               </div>
+
+              {/* Footer */}
+              <footer className="mt-4 flex items-center justify-between border-t border-slate-800/70 pt-3">
+                <span className="font-mono text-[11px] text-ink-faint">
+                  created {formatDate(room.createdAt)}
+                </span>
+                <span className="text-[var(--accent)] text-[11px] font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                  Open →
+                </span>
+              </footer>
             </Link>
           ))}
         </div>
@@ -154,44 +188,40 @@ export default function CoLearningRoomsPage() {
               className="w-full bg-[var(--bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] h-20 resize-none"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="What will you study together?"
+              placeholder="What will you study?"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Visibility</label>
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => { setVisibility("PUBLIC"); setPassword(""); }}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm transition-colors ${
-                  visibility === "PUBLIC"
-                    ? "border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--accent)]"
-                    : "border-[var(--border)] text-[var(--text-secondary)] hover:border-[var(--accent)]"
-                }`}
-              >
-                <Globe size={16} />
-                Public
-              </button>
-              <button
-                type="button"
-                onClick={() => setVisibility("PRIVATE")}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm transition-colors ${
-                  visibility === "PRIVATE"
-                    ? "border-yellow-400 bg-yellow-400/10 text-yellow-400"
-                    : "border-[var(--border)] text-[var(--text-secondary)] hover:border-yellow-400"
-                }`}
-              >
-                <Lock size={16} />
-                Private
-              </button>
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Accent Color</label>
+            <div className="flex gap-2">
+              {AVATAR_COLORS.slice(0, 8).map((color) => (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={() => setAccentColor(color)}
+                  className={`w-7 h-7 rounded-full transition-all ${accentColor === color ? "ring-2 ring-white ring-offset-2 ring-offset-[var(--bg)] scale-110" : "hover:scale-105"}`}
+                  style={{ backgroundColor: color }}
+                />
+              ))}
             </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Visibility</label>
+            <select
+              className="w-full bg-[var(--bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
+              value={visibility}
+              onChange={(e) => setVisibility(e.target.value as "PUBLIC" | "PRIVATE")}
+            >
+              <option value="PUBLIC">Public — anyone can join</option>
+              <option value="PRIVATE">Private — requires password</option>
+            </select>
           </div>
           {visibility === "PRIVATE" && (
             <div>
-              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Room Password</label>
+              <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Password</label>
               <input
-                type="password"
                 className="w-full bg-[var(--bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
+                type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Min 4 characters"
@@ -200,14 +230,9 @@ export default function CoLearningRoomsPage() {
               />
             </div>
           )}
-          <div className="flex justify-end gap-2">
-            <Button variant="ghost" type="button" onClick={() => setShowCreate(false)}>
-              Cancel
-            </Button>
-            <Button variant="primary" type="submit" disabled={createRoom.isPending}>
-              {createRoom.isPending ? "Creating..." : "Create"}
-            </Button>
-          </div>
+          <Button variant="primary" type="submit" disabled={createRoom.isPending} className="w-full">
+            {createRoom.isPending ? "Creating..." : "Create Room"}
+          </Button>
         </form>
       </Modal>
 
@@ -218,31 +243,25 @@ export default function CoLearningRoomsPage() {
             <input
               className="w-full bg-[var(--bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text-primary)] font-mono text-center text-lg tracking-widest focus:outline-none focus:border-[var(--accent)]"
               value={inviteCode}
-              onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-              placeholder="XXXXXXXX"
+              onChange={(e) => setInviteCode(e.target.value)}
+              placeholder="ABCD1234"
               required
               maxLength={8}
             />
-            <p className="text-xs text-[var(--text-secondary)] mt-1">Ask a room admin for the 8-character invite code.</p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Password (if private room)</label>
+            <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Password (if private)</label>
             <input
-              type="password"
               className="w-full bg-[var(--bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
+              type="password"
               value={joinPassword}
               onChange={(e) => setJoinPassword(e.target.value)}
-              placeholder="Leave blank if public room"
+              placeholder="Leave blank if public"
             />
           </div>
-          <div className="flex justify-end gap-2">
-            <Button variant="ghost" type="button" onClick={() => setShowJoin(false)}>
-              Cancel
-            </Button>
-            <Button variant="primary" type="submit" disabled={joinRoom.isPending || inviteCode.length < 4}>
-              {joinRoom.isPending ? "Joining..." : "Join"}
-            </Button>
-          </div>
+          <Button variant="primary" type="submit" disabled={joinRoom.isPending} className="w-full">
+            {joinRoom.isPending ? "Joining..." : "Join Room"}
+          </Button>
         </form>
       </Modal>
     </div>
