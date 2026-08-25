@@ -106,30 +106,15 @@ export const uploadNote = asyncHandler(async (req, res) => {
   const parentId = req.body.parentId || null;
   const order = parseInt(req.body.order || "0", 10);
   const fileType = fileTypeFromName(req.file.originalname);
-  const filePath = join(uploadsRoot, id, req.file.filename);
+  const fileUrl = `/uploads/rooms/${id}/${req.file.filename}`;
 
-  let content;
-  let fileUrl = null;
-
-  if (isTextFileType(fileType)) {
-    try {
-      content = await readFile(filePath, "utf-8");
-    } catch {
-      content = null;
-    }
-  } else {
-    fileUrl = `/uploads/rooms/${id}/${req.file.filename}`;
-    content = fileUrl;
-  }
-
-  console.log("[upload] FileType:", fileType, "Content:", content ? "set" : "null");
-
+  // Always store the file URL for downloads
   const note = await prisma.roomNote.create({
     data: {
       title,
       type: "FILE",
       fileType,
-      content,
+      content: fileUrl,
       fileName: req.file.originalname,
       fileSize: req.file.size,
       parentId,
