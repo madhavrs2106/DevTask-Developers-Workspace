@@ -33,6 +33,7 @@ import { api } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { CodeRunner } from "../components/rooms/CodeRunner";
 import { JupyterNotebook } from "../components/rooms/JupyterNotebook";
+import { TerminalPanel } from "../components/rooms/TerminalPanel";
 import { cn } from "../lib/utils";
 import type { CoLearningRoomFull, RoomNote } from "../types";
 
@@ -86,6 +87,7 @@ function ActivityBar({ activePanel, onToggle }: { activePanel: string; onToggle:
     { id: "explorer", icon: Folder, label: "Explorer" },
     { id: "search", icon: Search, label: "Search" },
     { id: "runner", icon: Terminal, label: "Run & Debug" },
+    { id: "terminal", icon: Terminal, label: "Terminal (Ctrl+`)" },
     { id: "extensions", icon: Blocks, label: "Extensions" },
   ];
   return (
@@ -431,6 +433,7 @@ export default function CodeEditorPage() {
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [activePanel, setActivePanel] = useState("explorer");
+  const [showTerminal, setShowTerminal] = useState(false);
   const [showNewFolder, setShowNewFolder] = useState(false);
   const [showNewFile, setShowNewFile] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
@@ -521,8 +524,26 @@ export default function CodeEditorPage() {
   }, [notes, moveNote]);
 
   const handlePanelToggle = (panel: string) => {
-    setActivePanel((prev) => (prev === panel ? "" : panel));
+    if (panel === "terminal") {
+      setShowTerminal((prev) => !prev);
+      if (!showTerminal) setActivePanel("terminal");
+    } else {
+      setShowTerminal(false);
+      setActivePanel((prev) => (prev === panel ? "" : panel));
+    }
   };
+
+  // Ctrl+` to toggle terminal
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "`" && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        setShowTerminal((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   if (!roomId) {
     return (
@@ -586,6 +607,9 @@ export default function CodeEditorPage() {
               </div>
             </div>
           )}
+
+          {/* Terminal panel */}
+          <TerminalPanel isOpen={showTerminal} onToggle={() => setShowTerminal(false)} />
         </div>
       </div>
 
