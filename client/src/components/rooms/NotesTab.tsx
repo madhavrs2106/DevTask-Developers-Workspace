@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Folder,
@@ -10,10 +10,10 @@ import {
   Download,
   Image,
   Video,
-  File,
   Loader2,
   FolderPlus,
   Eye,
+  AlertCircle,
 } from "lucide-react";
 import { api } from "../../lib/api";
 import { Button } from "../ui/Button";
@@ -66,12 +66,15 @@ function formatSize(bytes: number) {
 
 export function NotesTab({ roomId, isAdmin }: NotesTabProps) {
   const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingFolderId, setUploadingFolderId] = useState<string | null>(null);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const [showNewFile, setShowNewFile] = useState<string | null>(null);
   const [newFileName, setNewFileName] = useState("");
   const [showNewFolder, setShowNewFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [previewFile, setPreviewFile] = useState<RoomNote | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["roomNotes", roomId],
@@ -84,12 +87,18 @@ export function NotesTab({ roomId, isAdmin }: NotesTabProps) {
       fd.append("file", file);
       fd.append("title", file.name);
       fd.append("parentId", parentId);
-      return (await api.post(`/rooms/${roomId}/notes/upload`, fd)).data;
+      const res = await api.post(`/rooms/${roomId}/notes/upload`, fd, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return res.data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["roomNotes", roomId] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["roomNotes", roomId] });
+      setUploadError(null);
+    },
     onError: (error: any) => {
       const msg = error?.response?.data?.message || error.message || "Upload failed";
-      alert(`Upload error: ${msg}`);
+      setUploadError(msg);
     },
   });
 
@@ -130,16 +139,22 @@ export function NotesTab({ roomId, isAdmin }: NotesTabProps) {
     });
   };
 
-  const handleUpload = (folderId: string) => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.multiple = true;
-    input.accept = "image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.rtf,.txt,.csv,.md,.json,.js,.ts,.py,.html,.css,.zip,.tar,.gz";
-    input.onchange = (e: any) => {
-      const files = e.target.files as FileList;
-      Array.from(files).forEach((f: File) => uploadFile.mutate({ file: f, parentId: folderId }));
-    };
-    input.click();
+  const handleUploadClick = (folderId: string) => {
+    setUploadingFolderId(folderId);
+    setUploadError(null);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0 || !uploadingFolderId) return;
+
+    for (let i = 0; i < files.length; i++) {
+      await uploadFile.mutateAsync({ file: files[i], parentId: uploadingFolderId });
+    }
+
+    setUploadingFolderId(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleCreateFile = (folderId: string) => {
@@ -157,6 +172,15 @@ export function NotesTab({ roomId, isAdmin }: NotesTabProps) {
 
   return (
     <div>
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        className="hidden"
+        onChange={handleFileChange}
+      />
+
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div>
@@ -171,6 +195,15 @@ export function NotesTab({ roomId, isAdmin }: NotesTabProps) {
           </Button>
         )}
       </div>
+
+      {/* Upload error */}
+      {uploadError && (
+        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-2 text-sm text-red-400">
+          <AlertCircle size={16} />
+          <span>{uploadError}</span>
+          <button onClick={() => setUploadError(null)} className="ml-auto">×</button>
+        </div>
+      )}
 
       {/* New folder form */}
       {showNewFolder && (
@@ -209,6 +242,7 @@ export function NotesTab({ roomId, isAdmin }: NotesTabProps) {
           {folders.map((folder) => {
             const isExpanded = expandedFolders.has(folder.id);
             const files = folder.children || [];
+            const isUploading = uploadingFolderId === folder.id;
 
             return (
               <li key={folder.id}>
@@ -239,11 +273,17 @@ export function NotesTab({ roomId, isAdmin }: NotesTabProps) {
                       {isAdmin && (
                         <>
                           <button
-                            onClick={(e) => { e.stopPropagation(); handleUpload(folder.id); }}
-                            className="p-1.5 text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/10 rounded-lg transition-colors"
+                            onClick={(e) => { e.stopPropagation(); handleUploadClick(folder.id); }}
+                            className={cn(
+                              "p-1.5 rounded-lg transition-colors",
+                              isUploading
+                                ? "text-[var(--accent)] bg-[var(--accent)]/10"
+                                : "text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/10"
+                            )}
                             title="Upload files"
+                            disabled={isUploading}
                           >
-                            <Upload size={14} />
+                            {isUploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
                           </button>
                           <button
                             onClick={(e) => { e.stopPropagation(); setShowNewFile(showNewFile === folder.id ? null : folder.id); }}
@@ -296,7 +336,6 @@ export function NotesTab({ roomId, isAdmin }: NotesTabProps) {
                           key={file.id}
                           className="flex items-center gap-3 px-4 py-2.5 hover:bg-[var(--bg-secondary)] group/file"
                         >
-                          {/* Icon or thumbnail */}
                           <div className="ml-6 shrink-0">
                             {isImage(file.title) && file.content ? (
                               <div
@@ -321,18 +360,13 @@ export function NotesTab({ roomId, isAdmin }: NotesTabProps) {
                             )}
                           </div>
 
-                          {/* Info */}
                           <div className="min-w-0 flex-1">
                             <p className="text-sm text-[var(--text-primary)] truncate">{file.title}</p>
                             <p className="text-[11px] text-[var(--text-secondary)]">
                               {file.fileSize ? formatSize(file.fileSize) : ""}
-                              {isImage(file.title) && " · Image"}
-                              {isVideo(file.title) && " · Video"}
-                              {isDoc(file.title) && " · Document"}
                             </p>
                           </div>
 
-                          {/* Actions */}
                           <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover/file:opacity-100 max-md:opacity-100">
                             {isImage(file.title) && file.content && (
                               <button
