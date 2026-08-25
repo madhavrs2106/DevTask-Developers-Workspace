@@ -61,12 +61,20 @@ function DiscussionPost({
     <div className={depth > 0 ? "ml-6 pl-3 border-l-2 border-[var(--border)]" : ""}>
       <div className="p-3 rounded-lg bg-[var(--bg-card)] border border-[var(--border)]">
         <div className="flex items-center gap-2 mb-2">
-          <div
-            className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold"
-            style={{ backgroundColor: post.author.avatarColor }}
-          >
-            {post.author.username[0].toUpperCase()}
-          </div>
+          {post.author.avatarUrl ? (
+            <img
+              src={post.author.avatarUrl}
+              alt={post.author.username}
+              className="w-6 h-6 rounded-full object-cover"
+            />
+          ) : (
+            <div
+              className="w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-bold"
+              style={{ backgroundColor: post.author.avatarColor }}
+            >
+              {post.author.username[0].toUpperCase()}
+            </div>
+          )}
           <span className="text-sm font-medium text-[var(--text-primary)]">
             {post.author.username}
           </span>
