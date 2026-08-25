@@ -122,6 +122,7 @@ interface TreeItemProps {
   note: RoomNote;
   depth: number;
   selectedId: string | null;
+  activeFolderId: string | null;
   onSelect: (note: RoomNote) => void;
   onFolderSelect: (note: RoomNote) => void;
   expandedIds: Set<string>;
@@ -137,6 +138,7 @@ function TreeItem({
   note,
   depth,
   selectedId,
+  activeFolderId,
   onSelect,
   onFolderSelect,
   expandedIds,
@@ -150,6 +152,7 @@ function TreeItem({
   const isFolder = note.type === "FOLDER";
   const isExpanded = expandedIds.has(note.id);
   const isSelected = selectedId === note.id;
+  const isActiveFolder = isFolder && activeFolderId === note.id;
   const isDragOver = dragOverId === note.id;
   const Icon = isFolder ? (isExpanded ? FolderOpen : Folder) : getFileIcon(note.title);
 
@@ -186,9 +189,11 @@ function TreeItem({
     <div>
       <div
         className={cn(
-          "flex items-center gap-1 px-2 py-1 cursor-pointer text-xs group transition-colors",
-          isSelected && "bg-[var(--accent)]/20 text-[var(--accent)]",
-          !isSelected && "text-[var(--text-primary)]",
+          "flex items-center gap-1 px-2 py-1 cursor-pointer text-xs group transition-all",
+          isActiveFolder && "bg-[var(--accent)]/20 text-[var(--accent)] font-medium shadow-[inset_0_0_8px_rgba(var(--accent-rgb,59,130,246),0.15)]",
+          isSelected && !isActiveFolder && "bg-[var(--accent)]/15 text-[var(--accent)]",
+          !isSelected && !isActiveFolder && isFolder && "text-[var(--text-secondary)] opacity-60",
+          !isSelected && !isActiveFolder && !isFolder && "text-[var(--text-primary)]",
           isDragOver && "bg-[var(--accent)]/30 ring-1 ring-[var(--accent)]"
         )}
         style={{ paddingLeft: `${depth * 16 + 8}px` }}
@@ -215,7 +220,7 @@ function TreeItem({
         {isAdmin && (
           <GripVertical size={12} className="shrink-0 opacity-0 group-hover:opacity-50 cursor-grab" />
         )}
-        <Icon size={14} className="shrink-0 text-[var(--text-secondary)]" />
+        <Icon size={14} className={cn("shrink-0", isActiveFolder ? "text-[var(--accent)]" : "text-[var(--text-secondary)]")} />
         <span className="truncate flex-1">{note.title}</span>
         {isAdmin && (
           <button
@@ -237,6 +242,7 @@ function TreeItem({
               note={child}
               depth={depth + 1}
               selectedId={selectedId}
+              activeFolderId={activeFolderId}
               onSelect={onSelect}
               onFolderSelect={onFolderSelect}
               expandedIds={expandedIds}
@@ -719,6 +725,7 @@ export function CodeEditor({ room }: Props) {
                   note={note}
                   depth={0}
                   selectedId={activeTabId}
+                  activeFolderId={activeFolder?.id || null}
                   onSelect={openNote}
                   onFolderSelect={selectFolder}
                   expandedIds={expandedIds}
