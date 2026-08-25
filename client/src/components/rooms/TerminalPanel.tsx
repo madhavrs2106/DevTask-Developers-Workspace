@@ -51,10 +51,11 @@ function processCommand(input: string, cwd: string): { output: string; newCwd: s
   whoami        Show current user
   uname         Show system info
   history       Show command history
-  python        Run Python code
+  python        Run Python code (Pyodide)
   node          Run JavaScript code
   git           Git commands (simulated)
-  npm           NPM commands (simulated)`,
+  npm           NPM commands (simulated)
+  pip           Package manager (list/freeze/install)`,
         newCwd: cwd,
         isError: false,
       };
@@ -128,6 +129,53 @@ function processCommand(input: string, cwd: string): { output: string; newCwd: s
 
     case "history":
       return { output: "__HISTORY__", newCwd: cwd, isError: false };
+
+    case "pip": {
+      const sub = args[0];
+      if (sub === "list" || sub === "ls") {
+        return {
+          output: `Package                    Version
+--------------------------  -------
+numpy                      1.24.0
+pandas                     2.0.0
+matplotlib                 3.7.0
+scipy                      1.10.0
+sympy                      1.11.0
+scikit-learn               1.2.0
+requests                   2.28.0
+beautifulsoup4             4.11.0
+lxml                       4.9.0
+pillow                     9.4.0
+openpyxl                   3.1.0
+bokeh                      3.1.0
+tqdm                       4.65.0
+tabulate                   0.9.0
+rich                       13.0.0
+colorama                   0.4.6
+cloudpickle                2.2.0
+micropip                   0.24.1
+pyodide                    0.24.1`,
+          newCwd: cwd,
+          isError: false,
+        };
+      }
+      if (sub === "freeze") {
+        return {
+          output: "numpy==1.24.0\npandas==2.0.0\nmatplotlib==3.7.0\nscipy==1.10.0\nsympy==1.11.0\nscikit-learn==1.2.0\nrequests==2.28.0",
+          newCwd: cwd,
+          isError: false,
+        };
+      }
+      if (sub === "install" || sub === "i") {
+        const pkg = args[1] || "package-name";
+        return {
+          output: `Collecting ${pkg}\nUsing cached ${pkg}-latest-py3-none-any.whl\nInstalling collected packages: ${pkg}\nSuccessfully installed ${pkg}-latest\n\nNote: Packages auto-install via micropip in Pyodide (browser Python)`,
+          newCwd: cwd,
+          isError: false,
+        };
+      }
+      return { output: "Usage: pip list | pip freeze | pip install <package>\n\nNote: In browser Python, packages auto-install via micropip.", newCwd: cwd, isError: false };
+    }
 
     case "python":
     case "py": {

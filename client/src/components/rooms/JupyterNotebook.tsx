@@ -124,6 +124,7 @@ export function JupyterNotebook({ initialContent, readOnly = false }: JupyterNot
       const py = await (window as any).loadPyodide({
         indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/",
       });
+      await py.loadPackage("micropip");
       pyodideRef.current = py;
       setPyodide(py);
       return py;
@@ -150,7 +151,47 @@ export function JupyterNotebook({ initialContent, readOnly = false }: JupyterNot
         py.setStderr({ batched: (msg: string) => { error += msg + "\n"; } });
 
         try {
-          const result = await py.runPythonAsync(cell.source);
+          // Wrap code with auto-import handler
+          const wrappedCode = `
+import micropip
+import sys
+import importlib
+
+_builtins = [
+    "js", "pyodide", "micropip", "numpy", "pandas", "matplotlib",
+    "scipy", "sympy", "scikit-learn", "requests", "beautifulsoup4",
+    "lxml", "regex", "pillow", "openpyxl", "xlrd", "bokeh",
+    "h5py", "numba", "cv2", "imageio", "nltk", "tqdm", "tabulate",
+    "rich", "colorama", "pygments", "cloudpickle", "dask", "xarray",
+]
+
+_real_import = builtins.__import__ if hasattr(builtins, '__import__') else __builtins__.__import__
+
+class AutoImporter:
+    def find_module(self, name, path=None):
+        if name in _builtins:
+            return None
+        return self
+    def load_module(self, name):
+        if name in sys.modules:
+            return sys.modules[name]
+        import asyncio
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            loop2 = asyncio.new_event_loop()
+            try:
+                loop2.run_until_complete(micropip.install(name))
+            finally:
+                loop2.close()
+        else:
+            loop.run_until_complete(micropip.install(name))
+        return importlib.import_module(name)
+
+sys.meta_path.insert(0, AutoImporter())
+
+${cell.source}
+`;
+          const result = await py.runPythonAsync(wrappedCode);
           if (result !== undefined && result !== "") {
             output += String(result) + "\n";
           }

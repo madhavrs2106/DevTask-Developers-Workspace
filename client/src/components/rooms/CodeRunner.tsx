@@ -87,11 +87,11 @@ ${code}
     if (iframeRef.current) iframeRef.current.srcdoc = html;
   }, [code, clearConsole]);
 
-  // Python
+  // Python with auto-install via micropip
   const runPython = useCallback(async () => {
     clearConsole();
     setIsRunning(true);
-    addLine("info", "Loading Python runtime...");
+    addLine("info", "Loading Python runtime (Pyodide)...");
     try {
       if (!pyodideRef.current) {
         if (!(window as any).loadPyodide) {
@@ -100,12 +100,71 @@ ${code}
           document.head.appendChild(s);
           await new Promise((r, j) => { s.onload = r; s.onerror = () => j(new Error("Failed to load Pyodide")); });
         }
-        pyodideRef.current = await (window as any).loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/" });
+        pyodideRef.current = await (window as any).loadPyodide({
+          indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/",
+        });
+        // Load micropip for auto-installing packages
+        await pyodideRef.current.loadPackage("micropip");
+        addLine("info", "Python runtime ready. Auto-installing packages if needed...");
       }
+
+      // Wrap code with auto-import handler
+      const wrappedCode = `
+import micropip
+import sys
+import importlib
+
+# Known Pyodide built-in packages
+_builtins = [
+    "js", "pyodide", "micropip", "numpy", "pandas", "matplotlib",
+    "scipy", "sympy", "scikit-learn", "requests", "beautifulsoup4",
+    "lxml", "regex", "pillow", "openpyxl", "xlrd", "bokeh",
+    "h5py", "numba", "astropy", "statsmodels", "networkx",
+    "joblib", "threadpoolctl", "cv2", "imageio", "nltk", "spacy",
+    "cloudpickle", "dask", "fsspec", "zarr", "xarray",
+    "pytz", "dateutil", "six", "attr", "werkzeug", "click",
+    "jinja2", "markupsafe", "itsdangerous", "flask", "bottle",
+    "fastapi", "starlette", "httpx", "aiohttp", "tqdm",
+    "tabulate", "rich", "colorama", "pygments", "ipython",
+    "matplotlib_inline", "jupyter_core", "nbformat", "nbconvert",
+    "ipywidgets", "traitlets", "json5", "yaml", "tomli", "tomllib",
+]
+
+# Override import to auto-install missing packages via micropip
+_real_import = builtins.__import__ if hasattr(builtins, '__import__') else __builtins__.__import__
+
+class AutoImporter:
+    def find_module(self, name, path=None):
+        if name in _builtins:
+            return None
+        return self
+    
+    def load_module(self, name):
+        if name in sys.modules:
+            return sys.modules[name]
+        # Try to install via micropip
+        import asyncio
+        loop = asyncio.get_event_loop()
+        if loop.is_running():
+            # Create a new loop for installation
+            loop2 = asyncio.new_event_loop()
+            try:
+                loop2.run_until_complete(micropip.install(name))
+            finally:
+                loop2.close()
+        else:
+            loop.run_until_complete(micropip.install(name))
+        return importlib.import_module(name)
+
+# Register the importer
+sys.meta_path.insert(0, AutoImporter())
+
+${code}
+`;
       addLine("info", "Running...");
       pyodideRef.current.setStdout({ batched: (m: string) => addLine("log", m) });
       pyodideRef.current.setStderr({ batched: (m: string) => addLine("error", m) });
-      const result = await pyodideRef.current.runPythonAsync(code);
+      const result = await pyodideRef.current.runPythonAsync(wrappedCode);
       if (result !== undefined) addLine("result", String(result));
       addLine("log", "\n--- Execution complete ---");
     } catch (e: any) {
