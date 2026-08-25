@@ -127,6 +127,7 @@ export const getAnalytics = asyncHandler(async (req, res) => {
   }
 
   /* Hours studied per week — last 8 weeks from coding sessions */
+  console.log(`[analytics] codingSessions count: ${codingSessions.length}`);
   const hoursPerWeek = Array.from({ length: 8 }, (_, i) => {
     const start = new Date(today.getTime() - (7 * (7 - i) + 6) * DAY);
     const end = new Date(start.getTime() + 7 * DAY);
@@ -139,6 +140,7 @@ export const getAnalytics = asyncHandler(async (req, res) => {
       .reduce((sum, s) => sum + s.hours, 0);
     return { label, hours: Math.round(hours * 10) / 10 };
   });
+  console.log("[analytics] hoursPerWeek:", JSON.stringify(hoursPerWeek));
 
   res.json({
     stats: {
