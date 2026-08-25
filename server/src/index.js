@@ -5,18 +5,25 @@ import { prisma } from "./lib/prisma.js";
 
 /**
  * Optionally seed demo data on first boot (AUTO_SEED=true).
- * Only runs when the users table is empty, so it never overwrites real data.
+ * FORCE_SEED=true re-seeds even when users exist (resets demo account only).
  */
 async function autoSeed() {
   if (process.env.AUTO_SEED !== "true") return;
 
+  const forceSeed = process.env.FORCE_SEED === "true";
   const userCount = await prisma.user.count();
-  if (userCount > 0) {
+
+  if (userCount > 0 && !forceSeed) {
     console.log("[auto-seed] skipped — database already has users");
     return;
   }
 
-  console.log("[auto-seed] empty database — seeding demo data…");
+  if (forceSeed) {
+    console.log("[auto-seed] FORCE_SEED — resetting demo account…");
+  } else {
+    console.log("[auto-seed] empty database — seeding demo data…");
+  }
+
   await new Promise((resolve, reject) => {
     const child = spawn(process.execPath, ["../prisma/seed.mjs"], {
       cwd: process.cwd(),
