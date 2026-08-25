@@ -309,7 +309,7 @@ function ContentViewer({
   );
 }
 
-export function NotesTab({ room }: Props) {
+export function CodeEditor({ room }: Props) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
