@@ -128,13 +128,14 @@ export function DiscussionTab({ room }: Props) {
       <form onSubmit={handlePost} className="mb-6 space-y-3">
         {room.syllabusItems.length > 0 && (
           <select
-            className="w-full bg-[var(--bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent)]"
+            className="w-full bg-[var(--bg-card)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent)]"
+            style={{ color: "var(--text-primary)", backgroundColor: "var(--bg-card)" }}
             value={selectedItemId}
             onChange={(e) => setSelectedItemId(e.target.value)}
           >
-            <option value="">General discussion</option>
+            <option value="" style={{ color: "var(--text-primary)", backgroundColor: "var(--bg-card)" }}>General discussion</option>
             {room.syllabusItems.map((item) => (
-              <option key={item.id} value={item.id}>
+              <option key={item.id} value={item.id} style={{ color: "var(--text-primary)", backgroundColor: "var(--bg-card)" }}>
                 {item.title}
               </option>
             ))}
