@@ -177,6 +177,7 @@ export function NotesTab({ roomId, isAdmin }: NotesTabProps) {
         ref={fileInputRef}
         type="file"
         multiple
+        accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.rtf,.txt,.csv,.md,.json,.js,.ts,.py,.html,.css,.zip,.tar,.gz"
         className="hidden"
         onChange={handleFileChange}
       />
