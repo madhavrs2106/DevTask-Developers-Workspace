@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router";
 import { useRoom, useLeaveRoom } from "../hooks/useQueries";
 import { useAuth } from "../context/AuthContext";
 import { SyllabusTab } from "../components/rooms/SyllabusTab";
-import { CodeEditor } from "../components/rooms/CodeEditor";
 import { DiscussionTab } from "../components/rooms/DiscussionTab";
 import { FocusTab } from "../components/rooms/FocusTab";
 import { MembersTab } from "../components/rooms/MembersTab";
@@ -12,7 +11,7 @@ import { Button } from "../components/ui/Button";
 
 const TABS = [
   { key: "syllabus", label: "Syllabus" },
-  { key: "code-editor", label: "Code Editor" },
+  { key: "notes", label: "Notes" },
   { key: "discussions", label: "Discussions" },
   { key: "focus", label: "Focus" },
   { key: "members", label: "Members" },
@@ -65,6 +64,14 @@ export default function CoLearningRoomPage() {
     navigate("/rooms");
   };
 
+  const handleTabClick = (key: string) => {
+    if (key === "notes") {
+      navigate(`/code-editor?room=${room.id}`);
+      return;
+    }
+    setActiveTab(key as typeof activeTab);
+  };
+
   return (
     <div className="p-4 sm:p-6 max-w-6xl mx-auto">
       {/* Header */}
@@ -106,7 +113,7 @@ export default function CoLearningRoomPage() {
         {visibleTabs.map((tab) => (
           <button
             key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
+            onClick={() => handleTabClick(tab.key)}
             className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
               activeTab === tab.key
                 ? "text-[var(--accent)] border-b-2 border-[var(--accent)]"
@@ -120,7 +127,6 @@ export default function CoLearningRoomPage() {
 
       {/* Tab Content */}
       {activeTab === "syllabus" && <SyllabusTab room={room} />}
-      {activeTab === "code-editor" && <CodeEditor room={room} />}
       {activeTab === "discussions" && <DiscussionTab room={room} />}
       {activeTab === "focus" && <FocusTab room={room} />}
       {activeTab === "members" && <MembersTab room={room} isAdmin={isAdmin} />}
