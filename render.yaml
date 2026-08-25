@@ -32,7 +32,7 @@ services:
         value: "true"
       # Set to "true" once to reset demo account, then back to "false"
       - key: FORCE_SEED
-        value: "false"
+        value: "true"
 
 databases:
   - name: devtask-db

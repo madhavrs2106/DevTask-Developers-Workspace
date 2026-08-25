@@ -1,7 +1,11 @@
 import { spawn } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
 import app from "./app.js";
 import { env } from "./config/env.js";
 import { prisma } from "./lib/prisma.js";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 /**
  * Optionally seed demo data on first boot (AUTO_SEED=true).
@@ -25,7 +29,8 @@ async function autoSeed() {
   }
 
   await new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, ["../prisma/seed.mjs"], {
+    const seedScript = resolve(__dirname, "../../prisma/seed.mjs");
+    const child = spawn(process.execPath, [seedScript], {
       cwd: process.cwd(),
       env: process.env,
       stdio: "inherit",
