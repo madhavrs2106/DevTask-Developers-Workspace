@@ -97,6 +97,7 @@ function getStorage() {
 }
 
 function fileFilter(_req, file, cb) {
+  console.log("[upload] File:", file.originalname, "MIME:", file.mimetype);
   if (ALLOWED_MIME[file.mimetype]) {
     cb(null, true);
     return;

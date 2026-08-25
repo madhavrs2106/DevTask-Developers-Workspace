@@ -87,6 +87,10 @@ export function NotesTab({ roomId, isAdmin }: NotesTabProps) {
       return (await api.post(`/rooms/${roomId}/notes/upload`, fd)).data;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["roomNotes", roomId] }),
+    onError: (error: any) => {
+      const msg = error?.response?.data?.message || error.message || "Upload failed";
+      alert(`Upload error: ${msg}`);
+    },
   });
 
   const createFile = useMutation({
