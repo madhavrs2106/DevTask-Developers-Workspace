@@ -36,6 +36,39 @@ function fileTypeFromMime(mimetype) {
   if (mimetype.startsWith("video/")) return "VIDEO";
   if (mimetype.startsWith("image/")) return "IMAGE";
   if (mimetype === "application/pdf") return "DOC";
+  if (
+    mimetype === "application/x-ipynb+json" ||
+    mimetype === "text/javascript" ||
+    mimetype === "text/typescript" ||
+    mimetype === "text/x-python" ||
+    mimetype === "text/x-java-source" ||
+    mimetype === "text/html" ||
+    mimetype === "text/css" ||
+    mimetype === "application/json" ||
+    mimetype === "text/x-c" ||
+    mimetype === "text/x-c++src" ||
+    mimetype === "text/x-csharp" ||
+    mimetype === "text/x-go" ||
+    mimetype === "text/x-rust" ||
+    mimetype === "text/x-shellscript" ||
+    mimetype === "text/x-ruby" ||
+    mimetype === "text/x-php" ||
+    mimetype === "text/x-sql" ||
+    mimetype === "text/x-yaml" ||
+    mimetype === "text/xml" ||
+    mimetype === "application/xml" ||
+    mimetype === "application/x-yaml" ||
+    mimetype === "application/toml" ||
+    mimetype === "text/x-dart" ||
+    mimetype === "text/x-swift" ||
+    mimetype === "text/x-kotlin" ||
+    mimetype === "text/x-scala" ||
+    mimetype === "text/x-r" ||
+    mimetype === "text/x-lua" ||
+    mimetype === "text/x-perl" ||
+    mimetype === "text/markdown"
+  )
+    return "CODE";
   return "DOC";
 }
 

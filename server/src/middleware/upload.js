@@ -37,6 +37,8 @@ const ALLOWED_MIME = {
   "text/csv": "csv",
   "text/rtf": "rtf",
   "application/rtf": "rtf",
+  "application/x-ipynb+json": "ipynb",
+  "application/json": "json",
   // Code
   "text/javascript": "js",
   "text/typescript": "ts",

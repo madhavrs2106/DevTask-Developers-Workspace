@@ -21,6 +21,7 @@ import { api } from "../../lib/api";
 import { useAuth } from "../../context/AuthContext";
 import { Button } from "../ui/Button";
 import { CodeRunner } from "./CodeRunner";
+import { JupyterNotebook } from "./JupyterNotebook";
 import { cn } from "../../lib/utils";
 import type { CoLearningRoomFull, RoomNote } from "../../types";
 
@@ -219,6 +220,13 @@ function ContentViewer({
           </div>
         );
       case "CODE":
+        if (note.title.endsWith(".ipynb")) {
+          return (
+            <div className="flex-1 flex flex-col p-4 overflow-auto">
+              <JupyterNotebook initialContent={note.content || ""} />
+            </div>
+          );
+        }
         return (
           <div className="flex-1 flex flex-col p-4 gap-4 overflow-auto">
             <pre className="flex-1 bg-[var(--bg)] border border-[var(--border)] rounded-lg p-4 overflow-auto text-sm text-[var(--text-primary)] font-mono whitespace-pre-wrap">
@@ -424,7 +432,7 @@ export function NotesTab({ room }: Props) {
             ref={fileInputRef}
             type="file"
             className="hidden"
-            accept="video/*,image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.md,.txt,.csv,.rtf,.js,.ts,.jsx,.tsx,.py,.java,.html,.css,.json,.c,.cpp,.cs,.go,.rs,.sh,.rb,.php,.sql,.yaml,.yml,.xml,.toml,.dart,.swift,.kt,.scala,.r,.lua,.pl,.zip,.tar,.gz,.7z,.rar"
+            accept="video/*,image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.md,.txt,.csv,.rtf,.ipynb,.js,.ts,.jsx,.tsx,.py,.java,.html,.css,.json,.c,.cpp,.cs,.go,.rs,.sh,.rb,.php,.sql,.yaml,.yml,.xml,.toml,.dart,.swift,.kt,.scala,.r,.lua,.pl,.zip,.tar,.gz,.7z,.rar"
             onChange={handleFileUpload}
           />
         </div>
