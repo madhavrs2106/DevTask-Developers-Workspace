@@ -34,7 +34,6 @@ export const getAnalytics = asyncHandler(async (req, res) => {
     skills,
     deadlines,
     inProgressCourses,
-    codingSessions,
   ] = await Promise.all([
     prisma.task.aggregate({ where: { userId }, _sum: { actualHours: true } }),
     prisma.task.count({ where: { userId, status: { not: "DONE" } } }),
@@ -74,10 +73,6 @@ export const getAnalytics = asyncHandler(async (req, res) => {
       where: { userId, status: "IN_PROGRESS" },
       orderBy: { createdAt: "desc" },
       take: 6,
-    }),
-    prisma.codingSession.findMany({
-      where: { userId, date: { gte: new Date(today.getTime() - 55 * DAY) } },
-      select: { date: true, hours: true },
     }),
   ]);
 
@@ -126,21 +121,20 @@ export const getAnalytics = asyncHandler(async (req, res) => {
     });
   }
 
-  /* Hours studied per week — last 8 weeks from coding sessions */
-  console.log(`[analytics] codingSessions count: ${codingSessions.length}`);
+  /* Hours studied per week — last 8 weeks from task actualHours */
   const hoursPerWeek = Array.from({ length: 8 }, (_, i) => {
     const start = new Date(today.getTime() - (7 * (7 - i) + 6) * DAY);
     const end = new Date(start.getTime() + 7 * DAY);
     const label = i === 7 ? "This wk" : `${7 - i}w ago`;
-    const hours = codingSessions
-      .filter((s) => {
-        const d = new Date(s.date).getTime();
+    const hours = tasksWithHours
+      .filter((t) => {
+        if (!t.completedAt) return false;
+        const d = startOfDay(t.completedAt).getTime();
         return d >= start.getTime() && d < end.getTime();
       })
-      .reduce((sum, s) => sum + s.hours, 0);
+      .reduce((sum, t) => sum + (t.actualHours ?? 0), 0);
     return { label, hours: Math.round(hours * 10) / 10 };
   });
-  console.log("[analytics] hoursPerWeek:", JSON.stringify(hoursPerWeek));
 
   res.json({
     stats: {
