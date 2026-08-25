@@ -272,7 +272,8 @@ export const updateRoom = asyncHandler(async (req, res) => {
 
 export const addSyllabusItem = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  await ensureMember(id, req.user.id);
+  const member = await ensureMember(id, req.user.id);
+  if (member.role !== "ADMIN") throw new HttpError(403, "Only admins can add syllabus items");
   const data = parse(addSyllabusSchema, req.body);
 
   const maxOrder = await prisma.roomSyllabusItem.aggregate({
@@ -280,11 +281,24 @@ export const addSyllabusItem = asyncHandler(async (req, res) => {
     _max: { order: true },
   });
 
+  const order = data.order ?? (maxOrder._max.order ?? 0) + 1;
+
   const item = await prisma.roomSyllabusItem.create({
     data: {
       ...data,
       roomId: id,
-      order: data.order ?? (maxOrder._max.order ?? 0) + 1,
+      order,
+    },
+  });
+
+  // Auto-create a folder in Notes for this syllabus item
+  await prisma.roomNote.create({
+    data: {
+      title: data.title,
+      type: "FOLDER",
+      roomId: id,
+      authorId: req.user.id,
+      order,
     },
   });
 
@@ -313,7 +327,20 @@ export const toggleSyllabusComplete = asyncHandler(async (req, res) => {
 
 export const deleteSyllabusItem = asyncHandler(async (req, res) => {
   const { id, itemId } = req.params;
-  await ensureMember(id, req.user.id);
+  const member = await ensureMember(id, req.user.id);
+  if (member.role !== "ADMIN") throw new HttpError(403, "Only admins can delete syllabus items");
+
+  // Get the syllabus item to find matching folder
+  const item = await prisma.roomSyllabusItem.findUnique({ where: { id: itemId } });
+  if (item) {
+    // Delete the corresponding folder in Notes (and its children via cascade)
+    const folder = await prisma.roomNote.findFirst({
+      where: { roomId: id, title: item.title, type: "FOLDER", parentId: null },
+    });
+    if (folder) {
+      await prisma.roomNote.delete({ where: { id: folder.id } });
+    }
+  }
 
   await prisma.roomSyllabusItem.delete({ where: { id: itemId } });
   res.json({ deleted: true });
