@@ -2,8 +2,8 @@ import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
 import { parse } from "../utils/validate.js";
 import { asyncHandler, HttpError } from "../utils/httpError.js";
-import { unlink } from "node:fs/promises";
-import { join, dirname } from "node:path";
+import { unlink, readFile } from "node:fs/promises";
+import { join, dirname, extname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -33,44 +33,36 @@ async function ensureMember(roomId, userId) {
   return member;
 }
 
+const CODE_EXTENSIONS = new Set([
+  ".js", ".jsx", ".ts", ".tsx", ".py", ".ipynb", ".rb", ".go", ".rs",
+  ".java", ".c", ".cpp", ".cs", ".h", ".hpp", ".sh", ".bash", ".zsh",
+  ".php", ".dart", ".swift", ".kt", ".scala", ".r", ".lua", ".pl",
+  ".sql", ".html", ".htm", ".css", ".scss", ".less", ".json", ".yaml",
+  ".yml", ".toml", ".xml", ".md", ".txt", ".csv", ".graphql", ".vue",
+  ".svelte", ".astro",
+]);
+const IMAGE_EXTENSIONS = new Set([".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".bmp", ".ico", ".tiff"]);
+const VIDEO_EXTENSIONS = new Set([".mp4", ".mkv", ".webm", ".avi", ".mov", ".wmv", ".mpeg"]);
+const DOC_EXTENSIONS = new Set([".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".rtf"]);
+
+function fileTypeFromName(filename) {
+  const ext = extname(filename).toLowerCase();
+  if (CODE_EXTENSIONS.has(ext)) return "CODE";
+  if (IMAGE_EXTENSIONS.has(ext)) return "IMAGE";
+  if (VIDEO_EXTENSIONS.has(ext)) return "VIDEO";
+  if (DOC_EXTENSIONS.has(ext)) return "DOC";
+  return "TEXT";
+}
+
+function isTextFileType(fileType) {
+  return fileType === "CODE" || fileType === "TEXT";
+}
+
 function fileTypeFromMime(mimetype) {
   if (mimetype.startsWith("video/")) return "VIDEO";
   if (mimetype.startsWith("image/")) return "IMAGE";
   if (mimetype === "application/pdf") return "DOC";
-  if (
-    mimetype === "application/x-ipynb+json" ||
-    mimetype === "text/javascript" ||
-    mimetype === "text/typescript" ||
-    mimetype === "text/x-python" ||
-    mimetype === "text/x-java-source" ||
-    mimetype === "text/html" ||
-    mimetype === "text/css" ||
-    mimetype === "application/json" ||
-    mimetype === "text/x-c" ||
-    mimetype === "text/x-c++src" ||
-    mimetype === "text/x-csharp" ||
-    mimetype === "text/x-go" ||
-    mimetype === "text/x-rust" ||
-    mimetype === "text/x-shellscript" ||
-    mimetype === "text/x-ruby" ||
-    mimetype === "text/x-php" ||
-    mimetype === "text/x-sql" ||
-    mimetype === "text/x-yaml" ||
-    mimetype === "text/xml" ||
-    mimetype === "application/xml" ||
-    mimetype === "application/x-yaml" ||
-    mimetype === "application/toml" ||
-    mimetype === "text/x-dart" ||
-    mimetype === "text/x-swift" ||
-    mimetype === "text/x-kotlin" ||
-    mimetype === "text/x-scala" ||
-    mimetype === "text/x-r" ||
-    mimetype === "text/x-lua" ||
-    mimetype === "text/x-perl" ||
-    mimetype === "text/markdown"
-  )
-    return "CODE";
-  return "DOC";
+  return "CODE";
 }
 
 /** POST /api/rooms/:id/notes — create folder or text/code note */
@@ -79,11 +71,13 @@ export const createNote = asyncHandler(async (req, res) => {
   await ensureMember(id, req.user.id);
   const data = parse(createNoteSchema, req.body);
 
+  const fileType = data.fileType || (data.type === "FOLDER" ? undefined : fileTypeFromName(data.title));
+
   const note = await prisma.roomNote.create({
     data: {
       title: data.title,
       type: data.type ?? "FILE",
-      fileType: data.fileType ?? "TEXT",
+      fileType,
       content: data.content ?? null,
       parentId: data.parentId ?? null,
       order: data.order ?? 0,
@@ -109,15 +103,29 @@ export const uploadNote = asyncHandler(async (req, res) => {
   const title = req.body.title || req.file.originalname;
   const parentId = req.body.parentId || null;
   const order = parseInt(req.body.order || "0", 10);
-  const fileType = fileTypeFromMime(req.file.mimetype);
-  const fileUrl = `/uploads/rooms/${id}/${req.file.filename}`;
+  const fileType = fileTypeFromName(req.file.originalname);
+  const filePath = join(uploadsRoot, id, req.file.filename);
+
+  let content;
+  let fileUrl = null;
+
+  if (isTextFileType(fileType)) {
+    try {
+      content = await readFile(filePath, "utf-8");
+    } catch {
+      content = null;
+    }
+  } else {
+    fileUrl = `/uploads/rooms/${id}/${req.file.filename}`;
+    content = fileUrl;
+  }
 
   const note = await prisma.roomNote.create({
     data: {
       title,
       type: "FILE",
       fileType,
-      content: fileUrl,
+      content,
       fileName: req.file.originalname,
       fileSize: req.file.size,
       parentId,
@@ -180,8 +188,8 @@ export const deleteNote = asyncHandler(async (req, res) => {
   });
   if (!note || note.roomId !== id) throw new HttpError(404, "Note not found.");
 
-  // Delete file from disk if it's a file note
-  if (note.type === "FILE" && note.content) {
+  // Delete file from disk only if content is a URL (binary files)
+  if (note.type === "FILE" && note.content && note.content.startsWith("/uploads/")) {
     try {
       const filePath = join(uploadsRoot, note.content.replace("/uploads/", ""));
       await unlink(filePath);

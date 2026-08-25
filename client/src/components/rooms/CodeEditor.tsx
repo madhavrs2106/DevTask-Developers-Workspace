@@ -578,10 +578,13 @@ export function CodeEditor({ room }: Props) {
 
   const handleCreateFile = () => {
     if (!newFileName.trim()) return;
+    const ext = newFileName.split(".").pop()?.toLowerCase() || "";
+    const codeExts = ["js","jsx","ts","tsx","py","ipynb","rb","go","rs","java","c","cpp","cs","h","hpp","sh","bash","php","dart","swift","kt","scala","r","lua","pl","sql","html","htm","css","scss","less","json","yaml","yml","toml","xml","md","csv","graphql","vue","svelte","astro"];
+    const isCode = codeExts.includes(ext);
     createNote.mutate({
       title: newFileName,
       type: "FILE",
-      fileType: "TEXT",
+      fileType: isCode ? "CODE" : "TEXT",
       parentId: activeFolder?.id || null,
     });
   };
