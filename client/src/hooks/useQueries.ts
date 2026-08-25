@@ -235,9 +235,11 @@ export function useUploadAvatar(): UseMutationResult<User, Error, string | null>
 }
 
 export function useReplaceSkills(): UseMutationResult<SkillProgress[], Error, SkillProgress[]> {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (skills) =>
       (await api.put<{ skills: SkillProgress[] }>("/users/me/skills", { skills })).data.skills,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["me"] }),
   });
 }
 
