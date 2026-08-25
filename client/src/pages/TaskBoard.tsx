@@ -192,7 +192,7 @@ export function TaskBoard() {
             </button>
 
             {tagPopoverOpen && (
-              <div className="absolute right-0 top-full z-50 mt-2 w-64 rounded-xl border border-slate-700 bg-surface-raised p-3 shadow-xl">
+              <div className="absolute right-0 top-full z-50 mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-700 bg-surface-raised p-3 shadow-xl">
                 <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-ink-faint">
                   Filter by tags
                 </p>

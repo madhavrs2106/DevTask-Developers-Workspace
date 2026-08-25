@@ -420,9 +420,9 @@ export function Settings() {
         </ul>
 
         {/* Add skill */}
-        <div className="mt-5 flex items-center gap-2 rounded-xl border border-dashed border-slate-800 p-3">
+        <div className="mt-5 flex flex-wrap items-center gap-2 rounded-xl border border-dashed border-slate-800 p-3">
           <input
-            className="input-dark !py-1.5 !text-xs"
+            className="input-dark !py-1.5 !text-xs flex-1 min-w-[120px]"
             placeholder="e.g. Rust, Kubernetes…"
             value={newSkillName}
             onChange={(e) => setNewSkillName(e.target.value)}

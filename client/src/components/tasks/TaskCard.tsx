@@ -110,7 +110,7 @@ export function TaskCard({
       )}
 
       {/* Meta row */}
-      <div className="mt-3 flex items-center gap-2 text-[11px]">
+      <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px]">
         <span
           title={`${difficulty.label} level`}
           className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5", difficulty.chip)}

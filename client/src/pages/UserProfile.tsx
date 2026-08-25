@@ -181,7 +181,7 @@ export function UserProfile() {
           {/* Info */}
           <div className="min-w-0 flex-1 text-center sm:text-left">
             <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 sm:justify-start">
-              <h1 className="text-2xl font-bold tracking-tight text-white">{profile.name}</h1>
+              <h1 className="text-2xl font-bold tracking-tight text-white break-words">{profile.name}</h1>
               <span className="inline-flex items-center gap-1 rounded-full border border-accent/25 bg-accent/10 px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-wide text-accent-bright">
                 <Trophy size={11} />
                 {ROLE_META[profile.role as keyof typeof ROLE_META]?.label ?? profile.role}

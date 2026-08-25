@@ -228,7 +228,7 @@ export function Courses() {
                 </div>
 
                 {/* Controls */}
-                <footer className="mt-4 flex items-center gap-2 border-t border-slate-800/70 pt-3">
+                <footer className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-800/70 pt-3">
                   <div className="flex overflow-hidden rounded-xl border border-slate-700">
                     <button
                       onClick={() => void bump(course, -1)}

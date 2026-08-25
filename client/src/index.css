@@ -19,6 +19,12 @@
     scrollbar-gutter: stable;
   }
 
+  @media (max-width: 768px) {
+    html {
+      scrollbar-gutter: auto;
+    }
+  }
+
   body {
     @apply bg-midnight font-sans text-slate-200;
   }
