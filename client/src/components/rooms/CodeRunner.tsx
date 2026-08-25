@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Play, Square, Terminal, Loader2, AlertTriangle } from "lucide-react";
-import { Button } from "../ui/Button";
 import { cn } from "../../lib/utils";
 
 interface Props {
@@ -21,63 +20,16 @@ function getLanguageFromFileName(fileName?: string): string {
   if (!fileName) return "unknown";
   const ext = fileName.split(".").pop()?.toLowerCase() || "";
   const map: Record<string, string> = {
-    js: "javascript",
-    jsx: "javascript",
-    ts: "typescript",
-    tsx: "typescript",
-    py: "python",
-    html: "html",
-    htm: "html",
-    css: "css",
-    json: "json",
-    sh: "shell",
-    bash: "shell",
+    js: "javascript", jsx: "javascript", ts: "typescript", tsx: "typescript",
+    py: "python", html: "html", htm: "html", css: "css", json: "json", sh: "shell", bash: "shell",
   };
   return map[ext] || ext;
-}
-
-function ConsoleOutput({ lines }: { lines: ConsoleLine[] }) {
-  const endRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [lines]);
-
-  if (lines.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-full text-[var(--text-secondary)] text-xs">
-        <Terminal size={14} className="mr-1.5 opacity-50" />
-        Output will appear here
-      </div>
-    );
-  }
-
-  return (
-    <div className="p-3 space-y-1 overflow-auto h-full font-mono text-xs">
-      {lines.map((line, i) => (
-        <div
-          key={i}
-          className={cn(
-            "whitespace-pre-wrap break-all",
-            line.type === "error" && "text-red-400",
-            line.type === "warn" && "text-yellow-400",
-            line.type === "info" && "text-blue-400",
-            line.type === "log" && "text-[var(--text-primary)]",
-            line.type === "result" && "text-green-400"
-          )}
-        >
-          {line.content}
-        </div>
-      ))}
-      <div ref={endRef} />
-    </div>
-  );
 }
 
 export function CodeRunner({ code, language, fileName }: Props) {
   const [consoleLines, setConsoleLines] = useState<ConsoleLine[]>([]);
   const [isRunning, setIsRunning] = useState(false);
-  const [outputHeight, setOutputHeight] = useState(150);
+  const [outputHeight, setOutputHeight] = useState(160);
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const pyodideRef = useRef<any>(null);
 
@@ -87,122 +39,74 @@ export function CodeRunner({ code, language, fileName }: Props) {
     setConsoleLines((prev) => [...prev, { type, content, timestamp: Date.now() }]);
   }, []);
 
-  const clearConsole = useCallback(() => {
-    setConsoleLines([]);
-  }, []);
+  const clearConsole = useCallback(() => setConsoleLines([]), []);
 
   const stopExecution = useCallback(() => {
-    if (iframeRef.current) {
-      iframeRef.current.srcdoc = "";
-    }
+    if (iframeRef.current) iframeRef.current.srcdoc = "";
     setIsRunning(false);
   }, []);
 
-  // JavaScript execution
+  // JavaScript
   const runJavaScript = useCallback(() => {
     clearConsole();
     setIsRunning(true);
-
-    const html = `<!DOCTYPE html>
-<html><head><script>
+    const html = `<!DOCTYPE html><html><head><script>
 (function() {
-  const send = (type, msg) => {
-    parent.postMessage({ type: 'console', level: type, message: String(msg) }, '*');
-  };
-  
-  const handlers = {
-    log: (...args) => send('log', args.map(a => typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a)).join(' ')),
-    error: (...args) => send('error', args.map(a => String(a)).join(' ')),
-    warn: (...args) => send('warn', args.map(a => String(a)).join(' ')),
-    info: (...args) => send('info', args.map(a => String(a)).join(' ')),
-  };
-  
-  console.log = handlers.log;
-  console.error = handlers.error;
-  console.warn = handlers.warn;
-  console.info = handlers.info;
-  
-  window.onerror = (msg, url, line, col, err) => {
-    send('error', msg + (line ? ' (line ' + line + ')' : ''));
-  };
-  
+  const send = (t, m) => parent.postMessage({ type: 'console', level: t, message: String(m) }, '*');
+  console.log = (...a) => send('log', a.map(x => typeof x === 'object' ? JSON.stringify(x, null, 2) : String(x)).join(' '));
+  console.error = (...a) => send('error', a.map(String).join(' '));
+  console.warn = (...a) => send('warn', a.map(String).join(' '));
+  console.info = (...a) => send('info', a.map(String).join(' '));
+  window.onerror = (m, u, l) => send('error', m + (l ? ' (line ' + l + ')' : ''));
   try {
-    const result = ${JSON.stringify(code)};
-    const executed = new Function(result)();
-    if (executed !== undefined) {
-      send('result', typeof executed === 'object' ? JSON.stringify(executed, null, 2) : String(executed));
-    }
-    send('log', '\\n--- Execution complete ---');
-  } catch(e) {
-    send('error', e.message);
-  }
-  
+    const code = ${JSON.stringify(code)};
+    const fn = new Function(code);
+    const result = fn();
+    if (result !== undefined) send('result', typeof result === 'object' ? JSON.stringify(result, null, 2) : String(result));
+  } catch(e) { send('error', e.message); }
   parent.postMessage({ type: 'done' }, '*');
 })();
 </script></head><body></body></html>`;
-
-    if (iframeRef.current) {
-      iframeRef.current.srcdoc = html;
-    }
+    if (iframeRef.current) iframeRef.current.srcdoc = html;
   }, [code, clearConsole]);
 
-  // HTML execution
+  // HTML
   const runHtml = useCallback(() => {
     clearConsole();
     setIsRunning(true);
-
-    const html = `<!DOCTYPE html>
-<html><head>
-<style>${lang === "html" ? "" : ""}</style>
-</head><body>
+    const html = `<!DOCTYPE html><html><head></head><body>
 <script>
-  const send = (type, msg) => parent.postMessage({ type: 'console', level: type, message: String(msg) }, '*');
-  console.log = (...args) => send('log', args.map(a => typeof a === 'object' ? JSON.stringify(a) : String(a)).join(' '));
-  console.error = (...args) => send('error', args.map(a => String(a)).join(' '));
-  window.onerror = (msg) => { send('error', msg); };
+  const send = (t, m) => parent.postMessage({ type: 'console', level: t, message: String(m) }, '*');
+  console.log = (...a) => send('log', a.map(x => typeof x === 'object' ? JSON.stringify(x) : String(x)).join(' '));
+  console.error = (...a) => send('error', a.map(String).join(' '));
+  window.onerror = (m) => send('error', m);
 </script>
 ${code}
 <script>parent.postMessage({ type: 'done' }, '*');</script>
 </body></html>`;
+    if (iframeRef.current) iframeRef.current.srcdoc = html;
+  }, [code, clearConsole]);
 
-    if (iframeRef.current) {
-      iframeRef.current.srcdoc = html;
-    }
-  }, [code, clearConsole, lang]);
-
-  // Python execution via Pyodide
+  // Python
   const runPython = useCallback(async () => {
     clearConsole();
     setIsRunning(true);
-    addLine("info", "Loading Python runtime (Pyodide)...");
-
+    addLine("info", "Loading Python runtime...");
     try {
       if (!pyodideRef.current) {
-        // Load Pyodide if not already loaded
         if (!(window as any).loadPyodide) {
-          const script = document.createElement("script");
-          script.src = PYTHON_CDN;
-          document.head.appendChild(script);
-          await new Promise((resolve, reject) => {
-            script.onload = resolve;
-            script.onerror = () => reject(new Error("Failed to load Pyodide"));
-          });
+          const s = document.createElement("script");
+          s.src = PYTHON_CDN;
+          document.head.appendChild(s);
+          await new Promise((r, j) => { s.onload = r; s.onerror = () => j(new Error("Failed to load Pyodide")); });
         }
-        pyodideRef.current = await (window as any).loadPyodide({
-          indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/",
-        });
+        pyodideRef.current = await (window as any).loadPyodide({ indexURL: "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/" });
       }
-
-      addLine("info", "Running Python...");
-
-      // Capture stdout/stderr
-      pyodideRef.current.setStdout({ batched: (msg: string) => addLine("log", msg) });
-      pyodideRef.current.setStderr({ batched: (msg: string) => addLine("error", msg) });
-
+      addLine("info", "Running...");
+      pyodideRef.current.setStdout({ batched: (m: string) => addLine("log", m) });
+      pyodideRef.current.setStderr({ batched: (m: string) => addLine("error", m) });
       const result = await pyodideRef.current.runPythonAsync(code);
-      if (result !== undefined) {
-        addLine("result", String(result));
-      }
+      if (result !== undefined) addLine("result", String(result));
       addLine("log", "\n--- Execution complete ---");
     } catch (e: any) {
       addLine("error", e.message);
@@ -211,16 +115,11 @@ ${code}
     }
   }, [code, clearConsole, addLine]);
 
-  // Message handler for JS/HTML execution
+  // Message handler
   useEffect(() => {
     const handler = (e: MessageEvent) => {
-      if (e.data?.type === "console") {
-        addLine(e.data.level, e.data.message);
-      }
-      if (e.data?.type === "done") {
-        setIsRunning(false);
-        addLine("log", "\n--- Execution complete ---");
-      }
+      if (e.data?.type === "console") addLine(e.data.level, e.data.message);
+      if (e.data?.type === "done") { setIsRunning(false); addLine("log", "\n--- Execution complete ---"); }
     };
     window.addEventListener("message", handler);
     return () => window.removeEventListener("message", handler);
@@ -228,23 +127,10 @@ ${code}
 
   const handleRun = () => {
     switch (lang) {
-      case "javascript":
-      case "js":
-      case "typescript":
-      case "ts":
-        runJavaScript();
-        break;
-      case "html":
-      case "htm":
-        runHtml();
-        break;
-      case "python":
-      case "py":
-        runPython();
-        break;
-      default:
-        clearConsole();
-        addLine("warn", `Execution not supported for "${lang}" yet. Supported: JavaScript, HTML, Python.`);
+      case "javascript": case "js": case "typescript": case "ts": runJavaScript(); break;
+      case "html": case "htm": runHtml(); break;
+      case "python": case "py": runPython(); break;
+      default: clearConsole(); addLine("warn", `Not supported for "${lang}". Use JS, HTML, or Python.`);
     }
   };
 
@@ -252,86 +138,77 @@ ${code}
 
   if (!canRun) {
     return (
-      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-yellow-400/10 border border-yellow-400/20 text-yellow-400 text-xs">
+      <div className="flex items-center gap-2 px-3 py-2 bg-[#252526] text-[#cca700] text-[12px]">
         <AlertTriangle size={14} />
-        Run not available for {lang}. Supported: JavaScript, HTML, Python.
+        Run not available for {lang}
       </div>
     );
   }
 
   return (
-    <div className="border border-[var(--border)] rounded-xl overflow-hidden">
-      {/* Controls */}
-      <div className="flex items-center justify-between px-3 py-2 bg-[var(--bg-card)] border-b border-[var(--border)]">
+    <div className="bg-[#1e1e1e]">
+      {/* Controls bar */}
+      <div className="flex items-center justify-between px-3 py-1.5 bg-[#252526] border-t border-[#3c3c3c]">
         <div className="flex items-center gap-2">
-          <Terminal size={14} className="text-[var(--text-secondary)]" />
-          <span className="text-xs text-[var(--text-secondary)]">Console</span>
+          <Terminal size={13} className="text-[#858585]" />
+          <span className="text-[11px] text-[#858585]">Console</span>
+          <span className="text-[10px] text-[#555]">({consoleLines.length} lines)</span>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="ghost"
-            onClick={clearConsole}
-            className="text-xs px-2 py-1"
-          >
+        <div className="flex items-center gap-1">
+          <button onClick={clearConsole} className="px-2 py-0.5 text-[11px] text-[#858585] hover:text-[#cccccc] hover:bg-[#3c3c3c] rounded transition-colors">
             Clear
-          </Button>
+          </button>
           {isRunning ? (
-            <Button
-              variant="ghost"
-              onClick={stopExecution}
-              className="text-xs px-2 py-1 text-red-400 gap-1"
-            >
-              <Square size={12} />
-              Stop
-            </Button>
+            <button onClick={stopExecution} className="flex items-center gap-1 px-2 py-0.5 text-[11px] text-[#f44336] hover:bg-[#3c3c3c] rounded transition-colors">
+              <Square size={11} fill="currentColor" /> Stop
+            </button>
           ) : (
-            <Button
-              variant="primary"
-              onClick={handleRun}
-              className="text-xs px-3 py-1 gap-1.5"
-            >
-              <Play size={12} />
-              Run
-            </Button>
+            <button onClick={handleRun} className="flex items-center gap-1 px-2 py-0.5 text-[11px] text-[#4caf50] hover:bg-[#3c3c3c] rounded transition-colors">
+              <Play size={11} fill="currentColor" /> Run
+            </button>
           )}
         </div>
       </div>
 
-      {/* Console output */}
-      <div
-        className="bg-[var(--bg)] border-b border-[var(--border)]"
-        style={{ height: outputHeight }}
-      >
-        <ConsoleOutput lines={consoleLines} />
+      {/* Output area */}
+      <div className="bg-[#1e1e1e] border-t border-[#3c3c3c] overflow-hidden" style={{ height: outputHeight }}>
+        <div className="h-full overflow-auto p-3 font-mono text-[12px] leading-[1.6]">
+          {consoleLines.length === 0 ? (
+            <div className="flex items-center justify-center h-full text-[#555] text-[11px]">
+              Output will appear here
+            </div>
+          ) : (
+            consoleLines.map((line, i) => (
+              <div key={i} className={cn("whitespace-pre-wrap break-all",
+                line.type === "error" && "text-[#f44336]",
+                line.type === "warn" && "text-[#e8a317]",
+                line.type === "info" && "text-[#3794ff]",
+                line.type === "log" && "text-[#cccccc]",
+                line.type === "result" && "text-[#4ec9b0]"
+              )}>
+                {line.content}
+              </div>
+            ))
+          )}
+        </div>
       </div>
 
       {/* Resize handle */}
       <div
-        className="h-1 bg-[var(--bg-card)] hover:bg-[var(--accent)]/30 cursor-ns-resize transition-colors"
+        className="h-1 bg-[#252526] hover:bg-[#007acc]/40 cursor-ns-resize transition-colors"
         onMouseDown={(e) => {
           e.preventDefault();
           const startY = e.clientY;
-          const startHeight = outputHeight;
-          const onMove = (e: MouseEvent) => {
-            const delta = e.clientY - startY;
-            setOutputHeight(Math.max(80, Math.min(400, startHeight + delta)));
-          };
-          const onUp = () => {
-            window.removeEventListener("mousemove", onMove);
-            window.removeEventListener("mouseup", onUp);
-          };
+          const startH = outputHeight;
+          const onMove = (ev: MouseEvent) => setOutputHeight(Math.max(60, Math.min(400, startH + (ev.clientY - startY))));
+          const onUp = () => { window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
           window.addEventListener("mousemove", onMove);
           window.addEventListener("mouseup", onUp);
         }}
       />
 
-      {/* Hidden iframe for JS/HTML execution */}
-      <iframe
-        ref={iframeRef}
-        className="hidden"
-        sandbox="allow-scripts"
-        title="code-executor"
-      />
+      {/* Hidden iframe */}
+      <iframe ref={iframeRef} className="hidden" sandbox="allow-scripts" title="runner" />
     </div>
   );
 }
