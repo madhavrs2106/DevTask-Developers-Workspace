@@ -4,7 +4,6 @@ import {
   getRoom,
   createRoom,
   updateRoom,
-  updateRoomNotes,
   joinRoom,
   leaveRoom,
   deleteRoom,
@@ -45,7 +44,5 @@ router.post("/:id/focus", startFocusSession);
 router.put("/:id/focus/:sessionId", updateFocusStatus);
 
 router.delete("/:id/members/:memberId", removeMember);
-
-router.put("/:id/notes", updateRoomNotes);
 
 export default router;

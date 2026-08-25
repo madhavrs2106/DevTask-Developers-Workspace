@@ -1,11 +1,8 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRoom, useLeaveRoom } from "../hooks/useQueries";
-import { api } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { SyllabusTab } from "../components/rooms/SyllabusTab";
-import { NotesTab } from "../components/rooms/NotesTab";
 import { DiscussionTab } from "../components/rooms/DiscussionTab";
 import { FocusTab } from "../components/rooms/FocusTab";
 import { MembersTab } from "../components/rooms/MembersTab";
@@ -14,7 +11,6 @@ import { Button } from "../components/ui/Button";
 
 const TABS = [
   { key: "syllabus", label: "Syllabus" },
-  { key: "notes", label: "Notes" },
   { key: "discussions", label: "Discussions" },
   { key: "focus", label: "Focus" },
   { key: "members", label: "Members" },
@@ -24,15 +20,9 @@ const TABS = [
 export default function CoLearningRoomPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { data: room, isLoading } = useRoom(id!);
   const { user } = useAuth();
   const leaveRoom = useLeaveRoom();
-
-  const updateNotes = useMutation({
-    mutationFn: async (roomNotes: string) => (await api.put(`/rooms/${id}`, { roomNotes })).data,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["room", id] }),
-  });
 
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]["key"]>("syllabus");
   const [copied, setCopied] = useState(false);
@@ -132,15 +122,6 @@ export default function CoLearningRoomPage() {
 
       {/* Tab Content */}
       {activeTab === "syllabus" && <SyllabusTab room={room} />}
-      {activeTab === "notes" && (
-        <NotesTab
-          roomId={room.id}
-          roomNotes={room.roomNotes}
-          isAdmin={!!isAdmin}
-          onSave={(notes) => updateNotes.mutate(notes)}
-          isSaving={updateNotes.isPending}
-        />
-      )}
       {activeTab === "discussions" && <DiscussionTab room={room} />}
       {activeTab === "focus" && <FocusTab room={room} />}
       {activeTab === "members" && <MembersTab room={room} isAdmin={isAdmin} />}
