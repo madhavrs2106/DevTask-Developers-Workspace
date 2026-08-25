@@ -77,30 +77,32 @@ function MemberCompletionAvatars({
       </button>
 
       {open && completedMembers.length > 0 && (
-        <div className="absolute left-0 top-full z-50 mt-1 w-56 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] py-2 shadow-xl">
-          <div className="flex items-center gap-2 px-3 pb-2 border-b border-[var(--border)]">
+        <div className="absolute left-0 top-full z-50 mt-1 w-72 rounded-xl border border-slate-700 bg-[#0B0F19] py-2 shadow-xl">
+          <div className="flex items-center gap-2 px-3 pb-2 border-b border-slate-700">
             <Users size={12} className="text-[var(--accent)]" />
-            <span className="text-xs font-medium text-[var(--text-primary)]">Completed by</span>
+            <span className="text-xs font-medium text-white">Completed by</span>
           </div>
           <ul className="mt-1 max-h-48 overflow-y-auto">
             {completedMembers.map((m) => (
-              <li key={m!.id} className="flex items-center gap-2 px-3 py-1.5 hover:bg-white/5">
-                {m!.avatarUrl ? (
+              <li key={m.id} className="flex items-center gap-2.5 px-3 py-2 hover:bg-white/5">
+                {m.avatarUrl ? (
                   <img
-                    src={m!.avatarUrl}
-                    alt={m!.username}
-                    className="w-5 h-5 rounded-full object-cover"
+                    src={m.avatarUrl}
+                    alt={m.username}
+                    className="w-6 h-6 rounded-full object-cover shrink-0"
                   />
                 ) : (
                   <div
-                    className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[8px] font-bold"
-                    style={{ backgroundColor: m!.avatarColor }}
+                    className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[9px] font-bold shrink-0"
+                    style={{ backgroundColor: m.avatarColor }}
                   >
-                    {m!.username[0].toUpperCase()}
+                    {m.username[0].toUpperCase()}
                   </div>
                 )}
-                <span className="text-xs text-[var(--text-primary)]">{m!.name}</span>
-                <span className="text-[10px] text-[var(--text-secondary)] ml-auto">@{m!.username}</span>
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-white truncate">{m.name}</p>
+                  <p className="text-[10px] text-slate-400 truncate">@{m.username}</p>
+                </div>
               </li>
             ))}
           </ul>
