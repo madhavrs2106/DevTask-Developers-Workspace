@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import {
   Activity,
   ArrowRight,
+  BookOpen,
   CalendarClock,
   Clock,
   GraduationCap,
@@ -17,9 +18,11 @@ import { Spinner } from "../components/ui/Spinner";
 import { ProgressRing } from "../components/ui/ProgressRing";
 import { StatCard } from "../components/dashboard/StatCard";
 import { WeeklyCodingChart } from "../components/dashboard/WeeklyCodingChart";
+import { HoursStudiedChart } from "../components/dashboard/HoursStudiedChart";
 import { VelocityChart } from "../components/dashboard/VelocityChart";
 import { CompletionDonut } from "../components/dashboard/CompletionDonut";
 import { SkillMastery } from "../components/dashboard/SkillMastery";
+import { CoursesStudying } from "../components/dashboard/CoursesStudying";
 import { DeadlinesPanel } from "../components/dashboard/DeadlinesPanel";
 
 export function Dashboard() {
@@ -156,7 +159,30 @@ export function Dashboard() {
         </article>
       </section>
 
-      {/* ── Charts row 2 ────────────────────────────────────────── */}
+      {/* ── Charts row 2: Hours studied ─────────────────────────── */}
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <article className="card p-5 lg:col-span-2">
+          <header className="mb-4 flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-white">Hours studied</h3>
+              <p className="text-[11px] text-ink-faint">Hours studied per week · trailing 8 weeks</p>
+            </div>
+            <span className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wider text-ink-faint">
+              <span className="h-2 w-2 rounded-full bg-indigo-400 shadow-glow-sm" />
+              hours logged
+            </span>
+          </header>
+          <HoursStudiedChart data={data.hoursPerWeek} />
+        </article>
+
+        <article className="card p-5">
+          <h3 className="text-sm font-semibold text-white">Courses studying</h3>
+          <p className="mb-4 text-[11px] text-ink-faint">In-progress course completion</p>
+          <CoursesStudying courses={data.coursesStudying} />
+        </article>
+      </section>
+
+      {/* ── Charts row 3: Velocity + Skills ─────────────────────── */}
       <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <article className="card p-5 lg:col-span-2">
           <header className="mb-4 flex items-center justify-between">

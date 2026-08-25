@@ -143,7 +143,15 @@ export interface Analytics {
   };
   weeklyCodingHours: { day: string; date: string; hours: number }[];
   velocitySeries: { label: string; completed: number }[];
+  hoursPerWeek: { label: string; hours: number }[];
   skillMastery: { name: string; level: number }[];
+  coursesStudying: {
+    id: string;
+    title: string;
+    progress: number;
+    lessonsDone: number;
+    totalLessons: number;
+  }[];
   upcomingDeadlines: {
     id: string;
     title: string;

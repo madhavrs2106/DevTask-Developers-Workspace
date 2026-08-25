@@ -33,6 +33,8 @@ export const getAnalytics = asyncHandler(async (req, res) => {
     tasksWithHours,
     skills,
     deadlines,
+    inProgressCourses,
+    codingSessions,
   ] = await Promise.all([
     prisma.task.aggregate({ where: { userId }, _sum: { actualHours: true } }),
     prisma.task.count({ where: { userId, status: { not: "DONE" } } }),
@@ -67,6 +69,15 @@ export const getAnalytics = asyncHandler(async (req, res) => {
         project: { select: { name: true } },
         course: { select: { title: true } },
       },
+    }),
+    prisma.course.findMany({
+      where: { userId, status: "IN_PROGRESS" },
+      orderBy: { createdAt: "desc" },
+      take: 6,
+    }),
+    prisma.codingSession.findMany({
+      where: { userId, date: { gte: new Date(today.getTime() - 55 * DAY) } },
+      select: { date: true, hours: true },
     }),
   ]);
 
@@ -115,6 +126,20 @@ export const getAnalytics = asyncHandler(async (req, res) => {
     });
   }
 
+  /* Hours studied per week — last 8 weeks from coding sessions */
+  const hoursPerWeek = Array.from({ length: 8 }, (_, i) => {
+    const start = new Date(today.getTime() - (7 * (7 - i) + 6) * DAY);
+    const end = new Date(start.getTime() + 7 * DAY);
+    const label = i === 7 ? "This wk" : `${7 - i}w ago`;
+    const hours = codingSessions
+      .filter((s) => {
+        const d = s.date.getTime();
+        return d >= start.getTime() && d < end.getTime();
+      })
+      .reduce((sum, s) => sum + s.hours, 0);
+    return { label, hours: Math.round(hours * 10) / 10 };
+  });
+
   res.json({
     stats: {
       totalCodingHours: Math.round((hoursAgg._sum.actualHours ?? 0) * 10) / 10,
@@ -129,7 +154,17 @@ export const getAnalytics = asyncHandler(async (req, res) => {
     },
     weeklyCodingHours,
     velocitySeries,
+    hoursPerWeek,
     skillMastery: skills.map((s) => ({ name: s.name, level: s.level })),
+    coursesStudying: inProgressCourses.map((c) => ({
+      id: c.id,
+      title: c.title,
+      progress: c.totalLessons > 0
+        ? Math.round((Math.min(c.lessonsDone, c.totalLessons) / c.totalLessons) * 100)
+        : 0,
+      lessonsDone: c.lessonsDone,
+      totalLessons: c.totalLessons,
+    })),
     upcomingDeadlines: deadlines.map((t) => ({
       id: t.id,
       title: t.title,
