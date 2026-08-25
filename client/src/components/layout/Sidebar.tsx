@@ -10,7 +10,6 @@ import {
   UserRound,
   Users,
   X,
-  Code2,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useAuth } from "../../context/AuthContext";
@@ -28,7 +27,6 @@ const NAV_ITEMS = [
   { to: "/projects", label: "Projects", icon: FolderGit2 },
   { to: "/courses", label: "Courses", icon: GraduationCap },
   { to: "/rooms", label: "Co-Learning", icon: Users },
-  { to: "/code-editor", label: "Code Editor", icon: Code2 },
   { to: "/search", label: "Find Devs", icon: Search },
 ] as const;
 

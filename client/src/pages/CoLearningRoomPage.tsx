@@ -11,7 +11,6 @@ import { Button } from "../components/ui/Button";
 
 const TABS = [
   { key: "syllabus", label: "Syllabus" },
-  { key: "notes", label: "Notes" },
   { key: "discussions", label: "Discussions" },
   { key: "focus", label: "Focus" },
   { key: "members", label: "Members" },
@@ -65,10 +64,6 @@ export default function CoLearningRoomPage() {
   };
 
   const handleTabClick = (key: string) => {
-    if (key === "notes") {
-      navigate(`/code-editor?room=${room.id}`);
-      return;
-    }
     setActiveTab(key as typeof activeTab);
   };
 

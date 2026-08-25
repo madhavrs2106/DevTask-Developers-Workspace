@@ -16,7 +16,6 @@ import { Profile } from "./pages/Profile";
 import { Settings } from "./pages/Settings";
 import CoLearningRoomsPage from "./pages/CoLearningRoomsPage";
 import CoLearningRoomPage from "./pages/CoLearningRoomPage";
-import CodeEditorPage from "./pages/CodeEditorPage";
 import { useAuth } from "./context/AuthContext";
 import { applyAccent } from "./lib/accent";
 
@@ -58,7 +57,6 @@ export default function App() {
           <Route path="courses" element={<Courses />} />
           <Route path="rooms" element={<CoLearningRoomsPage />} />
           <Route path="rooms/:id" element={<CoLearningRoomPage />} />
-          <Route path="code-editor" element={<CodeEditorPage />} />
           <Route path="search" element={<SearchPage />} />
           <Route path="u/:username" element={<UserProfile />} />
           <Route path="u/:username/:type" element={<FollowList />} />
