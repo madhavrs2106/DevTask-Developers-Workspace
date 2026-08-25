@@ -36,12 +36,20 @@ export function MembersTab({ room, isAdmin }: Props) {
             key={member.id}
             className="flex items-center gap-3 p-3 rounded-lg bg-[var(--bg-card)] border border-[var(--border)]"
           >
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
-              style={{ backgroundColor: member.user.avatarColor }}
-            >
-              {member.user.username[0].toUpperCase()}
-            </div>
+            {member.user.avatarUrl ? (
+              <img
+                src={member.user.avatarUrl}
+                alt={member.user.username}
+                className="w-8 h-8 rounded-full object-cover shrink-0"
+              />
+            ) : (
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
+                style={{ backgroundColor: member.user.avatarColor }}
+              >
+                {member.user.username[0].toUpperCase()}
+              </div>
+            )}
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-[var(--text-primary)]">
                 {member.user.name}
