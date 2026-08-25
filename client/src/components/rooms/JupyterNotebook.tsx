@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { Play, Plus, Trash2, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
+import { Play, Plus, Trash2, ChevronUp, ChevronDown, Loader2, Square, Copy, Check } from "lucide-react";
 import { Button } from "../ui/Button";
 import { cn } from "../../lib/utils";
 
@@ -55,40 +55,45 @@ function cellsToNotebook(cells: Cell[]): string {
 
 function renderMarkdown(text: string): string {
   let html = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  html = html.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre class="jupyter-code-block"><code>$2</code></pre>');
-  html = html.replace(/`([^`]+)`/g, '<code class="jupyter-inline-code">$1</code>');
-  html = html.replace(/^### (.+)$/gm, '<h3 class="jupyter-h3">$1</h3>');
-  html = html.replace(/^## (.+)$/gm, '<h2 class="jupyter-h2">$1</h2>');
-  html = html.replace(/^# (.+)$/gm, '<h1 class="jupyter-h1">$1</h1>');
+  html = html.replace(/```(\w*)\n([\s\S]*?)```/g, '<pre class="pycharm-md-code"><code>$2</code></pre>');
+  html = html.replace(/`([^`]+)`/g, '<code class="pycharm-md-inline">$1</code>');
+  html = html.replace(/^### (.+)$/gm, '<h3 class="pycharm-h3">$1</h3>');
+  html = html.replace(/^## (.+)$/gm, '<h2 class="pycharm-h2">$1</h2>');
+  html = html.replace(/^# (.+)$/gm, '<h1 class="pycharm-h1">$1</h1>');
   html = html.replace(/\*\*\*(.+?)\*\*\*/g, "<strong><em>$1</em></strong>");
   html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
   html = html.replace(/\*(.+?)\*/g, "<em>$1</em>");
   html = html.replace(/~~(.+?)~~/g, "<del>$1</del>");
-  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener" class="jupyter-link">$1</a>');
-  html = html.replace(/^[\-\*] (.+)$/gm, '<li class="jupyter-li">$1</li>');
-  html = html.replace(/^\d+\. (.+)$/gm, '<li class="jupyter-li">$1</li>');
-  html = html.replace(/^&gt; (.+)$/gm, '<blockquote class="jupyter-blockquote">$1</blockquote>');
-  html = html.replace(/^---+$/gm, '<hr class="jupyter-hr" />');
+  html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" class="pycharm-link">$1</a>');
+  html = html.replace(/^[\-\*] (.+)$/gm, '<li>$1</li>');
+  html = html.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+  html = html.replace(/^&gt; (.+)$/gm, '<blockquote class="pycharm-quote">$1</blockquote>');
+  html = html.replace(/^---+$/gm, '<hr class="pycharm-hr" />');
   html = html.replace(/\n/g, "<br />");
   return html;
 }
 
 const PYTHON_CDN = "https://cdn.jsdelivr.net/pyodide/v0.24.1/full/pyodide.js";
 
-const NOTEBOOK_STYLES = `
-  .jupyter-code-block { background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 12px 16px; margin: 8px 0; overflow-x: auto; }
-  .jupyter-code-block code { color: #e6edf3; font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 13px; line-height: 1.5; }
-  .jupyter-inline-code { background: rgba(175,184,193,0.2); padding: 0.2em 0.4em; border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-size: 85%; }
-  .jupyter-h1 { font-size: 1.5em; font-weight: 600; margin: 16px 0 8px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
-  .jupyter-h2 { font-size: 1.25em; font-weight: 600; margin: 14px 0 6px; }
-  .jupyter-h3 { font-size: 1.1em; font-weight: 600; margin: 12px 0 4px; }
-  .jupyter-ul { margin: 4px 0; padding-left: 24px; list-style: disc; }
-  .jupyter-ol { margin: 4px 0; padding-left: 24px; list-style: decimal; }
-  .jupyter-li { margin: 2px 0; }
-  .jupyter-blockquote { border-left: 3px solid var(--accent); padding: 4px 12px; margin: 8px 0; color: var(--text-secondary); background: var(--bg-card); border-radius: 0 6px 6px 0; }
-  .jupyter-hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
-  .jupyter-link { color: var(--accent); text-decoration: underline; }
-  .jupyter-link:hover { opacity: 0.8; }
+const PYCHARM_STYLES = `
+  .pycharm-md-code { background: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; padding: 10px 14px; margin: 6px 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; overflow-x: auto; }
+  .pycharm-md-code code { color: #333; }
+  .pycharm-md-inline { background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #c7254e; }
+  .pycharm-h1 { font-size: 1.4em; font-weight: 600; margin: 12px 0 6px; color: #1a1a1a; }
+  .pycharm-h2 { font-size: 1.2em; font-weight: 600; margin: 10px 0 5px; color: #1a1a1a; }
+  .pycharm-h3 { font-size: 1.05em; font-weight: 600; margin: 8px 0 4px; color: #1a1a1a; }
+  .pycharm-link { color: #1a73e8; text-decoration: none; }
+  .pycharm-link:hover { text-decoration: underline; }
+  .pycharm-quote { border-left: 3px solid #4caf50; padding: 4px 12px; margin: 6px 0; color: #555; background: #f9f9f0; border-radius: 0 4px 4px 0; }
+  .pycharm-hr { border: none; border-top: 1px solid #e0e0e0; margin: 12px 0; }
+`;
+
+const KERNEL_STYLES = `
+  .kernel-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .kernel-dot-idle { background: #4caf50; }
+  .kernel-dot-busy { background: #ff9800; animation: kernel-pulse 1s infinite; }
+  .kernel-dot-dead { background: #f44336; }
+  @keyframes kernel-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 `;
 
 export function JupyterNotebook({ initialContent, readOnly = false }: JupyterNotebookProps) {
@@ -96,6 +101,7 @@ export function JupyterNotebook({ initialContent, readOnly = false }: JupyterNot
   const [pyodide, setPyodide] = useState<any>(null);
   const [loadingPyodide, setLoadingPyodide] = useState(false);
   const [hoveredCell, setHoveredCell] = useState<string | null>(null);
+  const [copiedCell, setCopiedCell] = useState<string | null>(null);
   const pyodideRef = useRef<any>(null);
 
   useEffect(() => {
@@ -168,6 +174,12 @@ export function JupyterNotebook({ initialContent, readOnly = false }: JupyterNot
     [cells, ensurePyodide]
   );
 
+  const stopCell = useCallback((cellId: string) => {
+    setCells((prev) =>
+      prev.map((c) => (c.id === cellId ? { ...c, running: false } : c))
+    );
+  }, []);
+
   const runAllCells = useCallback(async () => {
     for (const cell of cells) {
       if (cell.cellType === "code" && cell.source.trim()) {
@@ -204,6 +216,15 @@ export function JupyterNotebook({ initialContent, readOnly = false }: JupyterNot
     setCells((prev) => prev.map((c) => (c.id === cellId ? { ...c, source } : c)));
   }, []);
 
+  const copyCell = useCallback((cellId: string) => {
+    const cell = cells.find((c) => c.id === cellId);
+    if (cell) {
+      navigator.clipboard.writeText(cell.source);
+      setCopiedCell(cellId);
+      setTimeout(() => setCopiedCell(null), 1500);
+    }
+  }, [cells]);
+
   const exportNotebook = useCallback(() => {
     const blob = new Blob([cellsToNotebook(cells)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -214,171 +235,233 @@ export function JupyterNotebook({ initialContent, readOnly = false }: JupyterNot
     URL.revokeObjectURL(url);
   }, [cells]);
 
-  return (
-    <div className="flex flex-col">
-      <style>{NOTEBOOK_STYLES}</style>
+  const isRunning = cells.some((c) => c.running);
 
-      {/* Toolbar */}
-      {!readOnly && (
-        <div className="flex items-center gap-1 px-3 py-2 border-b border-[var(--border)]">
-          <Button variant="ghost" onClick={runAllCells} disabled={loadingPyodide} className="text-xs gap-1.5 h-7">
-            {loadingPyodide ? <Loader2 size={13} className="animate-spin" /> : <Play size={13} />}
-            Run All
-          </Button>
-          <div className="w-px h-4 bg-[var(--border)] mx-1" />
-          <Button variant="ghost" onClick={() => addCell(cells.length - 1, "code")} className="text-xs gap-1.5 h-7">
-            <Plus size={13} />
-            Code
-          </Button>
-          <Button variant="ghost" onClick={() => addCell(cells.length - 1, "markdown")} className="text-xs gap-1.5 h-7">
-            <Plus size={13} />
-            Markdown
-          </Button>
-          <div className="flex-1" />
-          <Button variant="ghost" onClick={exportNotebook} className="text-xs h-7">
-            Export
-          </Button>
+  return (
+    <div className="flex flex-col h-full bg-white">
+      <style>{PYCHARM_STYLES}{KERNEL_STYLES}</style>
+
+      {/* Toolbar — PyCharm style */}
+      <div className="flex items-center gap-1 px-2 py-1.5 bg-[#f8f8f8] border-b border-[#e0e0e0]">
+        {/* Kernel status */}
+        <div className="flex items-center gap-1.5 px-2 py-1 mr-2">
+          <div className={cn("kernel-dot", loadingPyodide ? "kernel-dot-busy" : pyodide ? "kernel-dot-idle" : "kernel-dot-dead")} />
+          <span className="text-[11px] text-[#666]">
+            {loadingPyodide ? "Starting..." : pyodide ? "Python 3" : "Not connected"}
+          </span>
         </div>
-      )}
+
+        <div className="w-px h-4 bg-[#ddd] mx-1" />
+
+        {/* Run controls */}
+        <button
+          onClick={() => { const activeCell = cells.find(c => c.running); if (activeCell) stopCell(activeCell.id); else { const firstCode = cells.find(c => c.cellType === "code"); if (firstCode) runCell(firstCode.id); } }}
+          className={cn("flex items-center gap-1 px-2 py-1 rounded text-[12px] transition-colors",
+            isRunning ? "bg-[#fff3e0] text-[#e65100] hover:bg-[#ffe0b2]" : "text-[#333] hover:bg-[#e8e8e8]")}
+          title={isRunning ? "Interrupt" : "Run"}
+        >
+          {isRunning ? <Square size={13} fill="currentColor" /> : <Play size={13} fill="currentColor" className="text-[#4caf50]" />}
+        </button>
+
+        <button onClick={runAllCells} disabled={loadingPyodide || isRunning}
+          className="flex items-center gap-1 px-2 py-1 rounded text-[12px] text-[#333] hover:bg-[#e8e8e8] disabled:opacity-50"
+          title="Run All">
+          <Play size={12} className="text-[#4caf50]" />
+          <span>Run All</span>
+        </button>
+
+        <div className="w-px h-4 bg-[#ddd] mx-1" />
+
+        {/* Add cell */}
+        <button onClick={() => addCell(cells.length - 1, "code")}
+          className="flex items-center gap-1 px-2 py-1 rounded text-[12px] text-[#333] hover:bg-[#e8e8e8]"
+          title="Add Code Cell">
+          <Plus size={13} />
+          <span>Code</span>
+        </button>
+        <button onClick={() => addCell(cells.length - 1, "markdown")}
+          className="flex items-center gap-1 px-2 py-1 rounded text-[12px] text-[#333] hover:bg-[#e8e8e8]"
+          title="Add Markdown Cell">
+          <Plus size={13} />
+          <span>Text</span>
+        </button>
+
+        <div className="flex-1" />
+
+        {/* Export */}
+        <button onClick={exportNotebook}
+          className="flex items-center gap-1 px-2 py-1 rounded text-[12px] text-[#666] hover:bg-[#e8e8e8]">
+          Export
+        </button>
+      </div>
 
       {/* Cells */}
-      <div className="divide-y divide-[var(--border)]">
-        {cells.map((cell, index) => (
-          <div
-            key={cell.id}
-            className="relative group"
-            onMouseEnter={() => setHoveredCell(cell.id)}
-            onMouseLeave={() => setHoveredCell(null)}
-          >
-            {/* Move buttons on hover */}
-            {!readOnly && hoveredCell === cell.id && (
-              <div className="absolute -left-1 top-2 flex flex-col gap-0.5 z-10">
-                <button
-                  onClick={() => moveCell(cell.id, "up")}
-                  disabled={index === 0}
-                  className="p-0.5 rounded bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:opacity-30"
-                >
-                  <ChevronUp size={10} />
-                </button>
-                <button
-                  onClick={() => moveCell(cell.id, "down")}
-                  disabled={index === cells.length - 1}
-                  className="p-0.5 rounded bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] disabled:opacity-30"
-                >
-                  <ChevronDown size={10} />
-                </button>
-              </div>
-            )}
+      <div className="flex-1 overflow-auto bg-[#ffffff]">
+        <div className="max-w-[900px] mx-auto py-2">
+          {cells.map((cell, index) => (
+            <div
+              key={cell.id}
+              className="group"
+              onMouseEnter={() => setHoveredCell(cell.id)}
+              onMouseLeave={() => setHoveredCell(null)}
+            >
+              {cell.cellType === "code" ? (
+                /* ── Code Cell (PyCharm style) ── */
+                <div className={cn("mx-2 mb-2 border rounded-md overflow-hidden transition-shadow",
+                  cell.running ? "border-[#ff9800] shadow-[0_0_0_1px_#ff9800]" : "border-[#e0e0e0] hover:border-[#bbb]")}>
+                  {/* Cell toolbar */}
+                  <div className="flex items-center h-[28px] px-2 bg-[#f8f8f8] border-b border-[#e0e0e0]">
+                    <span className="text-[11px] font-mono text-[#888] mr-2">[{index + 1}]</span>
 
-            {cell.cellType === "code" ? (
-              /* Code cell — GitHub dark style */
-              <div className={cn("flex", cell.running && "opacity-60")}>
-                {/* Line number + run */}
-                <div className="w-16 shrink-0 flex flex-col items-center pt-3 text-[var(--text-secondary)]">
-                  {!readOnly && (
-                    <button
-                      onClick={() => runCell(cell.id)}
-                      disabled={cell.running || loadingPyodide}
-                      className="p-1 rounded hover:bg-[var(--accent)]/10 text-[var(--text-secondary)] hover:text-green-400 mb-1 disabled:opacity-50"
-                      title="Run cell"
-                    >
-                      {cell.running ? <Loader2 size={14} className="animate-spin text-[var(--accent)]" /> : <Play size={14} />}
-                    </button>
-                  )}
-                  <span className="text-[10px] font-mono opacity-50">[{index + 1}]</span>
-                </div>
+                    {/* Run button */}
+                    {!readOnly && (
+                      <button
+                        onClick={() => cell.running ? stopCell(cell.id) : runCell(cell.id)}
+                        disabled={loadingPyodide}
+                        className={cn("p-0.5 rounded transition-colors", cell.running ? "text-[#e65100] hover:bg-[#fff3e0]" : "text-[#4caf50] hover:bg-[#e8f5e9]")}
+                        title={cell.running ? "Stop" : "Run"}
+                      >
+                        {cell.running ? <Loader2 size={13} className="animate-spin" /> : <Play size={13} fill="currentColor" />}
+                      </button>
+                    )}
 
-                {/* Code */}
-                <div className="flex-1 min-w-0">
-                  <div className="bg-[#161b22] border-l-2 border-l-[var(--border)] group-hover:border-l-[var(--accent)] transition-colors">
-                    <pre className="p-4 overflow-x-auto">
-                      <code className="text-[#e6edf3] text-[13px] leading-[1.6] font-mono whitespace-pre">{cell.source || " "}</code>
-                    </pre>
+                    <div className="flex-1" />
+
+                    {/* Cell actions — visible on hover */}
+                    <div className={cn("flex items-center gap-0.5 transition-opacity", hoveredCell === cell.id ? "opacity-100" : "opacity-0")}>
+                      <button onClick={() => copyCell(cell.id)} className="p-0.5 rounded text-[#888] hover:text-[#333] hover:bg-[#e8e8e8]" title="Copy cell">
+                        {copiedCell === cell.id ? <Check size={12} className="text-[#4caf50]" /> : <Copy size={12} />}
+                      </button>
+                      <button onClick={() => moveCell(cell.id, "up")} disabled={index === 0} className="p-0.5 rounded text-[#888] hover:text-[#333] hover:bg-[#e8e8e8] disabled:opacity-30" title="Move up">
+                        <ChevronUp size={12} />
+                      </button>
+                      <button onClick={() => moveCell(cell.id, "down")} disabled={index === cells.length - 1} className="p-0.5 rounded text-[#888] hover:text-[#333] hover:bg-[#e8e8e8] disabled:opacity-30" title="Move down">
+                        <ChevronDown size={12} />
+                      </button>
+                      <button onClick={() => addCell(index, "code")} className="p-0.5 rounded text-[#888] hover:text-[#333] hover:bg-[#e8e8e8]" title="Add cell below">
+                        <Plus size={12} />
+                      </button>
+                      {cells.length > 1 && (
+                        <button onClick={() => deleteCell(cell.id)} className="p-0.5 rounded text-[#888] hover:text-[#d32f2f] hover:bg-[#ffebee]" title="Delete cell">
+                          <Trash2 size={12} />
+                        </button>
+                      )}
+                    </div>
                   </div>
+
+                  {/* Code content */}
+                  <textarea
+                    className="w-full p-3 bg-white text-[#1a1a1a] resize-none focus:outline-none font-mono text-[13px] leading-[1.5]"
+                    style={{ tabSize: 4, minHeight: "40px" }}
+                    value={cell.source}
+                    onChange={(e) => updateCellSource(cell.id, e.target.value)}
+                    readOnly={readOnly}
+                    rows={Math.max(1, cell.source.split("\n").length)}
+                    spellCheck={false}
+                    placeholder="Type code here..."
+                  />
 
                   {/* Output */}
                   {(cell.output || cell.error) && (
-                    <div className="bg-[var(--bg-card)] border-l-2 border-l-[var(--border)]">
+                    <div className="border-t border-[#e0e0e0] bg-[#fafafa]">
+                      <div className="flex items-center gap-1 px-3 py-1 text-[10px] text-[#888] border-b border-[#eee]">
+                        <span>Out [{index + 1}]</span>
+                      </div>
                       {cell.output && (
-                        <pre className="px-4 py-3 text-[13px] font-mono text-[var(--text-primary)] whitespace-pre-wrap overflow-x-auto leading-relaxed">
+                        <pre className="p-3 text-[13px] font-mono text-[#333] whitespace-pre-wrap overflow-x-auto leading-relaxed">
                           {cell.output}
                         </pre>
                       )}
                       {cell.error && (
-                        <pre className="px-4 py-3 text-[13px] font-mono text-red-400 whitespace-pre-wrap overflow-x-auto leading-relaxed">
+                        <pre className="p-3 text-[13px] font-mono text-[#d32f2f] whitespace-pre-wrap overflow-x-auto leading-relaxed bg-[#fff5f5]">
                           {cell.error}
                         </pre>
                       )}
                     </div>
                   )}
                 </div>
+              ) : (
+                /* ── Markdown Cell ── */
+                <div className="mx-2 mb-2 group/md relative">
+                  <div className="border border-transparent group-hover/md:border-[#e0e0e0] rounded-md transition-colors">
+                    {/* Markdown toolbar */}
+                    <div className={cn("flex items-center h-[28px] px-2 bg-[#f8f8f8] border-b border-[#e0e0e0] rounded-t-md transition-opacity",
+                      hoveredCell === cell.id ? "opacity-100" : "opacity-0")}>
+                      <span className="text-[11px] text-[#888] mr-2">Markdown</span>
+                      <div className="flex-1" />
+                      <div className="flex items-center gap-0.5">
+                        <button onClick={() => copyCell(cell.id)} className="p-0.5 rounded text-[#888] hover:text-[#333] hover:bg-[#e8e8e8]" title="Copy">
+                          {copiedCell === cell.id ? <Check size={12} className="text-[#4caf50]" /> : <Copy size={12} />}
+                        </button>
+                        <button onClick={() => moveCell(cell.id, "up")} disabled={index === 0} className="p-0.5 rounded text-[#888] hover:text-[#333] hover:bg-[#e8e8e8] disabled:opacity-30">
+                          <ChevronUp size={12} />
+                        </button>
+                        <button onClick={() => moveCell(cell.id, "down")} disabled={index === cells.length - 1} className="p-0.5 rounded text-[#888] hover:text-[#333] hover:bg-[#e8e8e8] disabled:opacity-30">
+                          <ChevronDown size={12} />
+                        </button>
+                        <button onClick={() => addCell(index, "markdown")} className="p-0.5 rounded text-[#888] hover:text-[#333] hover:bg-[#e8e8e8]">
+                          <Plus size={12} />
+                        </button>
+                        {cells.length > 1 && (
+                          <button onClick={() => deleteCell(cell.id)} className="p-0.5 rounded text-[#888] hover:text-[#d32f2f] hover:bg-[#ffebee]">
+                            <Trash2 size={12} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
 
-                {/* Actions */}
-                {!readOnly && hoveredCell === cell.id && (
-                  <div className="absolute right-2 top-2 flex gap-1">
-                    <button onClick={() => addCell(index, "code")} className="p-1 rounded bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]" title="Add cell below">
-                      <Plus size={12} />
-                    </button>
-                    {cells.length > 1 && (
-                      <button onClick={() => deleteCell(cell.id)} className="p-1 rounded bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-red-400" title="Delete cell">
-                        <Trash2 size={12} />
-                      </button>
+                    {/* Rendered markdown */}
+                    <div className="px-4 py-3">
+                      <div
+                        className="text-[14px] text-[#333] leading-relaxed"
+                        dangerouslySetInnerHTML={{ __html: renderMarkdown(cell.source || "*Double-click to edit*") }}
+                      />
+                    </div>
+
+                    {/* Hidden edit textarea */}
+                    {!readOnly && (
+                      <textarea
+                        className="absolute inset-0 w-full h-full px-4 py-3 bg-white text-[#333] text-[14px] resize-none focus:outline-none opacity-0 focus:opacity-100 transition-opacity font-sans"
+                        style={{ minHeight: "60px" }}
+                        value={cell.source}
+                        onChange={(e) => updateCellSource(cell.id, e.target.value)}
+                        readOnly={readOnly}
+                        rows={Math.max(2, cell.source.split("\n").length)}
+                        spellCheck={false}
+                      />
                     )}
                   </div>
-                )}
-              </div>
-            ) : (
-              /* Markdown cell */
-              <div className="relative">
-                <div className="px-16 py-4">
-                  <div
-                    className="text-[var(--text-primary)] text-sm leading-relaxed"
-                    dangerouslySetInnerHTML={{ __html: renderMarkdown(cell.source || "*Empty cell*") }}
-                  />
                 </div>
+              )}
 
-                {/* Hidden textarea — shows on hover for editing */}
-                {!readOnly && (
-                  <textarea
-                    className="absolute inset-0 w-full h-full px-16 py-4 bg-[var(--bg)] text-[var(--text-primary)] text-sm resize-none focus:outline-none focus:bg-[var(--bg-card)] opacity-0 focus:opacity-100 transition-opacity"
-                    style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: "13px", lineHeight: "20px", minHeight: "60px" }}
-                    value={cell.source}
-                    onChange={(e) => updateCellSource(cell.id, e.target.value)}
-                    readOnly={readOnly}
-                    rows={Math.max(2, cell.source.split("\n").length)}
-                    spellCheck={false}
-                  />
-                )}
-
-                {/* Actions */}
-                {!readOnly && hoveredCell === cell.id && (
-                  <div className="absolute right-2 top-2 flex gap-1 z-10">
-                    <button onClick={() => addCell(index, "markdown")} className="p-1 rounded bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]" title="Add cell below">
-                      <Plus size={12} />
+              {/* Add cell between */}
+              {!readOnly && hoveredCell === cell.id && (
+                <div className="flex items-center justify-center h-0 relative z-10">
+                  <div className="absolute -top-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={() => addCell(index, "code")}
+                      className="flex items-center gap-1 px-2 py-0.5 bg-[#f0f0f0] hover:bg-[#e0e0e0] border border-[#ddd] rounded text-[10px] text-[#666] shadow-sm">
+                      <Plus size={10} /> Code
                     </button>
-                    {cells.length > 1 && (
-                      <button onClick={() => deleteCell(cell.id)} className="p-1 rounded bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text-secondary)] hover:text-red-400" title="Delete cell">
-                        <Trash2 size={12} />
-                      </button>
-                    )}
+                    <button onClick={() => addCell(index, "markdown")}
+                      className="flex items-center gap-1 px-2 py-0.5 bg-[#f0f0f0] hover:bg-[#e0e0e0] border border-[#ddd] rounded text-[10px] text-[#666] shadow-sm">
+                      <Plus size={10} /> Text
+                    </button>
                   </div>
-                )}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+                </div>
+              )}
+            </div>
+          ))}
 
-      {/* Add cell at bottom */}
-      {!readOnly && (
-        <button
-          onClick={() => addCell(cells.length - 1, "code")}
-          className="flex items-center justify-center gap-2 py-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-card)] border border-dashed border-[var(--border)] rounded-lg mt-3 transition-colors"
-        >
-          <Plus size={14} />
-          <span className="text-xs">Add cell</span>
-        </button>
-      )}
+          {/* Add cell at bottom */}
+          {!readOnly && (
+            <div className="flex items-center justify-center gap-2 py-4 mx-2 border border-dashed border-[#ddd] rounded-md hover:border-[#bbb] hover:bg-[#fafafa] transition-colors cursor-pointer group"
+              onClick={() => addCell(cells.length - 1, "code")}>
+              <Plus size={14} className="text-[#aaa] group-hover:text-[#666]" />
+              <span className="text-[12px] text-[#aaa] group-hover:text-[#666]">Add cell</span>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
