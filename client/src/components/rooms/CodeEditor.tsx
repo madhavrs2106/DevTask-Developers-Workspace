@@ -633,7 +633,7 @@ export function CodeEditor({ room }: Props) {
               New File
             </Button>
             <label className="cursor-pointer">
-              <input type="file" multiple className="hidden" onChange={handleUpload} />
+              <input type="file" multiple className="hidden" accept="*/*" onChange={handleUpload} />
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs bg-[var(--accent)]/10 text-[var(--accent)] hover:bg-[var(--accent)]/20 transition-colors">
                 <Upload size={12} />
                 Upload

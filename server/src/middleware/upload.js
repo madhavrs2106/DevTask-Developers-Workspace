@@ -87,7 +87,9 @@ function getStorage() {
       cb(null, roomDir);
     },
     filename: (_req, file, cb) => {
-      const ext = ALLOWED_MIME[file.mimetype] || file.originalname.split(".").pop();
+      const origExt = file.originalname.split(".").pop()?.toLowerCase() || "";
+      const mimeExt = ALLOWED_MIME[file.mimetype];
+      const ext = (mimeExt && mimeExt !== origExt) ? origExt || mimeExt : origExt || mimeExt || "bin";
       const unique = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       cb(null, `${unique}.${ext}`);
     },
@@ -97,8 +99,23 @@ function getStorage() {
 function fileFilter(_req, file, cb) {
   if (ALLOWED_MIME[file.mimetype]) {
     cb(null, true);
+    return;
+  }
+  // Fallback: allow by extension for unrecognized MIME types
+  const ext = file.originalname.split(".").pop()?.toLowerCase() || "";
+  const ALLOWED_EXTENSIONS = new Set([
+    "js","jsx","ts","tsx","py","ipynb","rb","go","rs","java","c","cpp","cs","h","hpp",
+    "sh","bash","php","dart","swift","kt","scala","r","lua","pl","sql","html","htm",
+    "css","scss","less","json","yaml","yml","toml","xml","md","csv","graphql","vue",
+    "svelte","astro","mp4","mkv","webm","avi","mov","wmv","mpeg",
+    "png","jpg","jpeg","gif","webp","svg","bmp","ico","tiff",
+    "pdf","doc","docx","xls","xlsx","ppt","pptx","rtf",
+    "zip","tar","gz","7z","rar","txt",
+  ]);
+  if (ALLOWED_EXTENSIONS.has(ext)) {
+    cb(null, true);
   } else {
-    cb(new Error(`File type ${file.mimetype} is not allowed`));
+    cb(new Error(`File type ${file.mimetype} (.${ext}) is not allowed`));
   }
 }
 
