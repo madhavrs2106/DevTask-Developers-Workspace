@@ -22,6 +22,7 @@ const updateRoomSchema = z.object({
   name: z.string().min(1).max(100).optional(),
   topic: z.string().min(1).max(100).optional(),
   description: z.string().optional(),
+  roomNotes: z.string().optional(),
   visibility: z.enum(["PUBLIC", "PRIVATE"]).optional(),
   password: z.string().min(4).max(100).optional(),
   maxMembers: z.number().int().min(2).max(50).optional(),
@@ -55,6 +56,7 @@ const ROOM_SELECT = {
   topic: true,
   inviteCode: true,
   description: true,
+  roomNotes: true,
   visibility: true,
   streakCount: true,
   lastStreakDate: true,
@@ -262,6 +264,22 @@ export const updateRoom = asyncHandler(async (req, res) => {
   const room = await prisma.coLearningRoom.update({
     where: { id },
     data: updateData,
+    select: ROOM_SELECT,
+  });
+
+  res.json(room);
+});
+
+export const updateRoomNotes = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const member = await ensureMember(id, req.user.id);
+  if (member.role !== "ADMIN") throw new HttpError(403, "Only admins can update notes");
+
+  const { roomNotes } = parse(z.object({ roomNotes: z.string() }), req.body);
+
+  const room = await prisma.coLearningRoom.update({
+    where: { id },
+    data: { roomNotes },
     select: ROOM_SELECT,
   });
 

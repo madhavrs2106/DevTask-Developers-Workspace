@@ -168,6 +168,7 @@ model CoLearningRoom {
   topic           String
   inviteCode      String   @unique
   description     String?
+  roomNotes       String?  @db.Text
   visibility      String   @default("PUBLIC") // PUBLIC | PRIVATE
   passwordHash    String?
   streakCount     Int      @default(0)

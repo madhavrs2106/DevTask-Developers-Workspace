@@ -213,6 +213,7 @@ export interface CoLearningRoom {
   topic: string;
   inviteCode: string;
   description: string | null;
+  roomNotes: string | null;
   visibility: "PUBLIC" | "PRIVATE";
   streakCount: number;
   lastStreakDate: string | null;
