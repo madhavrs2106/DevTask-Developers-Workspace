@@ -94,7 +94,8 @@ export const getAnalytics = asyncHandler(async (req, res) => {
   });
 
   /* Velocity — tasks completed per week over the last 8 weeks */
-  const velocitySeries = await buildVelocitySeries(userId, today);
+  /* Velocity — tasks completed per week over the last 8 Mon–Sun weeks */
+  const velocitySeries = await buildVelocitySeries(userId, thisMonday);
   const velocityDelta =
     doneLastWeek === 0
       ? doneThisWeek > 0
@@ -102,35 +103,40 @@ export const getAnalytics = asyncHandler(async (req, res) => {
         : 0
       : Math.round(((doneThisWeek - doneLastWeek) / doneLastWeek) * 100);
 
-  async function buildVelocitySeries(uid, endDay) {
-    // single grouped query instead of 8 separate counts
-    const since = new Date(endDay.getTime() - 55 * DAY);
+  async function buildVelocitySeries(uid, latestMonday) {
+    const since = new Date(latestMonday.getTime() - 55 * DAY);
     const doneTasks = await prisma.task.findMany({
       where: { userId: uid, status: "DONE", completedAt: { gte: since } },
       select: { completedAt: true },
     });
     return Array.from({ length: 8 }, (_, i) => {
-      const start = new Date(endDay.getTime() - (7 * (7 - i) + 6) * DAY);
-      const end = new Date(start.getTime() + 7 * DAY);
+      const weekStart = new Date(latestMonday.getTime() - (7 - i) * 7 * DAY);
+      const weekEnd = new Date(weekStart.getTime() + 7 * DAY);
       const label = i === 7 ? "This wk" : `${7 - i}w ago`;
       const completed = doneTasks.filter((t) => {
         const at = t.completedAt?.getTime() ?? 0;
-        return at >= start.getTime() && at < end.getTime();
+        return at >= weekStart.getTime() && at < weekEnd.getTime();
       }).length;
       return { label, completed };
     });
   }
 
-  /* Hours studied per week — last 8 weeks from task actualHours */
+  /* Hours studied per week — last 8 Mon–Sun weeks from task actualHours */
+  // Find the most recent Monday (or today if Monday)
+  const dayOfWeek = today.getDay(); // 0=Sun, 1=Mon, …
+  const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  const thisMonday = new Date(today.getTime() - daysSinceMonday * DAY);
+
   const hoursPerWeek = Array.from({ length: 8 }, (_, i) => {
-    const start = new Date(today.getTime() - (7 * (7 - i) + 6) * DAY);
-    const end = new Date(start.getTime() + 7 * DAY);
+    // i=7 → this week (Mon–Sun), i=6 → last week, …
+    const weekStart = new Date(thisMonday.getTime() - (7 - i) * 7 * DAY);
+    const weekEnd = new Date(weekStart.getTime() + 7 * DAY);
     const label = i === 7 ? "This wk" : `${7 - i}w ago`;
     const hours = tasksWithHours
       .filter((t) => {
         if (!t.completedAt) return false;
         const d = startOfDay(t.completedAt).getTime();
-        return d >= start.getTime() && d < end.getTime();
+        return d >= weekStart.getTime() && d < weekEnd.getTime();
       })
       .reduce((sum, t) => sum + (t.actualHours ?? 0), 0);
     return { label, hours: Math.round(hours * 10) / 10 };
