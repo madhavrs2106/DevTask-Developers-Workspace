@@ -98,6 +98,8 @@ export const uploadNote = asyncHandler(async (req, res) => {
   const { id } = req.params;
   await ensureMember(id, req.user.id);
 
+  console.log("[upload] Room:", id, "File:", req.file?.originalname, "Parent:", req.body.parentId);
+
   if (!req.file) throw new HttpError(400, "No file uploaded.");
 
   const title = req.body.title || req.file.originalname;
@@ -119,6 +121,8 @@ export const uploadNote = asyncHandler(async (req, res) => {
     fileUrl = `/uploads/rooms/${id}/${req.file.filename}`;
     content = fileUrl;
   }
+
+  console.log("[upload] FileType:", fileType, "Content:", content ? "set" : "null");
 
   const note = await prisma.roomNote.create({
     data: {
@@ -154,7 +158,24 @@ export const getNotes = asyncHandler(async (req, res) => {
     orderBy: [{ order: "asc" }, { createdAt: "asc" }],
   });
 
-  res.json({ notes });
+  // Build tree: attach children to parents
+  const noteMap = new Map();
+  const roots = [];
+
+  for (const note of notes) {
+    noteMap.set(note.id, { ...note, children: [] });
+  }
+
+  for (const note of notes) {
+    const node = noteMap.get(note.id);
+    if (note.parentId && noteMap.has(note.parentId)) {
+      noteMap.get(note.parentId).children.push(node);
+    } else {
+      roots.push(node);
+    }
+  }
+
+  res.json({ notes: roots });
 });
 
 /** PUT /api/rooms/:id/notes/:noteId — update note */
