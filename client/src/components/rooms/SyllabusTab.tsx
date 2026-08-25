@@ -122,17 +122,17 @@ export function SyllabusTab({ room }: Props) {
               <li key={item.id}>
                 <article className={cn(
                   "card group flex items-center gap-x-4 gap-y-2 px-4 py-3.5",
-                  isComplete && "bg-[var(--accent)]/5 border-[var(--accent)]/20"
+                  isComplete && "bg-emerald-400/5 border-emerald-400/20"
                 )}>
                   {/* Number */}
                   <div className={cn(
                     "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-sm font-bold",
                     isComplete
-                      ? "bg-[var(--accent)]/20 text-[var(--accent)]"
+                      ? "bg-emerald-400/15 text-emerald-400"
                       : "bg-[var(--bg-secondary)] text-[var(--text-secondary)]"
                   )}>
                     {isComplete ? (
-                      <CheckCircle2 size={18} className="text-[var(--accent)]" />
+                      <CheckCircle2 size={18} className="text-emerald-400 drop-shadow-[0_0_6px_rgba(52,211,153,0.5)]" />
                     ) : (
                       <span>{index + 1}</span>
                     )}
@@ -142,8 +142,8 @@ export function SyllabusTab({ room }: Props) {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <h4 className={cn(
-                        "text-sm font-medium truncate",
-                        isComplete ? "text-[var(--text-secondary)] line-through" : "text-[var(--text-primary)]"
+                        "text-sm font-medium",
+                        isComplete ? "text-emerald-400" : "text-[var(--text-primary)]"
                       )}>
                         {item.title}
                       </h4>
@@ -198,8 +198,8 @@ export function SyllabusTab({ room }: Props) {
                       className={cn(
                         "p-1.5 rounded-lg transition-colors",
                         isComplete
-                          ? "text-[var(--accent)] hover:bg-[var(--accent)]/10"
-                          : "text-[var(--text-secondary)] hover:text-[var(--accent)] hover:bg-[var(--accent)]/10"
+                          ? "text-emerald-400 drop-shadow-[0_0_6px_rgba(52,211,153,0.6)] hover:bg-emerald-400/10"
+                          : "text-[var(--text-secondary)] hover:text-emerald-400 hover:bg-emerald-400/10"
                       )}
                       title={isComplete ? "Mark incomplete" : "Mark complete"}
                     >
