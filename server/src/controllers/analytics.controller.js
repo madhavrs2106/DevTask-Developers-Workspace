@@ -93,7 +93,11 @@ export const getAnalytics = asyncHandler(async (req, res) => {
     };
   });
 
-  /* Velocity — tasks completed per week over the last 8 weeks */
+  /* Find the most recent Monday (or today if Monday) */
+  const dayOfWeek = today.getDay(); // 0=Sun, 1=Mon, …
+  const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  const thisMonday = new Date(today.getTime() - daysSinceMonday * DAY);
+
   /* Velocity — tasks completed per week over the last 8 Mon–Sun weeks */
   const velocitySeries = await buildVelocitySeries(userId, thisMonday);
   const velocityDelta =
@@ -122,10 +126,6 @@ export const getAnalytics = asyncHandler(async (req, res) => {
   }
 
   /* Hours studied per week — last 8 Mon–Sun weeks from task actualHours */
-  // Find the most recent Monday (or today if Monday)
-  const dayOfWeek = today.getDay(); // 0=Sun, 1=Mon, …
-  const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-  const thisMonday = new Date(today.getTime() - daysSinceMonday * DAY);
 
   const hoursPerWeek = Array.from({ length: 8 }, (_, i) => {
     // i=7 → this week (Mon–Sun), i=6 → last week, …
