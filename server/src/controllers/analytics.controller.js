@@ -133,7 +133,7 @@ export const getAnalytics = asyncHandler(async (req, res) => {
     const label = i === 7 ? "This wk" : `${7 - i}w ago`;
     const hours = codingSessions
       .filter((s) => {
-        const d = s.date.getTime();
+        const d = new Date(s.date).getTime();
         return d >= start.getTime() && d < end.getTime();
       })
       .reduce((sum, s) => sum + s.hours, 0);
