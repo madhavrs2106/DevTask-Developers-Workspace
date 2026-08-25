@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useAddDiscussion } from "../../hooks/useQueries";
 import { Button } from "../ui/Button";
 import type { CoLearningRoomFull, RoomDiscussion } from "../../types";
@@ -109,6 +109,14 @@ export function DiscussionTab({ room }: Props) {
   const addDiscussion = useAddDiscussion(room.id);
   const [content, setContent] = useState("");
   const [selectedItemId, setSelectedItemId] = useState<string>("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const autoResize = useCallback(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, []);
 
   const handlePost = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -119,6 +127,7 @@ export function DiscussionTab({ room }: Props) {
     });
     setContent("");
     setSelectedItemId("");
+    if (textareaRef.current) textareaRef.current.style.height = "auto";
   };
 
   return (
@@ -142,9 +151,13 @@ export function DiscussionTab({ room }: Props) {
         )}
         <div className="flex gap-2">
           <textarea
-            className="flex-1 bg-[var(--bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent)] h-20 resize-none"
+            ref={textareaRef}
+            className="flex-1 bg-[var(--bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-[var(--text-primary)] text-sm focus:outline-none focus:border-[var(--accent)] min-h-[80px] max-h-48 resize-none"
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={(e) => {
+              setContent(e.target.value);
+              autoResize();
+            }}
             placeholder="Ask a question, share a doubt, or discuss a concept..."
           />
         </div>
