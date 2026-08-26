@@ -3,6 +3,7 @@ import {
   useQuizzes,
   useQuiz,
   useCreateQuiz,
+  useUpdateQuiz,
   useDeleteQuiz,
   useSubmitQuiz,
   useGradeSubmission,
@@ -22,13 +23,13 @@ interface QuizTabProps {
   isAdmin: boolean;
 }
 
-type View = "list" | "create" | "taking" | "detail";
+type View = "list" | "create" | "edit" | "taking" | "detail";
 
 export function QuizTab({ room, isAdmin }: QuizTabProps) {
   const [view, setView] = useState<View>("list");
   const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
 
-  const handleQuizCreated = () => {
+  const handleQuizSaved = () => {
     setView("list");
   };
 
@@ -42,13 +43,22 @@ export function QuizTab({ room, isAdmin }: QuizTabProps) {
     setView("detail");
   };
 
+  const handleEditQuiz = (quizId: string) => {
+    setSelectedQuizId(quizId);
+    setView("edit");
+  };
+
   const handleBack = () => {
     setView("list");
     setSelectedQuizId(null);
   };
 
   if (view === "create") {
-    return <CreateQuizView roomId={room.id} onCreated={handleQuizCreated} onCancel={handleBack} />;
+    return <CreateQuizView roomId={room.id} onCreated={handleQuizSaved} onCancel={handleBack} />;
+  }
+
+  if (view === "edit" && selectedQuizId) {
+    return <EditQuizView roomId={room.id} quizId={selectedQuizId} onSaved={handleQuizSaved} onCancel={handleBack} />;
   }
 
   if ((view === "taking" || view === "detail") && selectedQuizId) {
@@ -62,7 +72,7 @@ export function QuizTab({ room, isAdmin }: QuizTabProps) {
     );
   }
 
-  return <QuizListView room={room} isAdmin={isAdmin} onCreate={() => setView("create")} onTakeQuiz={handleTakeQuiz} onViewQuiz={handleViewQuiz} />;
+  return <QuizListView room={room} isAdmin={isAdmin} onCreate={() => setView("create")} onTakeQuiz={handleTakeQuiz} onViewQuiz={handleViewQuiz} onEditQuiz={handleEditQuiz} />;
 }
 
 /* ─── Quiz List View ───────────────────────────────────────────── */
@@ -73,12 +83,14 @@ function QuizListView({
   onCreate,
   onTakeQuiz,
   onViewQuiz,
+  onEditQuiz,
 }: {
   room: CoLearningRoomFull;
   isAdmin: boolean;
   onCreate: () => void;
   onTakeQuiz: (id: string) => void;
   onViewQuiz: (id: string) => void;
+  onEditQuiz: (id: string) => void;
 }) {
   const { data: quizzes = [], isLoading } = useQuizzes(room.id);
   const deleteQuiz = useDeleteQuiz(room.id);
@@ -124,6 +136,7 @@ function QuizListView({
               isAdmin={isAdmin}
               onTake={() => onTakeQuiz(quiz.id)}
               onView={() => onViewQuiz(quiz.id)}
+              onEdit={() => onEditQuiz(quiz.id)}
               onDelete={() => deleteQuiz.mutateAsync(quiz.id)}
               onPublish={() => publishQuiz.mutateAsync(quiz.id)}
               onUnpublish={() => unpublishQuiz.mutateAsync(quiz.id)}
@@ -140,6 +153,7 @@ function QuizCard({
   isAdmin,
   onTake,
   onView,
+  onEdit,
   onDelete,
   onPublish,
   onUnpublish,
@@ -148,6 +162,7 @@ function QuizCard({
   isAdmin: boolean;
   onTake: () => void;
   onView: () => void;
+  onEdit: () => void;
   onDelete: () => void;
   onPublish: () => void;
   onUnpublish: () => void;
@@ -203,10 +218,15 @@ function QuizCard({
         {isAdmin ? (
           <div className="mt-3 flex items-center gap-2">
             {isDraft ? (
-              <Button variant="primary" size="sm" onClick={(e) => { e.stopPropagation(); onPublish(); }} className="flex-1">
-                <Send size={12} className="mr-1" />
-                Publish
-              </Button>
+              <>
+                <Button variant="primary" size="sm" onClick={(e) => { e.stopPropagation(); onPublish(); }} className="flex-1">
+                  <Send size={12} className="mr-1" />
+                  Publish
+                </Button>
+                <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onEdit(); }} className="flex-1">
+                  Edit
+                </Button>
+              </>
             ) : (
               <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onUnpublish(); }} className="flex-1 text-amber-400 hover:bg-amber-400/10">
                 <EyeOff size={12} className="mr-1" />
@@ -609,6 +629,434 @@ function CreateQuizView({
           disabled={createQuiz.isPending}
         >
           {createQuiz.isPending ? "Creating..." : "Create Quiz"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Edit Quiz View ─────────────────────────────────────────── */
+
+function EditQuizView({
+  roomId,
+  quizId,
+  onSaved,
+  onCancel,
+}: {
+  roomId: string;
+  quizId: string;
+  onSaved: () => void;
+  onCancel: () => void;
+}) {
+  const { data: quiz, isLoading } = useQuiz(roomId, quizId);
+  const updateQuiz = useUpdateQuiz(roomId);
+  const uploadImage = useUploadQuizImage(roomId);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [questions, setQuestions] = useState<{
+    text: string;
+    type: "MCQ" | "NUMERICAL";
+    options: string[];
+    answer: string;
+    imageUrl?: string;
+    optionImages?: Record<number, string>;
+  }[]>([]);
+  const [initialized, setInitialized] = useState(false);
+  const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  // Initialize form from quiz data
+  if (quiz && !initialized && quiz.questions) {
+    const parsedQuestions = quiz.questions.map((q) => {
+      const textParts = parseTextWithImages(q.text);
+      const textOnly = textParts.filter((p) => p.type === "text").map((p) => p.value).join("");
+      const imagePart = textParts.find((p) => p.type === "image");
+      const optionImages: Record<number, string> = {};
+      let parsedOptions: string[] = [];
+      if (q.type === "MCQ" && q.options) {
+        parsedOptions = JSON.parse(q.options).map((opt: string, oi: number) => {
+          const optParts = opt.split(/!\[image\]\(([^)]+)\)/);
+          const textPartsOnly = optParts.filter((_, i) => i % 2 === 0).join("").trim();
+          const imgMatch = optParts.find((_: string, i: number) => i % 2 === 1);
+          if (imgMatch) optionImages[oi] = imgMatch;
+          return textPartsOnly;
+        });
+      }
+      return {
+        text: textOnly.trim(),
+        type: q.type as "MCQ" | "NUMERICAL",
+        options: parsedOptions.length > 0 ? parsedOptions : ["", ""],
+        answer: q.answer ?? "",
+        imageUrl: imagePart?.value,
+        optionImages,
+      };
+    });
+    setTitle(quiz.title);
+    setDescription(quiz.description ?? "");
+    setQuestions(parsedQuestions);
+    setInitialized(true);
+  }
+
+  const addQuestion = () => {
+    if (questions.length >= 20) return;
+    setQuestions([...questions, { text: "", type: "MCQ", options: ["", ""], answer: "", optionImages: {} }]);
+  };
+
+  const removeQuestion = (i: number) => {
+    if (questions.length <= 1) return;
+    setQuestions(questions.filter((_, idx) => idx !== i));
+  };
+
+  const updateQuestion = (i: number, patch: Partial<typeof questions[number]>) => {
+    setQuestions(questions.map((q, idx) => (idx === i ? { ...q, ...patch } : q)));
+  };
+
+  const updateOption = (qi: number, oi: number, value: string) => {
+    setQuestions(questions.map((q, idx) => {
+      if (idx !== qi) return q;
+      const newOpts = [...q.options];
+      newOpts[oi] = value;
+      return { ...q, options: newOpts };
+    }));
+  };
+
+  const addOption = (qi: number) => {
+    setQuestions(questions.map((q, idx) => {
+      if (idx !== qi) return q;
+      return { ...q, options: [...q.options, ""] };
+    }));
+  };
+
+  const removeOption = (qi: number, oi: number) => {
+    setQuestions(questions.map((q, idx) => {
+      if (idx !== qi) return q;
+      if (q.options.length <= 2) return q;
+      const newOpts = q.options.filter((_, idx) => idx !== oi);
+      const newOptImages = { ...q.optionImages };
+      delete newOptImages[oi];
+      const reindexed: Record<number, string> = {};
+      let newIdx = 0;
+      for (let oldIdx = 0; oldIdx < q.options.length; oldIdx++) {
+        if (oldIdx === oi) continue;
+        if (newOptImages[oldIdx]) reindexed[newIdx] = newOptImages[oldIdx];
+        newIdx++;
+      }
+      return { ...q, options: newOpts, optionImages: reindexed, answer: q.answer === q.options[oi] ? "" : q.answer };
+    }));
+  };
+
+  const handleImageUpload = async (qi: number, file: File) => {
+    try {
+      const result = await uploadImage.mutateAsync(file);
+      updateQuestion(qi, { imageUrl: result.url });
+    } catch {
+      // silent
+    }
+  };
+
+  const handleOptionImageUpload = async (qi: number, oi: number, file: File) => {
+    try {
+      const result = await uploadImage.mutateAsync(file);
+      const q = questions[qi];
+      const newOptImages = { ...(q.optionImages ?? {}), [oi]: result.url };
+      updateQuestion(qi, { optionImages: newOptImages });
+    } catch {
+      // silent
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!title.trim()) return;
+    const valid = questions.every(
+      (q) => (q.text.trim() || q.imageUrl) && q.answer.trim() &&
+        (q.type === "NUMERICAL" || q.options.every((o) => o.trim()))
+    );
+    if (!valid) return;
+
+    await updateQuiz.mutateAsync({
+      quizId,
+      data: {
+        title: title.trim(),
+        description: description.trim() || undefined,
+        questions: questions.map((q) => {
+          const textContent = q.imageUrl
+            ? (q.text.trim() ? q.text.trim() + "\n\n![image](" + q.imageUrl + ")" : "![image](" + q.imageUrl + ")")
+            : q.text.trim();
+          const opts = q.type === "MCQ"
+            ? q.options.map((o, oi) => {
+                const img = q.optionImages?.[oi];
+                return img
+                  ? (o.trim() ? o.trim() + " ![image](" + img + ")" : "![image](" + img + ")")
+                  : o.trim();
+              })
+            : undefined;
+          return {
+            text: textContent,
+            type: q.type,
+            options: opts,
+            answer: q.answer.trim(),
+          };
+        }),
+      },
+    });
+    onSaved();
+  };
+
+  const triggerFileInput = (key: string) => {
+    fileRefs.current[key]?.click();
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-16">
+        <Spinner />
+      </div>
+    );
+  }
+
+  if (!quiz) {
+    return (
+      <div className="text-center py-16">
+        <p className="text-ink-faint">Quiz not found.</p>
+        <Button variant="ghost" className="mt-4" onClick={onCancel}>Back</Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-bold text-white">Edit Quiz</h2>
+        <Button variant="ghost" size="sm" onClick={onCancel}>
+          <X size={14} className="mr-1" />
+          Cancel
+        </Button>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <label className="block text-xs font-medium text-ink-faint mb-1.5">Title *</label>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="input-dark w-full"
+            placeholder="Quiz title"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-ink-faint mb-1.5">Description</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="input-dark w-full min-h-[60px] font-mono"
+            placeholder="Optional description (supports multi-line)"
+            onKeyDown={(e) => {
+              if (e.key === "Tab") {
+                e.preventDefault();
+                const ta = e.currentTarget;
+                const start = ta.selectionStart;
+                const end = ta.selectionEnd;
+                const val = ta.value;
+                setDescription(val.substring(0, start) + "\t" + val.substring(end));
+                setTimeout(() => { ta.selectionStart = ta.selectionEnd = start + 1; }, 0);
+              }
+            }}
+          />
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        {questions.map((q, qi) => (
+          <div key={qi} className="rounded-xl border border-slate-800 bg-surface-raised p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-accent-bright">Question {qi + 1}</span>
+              <div className="flex items-center gap-2">
+                <select
+                  value={q.type}
+                  onChange={(e) => updateQuestion(qi, {
+                    type: e.target.value as "MCQ" | "NUMERICAL",
+                    options: e.target.value === "NUMERICAL" ? [] : ["", ""],
+                    optionImages: {},
+                  })}
+                  className="text-xs bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-white"
+                >
+                  <option value="MCQ">Multiple Choice</option>
+                  <option value="NUMERICAL">Numerical</option>
+                </select>
+                {questions.length > 1 && (
+                  <button
+                    onClick={() => removeQuestion(qi)}
+                    className="p-1 rounded text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <textarea
+                  value={q.text}
+                  onChange={(e) => updateQuestion(qi, { text: e.target.value })}
+                  className="input-dark flex-1 text-sm font-mono min-h-[60px]"
+                  placeholder="Question text (supports multi-line & code)"
+                  onKeyDown={(e) => {
+                    if (e.key === "Tab") {
+                      e.preventDefault();
+                      const ta = e.currentTarget;
+                      const start = ta.selectionStart;
+                      const end = ta.selectionEnd;
+                      const val = ta.value;
+                      updateQuestion(qi, { text: val.substring(0, start) + "\t" + val.substring(end) });
+                      setTimeout(() => { ta.selectionStart = ta.selectionEnd = start + 1; }, 0);
+                    }
+                  }}
+                />
+                <div className="flex flex-col gap-1 shrink-0">
+                  <input
+                    ref={(el) => { fileRefs.current[`q-${qi}`] = el; }}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleImageUpload(qi, file);
+                      e.target.value = "";
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => triggerFileInput(`q-${qi}`)}
+                    className={cn(
+                      "flex items-center justify-center w-10 h-[60px] rounded-lg border border-dashed transition-colors",
+                      q.imageUrl
+                        ? "border-accent/50 bg-accent/10 text-accent-bright"
+                        : "border-slate-700 text-slate-500 hover:border-slate-600 hover:text-slate-400"
+                    )}
+                    title="Add image to question"
+                  >
+                    <ImageIcon size={16} />
+                  </button>
+                </div>
+              </div>
+              {q.imageUrl && (
+                <div className="relative inline-block">
+                  <img src={q.imageUrl} alt="" className="max-h-32 rounded-lg border border-slate-700" />
+                  <button
+                    onClick={() => updateQuestion(qi, { imageUrl: undefined })}
+                    className="absolute -top-2 -right-2 p-1 rounded-full bg-slate-800 border border-slate-700 text-red-400 hover:bg-red-400/20"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {q.type === "MCQ" ? (
+              <div className="space-y-2">
+                {q.options.map((opt, oi) => (
+                  <div key={oi} className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name={`answer-${qi}`}
+                        checked={q.answer === opt}
+                        onChange={() => updateQuestion(qi, { answer: opt })}
+                        className="accent-[var(--accent)]"
+                        disabled={!opt.trim()}
+                      />
+                      <input
+                        type="text"
+                        value={opt}
+                        onChange={(e) => updateOption(qi, oi, e.target.value)}
+                        className="input-dark flex-1 text-sm"
+                        placeholder={`Option ${oi + 1}`}
+                      />
+                      <input
+                        ref={(el) => { fileRefs.current[`q-${qi}-o-${oi}`] = el; }}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleOptionImageUpload(qi, oi, file);
+                          e.target.value = "";
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => triggerFileInput(`q-${qi}-o-${oi}`)}
+                        className={cn(
+                          "p-1.5 rounded-lg border border-dashed transition-colors shrink-0",
+                          q.optionImages?.[oi]
+                            ? "border-accent/50 bg-accent/10 text-accent-bright"
+                            : "border-slate-700 text-slate-500 hover:border-slate-600 hover:text-slate-400"
+                        )}
+                        title="Add image to option"
+                      >
+                        <ImageIcon size={12} />
+                      </button>
+                      {q.options.length > 2 && (
+                        <button
+                          onClick={() => removeOption(qi, oi)}
+                          className="p-1 rounded text-slate-500 hover:text-red-400"
+                        >
+                          <X size={12} />
+                        </button>
+                      )}
+                    </div>
+                    {q.optionImages?.[oi] && (
+                      <div className="ml-6 relative inline-block">
+                        <img src={q.optionImages[oi]} alt="" className="max-h-20 rounded-lg border border-slate-700" />
+                        <button
+                          onClick={() => {
+                            const newImages = { ...q.optionImages };
+                            delete newImages[oi];
+                            updateQuestion(qi, { optionImages: newImages });
+                          }}
+                          className="absolute -top-2 -right-2 p-1 rounded-full bg-slate-800 border border-slate-700 text-red-400 hover:bg-red-400/20"
+                        >
+                          <X size={10} />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {q.options.length < 6 && (
+                  <button
+                    onClick={() => addOption(qi)}
+                    className="text-xs text-accent-bright hover:underline"
+                  >
+                    + Add option
+                  </button>
+                )}
+              </div>
+            ) : (
+              <input
+                type="text"
+                value={q.answer}
+                onChange={(e) => updateQuestion(qi, { answer: e.target.value })}
+                className="input-dark w-full text-sm"
+                placeholder="Correct answer (number)"
+              />
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="sm" onClick={addQuestion} disabled={questions.length >= 20}>
+          <Plus size={14} className="mr-1" />
+          Add Question ({questions.length}/20)
+        </Button>
+        <div className="flex-1" />
+        <Button
+          variant="primary"
+          onClick={handleSubmit}
+          disabled={updateQuiz.isPending}
+        >
+          {updateQuiz.isPending ? "Saving..." : "Save Changes"}
         </Button>
       </div>
     </div>
