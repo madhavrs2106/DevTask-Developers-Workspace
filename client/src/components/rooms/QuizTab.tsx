@@ -365,12 +365,22 @@ function CreateQuizView({
               </div>
             </div>
 
-            <input
-              type="text"
+            <textarea
               value={q.text}
               onChange={(e) => updateQuestion(qi, { text: e.target.value })}
-              className="input-dark w-full text-sm"
-              placeholder="Question text"
+              className="input-dark w-full text-sm font-mono min-h-[60px]"
+              placeholder="Question text (supports multi-line & code)"
+              onKeyDown={(e) => {
+                if (e.key === "Tab") {
+                  e.preventDefault();
+                  const ta = e.currentTarget;
+                  const start = ta.selectionStart;
+                  const end = ta.selectionEnd;
+                  const val = ta.value;
+                  updateQuestion(qi, { text: val.substring(0, start) + "\t" + val.substring(end) });
+                  setTimeout(() => { ta.selectionStart = ta.selectionEnd = start + 1; }, 0);
+                }
+              }}
             />
 
             {q.type === "MCQ" ? (
@@ -767,7 +777,7 @@ function QuestionCard({
           {index + 1}
         </span>
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-white">{question.text}</p>
+          <p className="text-sm text-white whitespace-pre-wrap font-mono">{question.text}</p>
           <span className="mt-1 inline-block rounded-full bg-slate-800 px-2 py-0.5 text-[10px] font-medium uppercase text-ink-faint">
             {question.type === "MCQ" ? "Multiple Choice" : "Numerical"}
           </span>
