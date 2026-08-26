@@ -551,3 +551,16 @@ export function useUpdateQuiz(roomId: string) {
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["quizzes", roomId] }),
   });
 }
+
+export function useUploadQuizImage(roomId: string) {
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await api.post(`/rooms/${roomId}/quizzes/upload`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return res.data as { url: string };
+    },
+  });
+}

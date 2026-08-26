@@ -28,8 +28,10 @@ import {
   submitQuiz,
   gradeSubmission,
   deleteSubmission,
+  uploadQuizImage,
 } from "../controllers/quiz.controller.js";
 import { requireAuth } from "../middleware/auth.js";
+import { uploadNoteFile } from "../middleware/upload.js";
 
 const router = Router();
 
@@ -59,6 +61,7 @@ router.delete("/:id/members/:memberId", removeMember);
 
 router.get("/:id/quizzes", listQuizzes);
 router.post("/:id/quizzes", createQuiz);
+router.post("/:id/quizzes/upload", uploadNoteFile.single("file"), uploadQuizImage);
 router.get("/:id/quizzes/:quizId", getQuiz);
 router.put("/:id/quizzes/:quizId", updateQuiz);
 router.post("/:id/quizzes/:quizId/publish", publishQuiz);

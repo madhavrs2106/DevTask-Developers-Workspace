@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   useQuizzes,
   useQuiz,
@@ -9,10 +9,11 @@ import {
   useDeleteSubmission,
   usePublishQuiz,
   useUnpublishQuiz,
+  useUploadQuizImage,
 } from "../../hooks/useQueries";
 import { Button } from "../ui/Button";
 import { Spinner } from "../ui/Spinner";
-import { Trash2, Plus, X, Check, Clock, FileText, ChevronDown, ChevronUp, Star, Send, EyeOff, Search } from "lucide-react";
+import { Trash2, Plus, X, Check, Clock, FileText, ChevronDown, ChevronUp, Star, Send, EyeOff, Search, Image as ImageIcon } from "lucide-react";
 import { cn } from "../../lib/utils";
 import type { CoLearningRoomFull, Quiz, QuizQuestion } from "../../types";
 
@@ -253,6 +254,7 @@ function CreateQuizView({
   onCancel: () => void;
 }) {
   const createQuiz = useCreateQuiz(roomId);
+  const uploadImage = useUploadQuizImage(roomId);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [questions, setQuestions] = useState<{
@@ -260,11 +262,14 @@ function CreateQuizView({
     type: "MCQ" | "NUMERICAL";
     options: string[];
     answer: string;
-  }[]>([{ text: "", type: "MCQ", options: ["", ""], answer: "" }]);
+    imageUrl?: string;
+    optionImages?: Record<number, string>;
+  }[]>([{ text: "", type: "MCQ", options: ["", ""], answer: "", optionImages: {} }]);
+  const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const addQuestion = () => {
     if (questions.length >= 10) return;
-    setQuestions([...questions, { text: "", type: "MCQ", options: ["", ""], answer: "" }]);
+    setQuestions([...questions, { text: "", type: "MCQ", options: ["", ""], answer: "", optionImages: {} }]);
   };
 
   const removeQuestion = (i: number) => {
@@ -297,14 +302,44 @@ function CreateQuizView({
       if (idx !== qi) return q;
       if (q.options.length <= 2) return q;
       const newOpts = q.options.filter((_, idx) => idx !== oi);
-      return { ...q, options: newOpts, answer: q.answer === q.options[oi] ? "" : q.answer };
+      const newOptImages = { ...q.optionImages };
+      delete newOptImages[oi];
+      // Re-index images
+      const reindexed: Record<number, string> = {};
+      let newIdx = 0;
+      for (let oldIdx = 0; oldIdx < q.options.length; oldIdx++) {
+        if (oldIdx === oi) continue;
+        if (newOptImages[oldIdx]) reindexed[newIdx] = newOptImages[oldIdx];
+        newIdx++;
+      }
+      return { ...q, options: newOpts, optionImages: reindexed, answer: q.answer === q.options[oi] ? "" : q.answer };
     }));
+  };
+
+  const handleImageUpload = async (qi: number, file: File) => {
+    try {
+      const result = await uploadImage.mutateAsync(file);
+      updateQuestion(qi, { imageUrl: result.url });
+    } catch {
+      // silent
+    }
+  };
+
+  const handleOptionImageUpload = async (qi: number, oi: number, file: File) => {
+    try {
+      const result = await uploadImage.mutateAsync(file);
+      const q = questions[qi];
+      const newOptImages = { ...(q.optionImages ?? {}), [oi]: result.url };
+      updateQuestion(qi, { optionImages: newOptImages });
+    } catch {
+      // silent
+    }
   };
 
   const handleSubmit = async () => {
     if (!title.trim()) return;
     const valid = questions.every(
-      (q) => q.text.trim() && q.answer.trim() &&
+      (q) => (q.text.trim() || q.imageUrl) && q.answer.trim() &&
         (q.type === "NUMERICAL" || q.options.every((o) => o.trim()))
     );
     if (!valid) return;
@@ -312,14 +347,31 @@ function CreateQuizView({
     await createQuiz.mutateAsync({
       title: title.trim(),
       description: description.trim() || undefined,
-      questions: questions.map((q) => ({
-        text: q.text.trim(),
-        type: q.type,
-        options: q.type === "MCQ" ? q.options.map((o) => o.trim()) : undefined,
-        answer: q.answer.trim(),
-      })),
+      questions: questions.map((q) => {
+        const textContent = q.imageUrl
+          ? (q.text.trim() ? q.text.trim() + "\n\n![image](" + q.imageUrl + ")" : "![image](" + q.imageUrl + ")")
+          : q.text.trim();
+        const opts = q.type === "MCQ"
+          ? q.options.map((o, oi) => {
+              const img = q.optionImages?.[oi];
+              return img
+                ? (o.trim() ? o.trim() + " ![image](" + img + ")" : "![image](" + img + ")")
+                : o.trim();
+            })
+          : undefined;
+        return {
+          text: textContent,
+          type: q.type,
+          options: opts,
+          answer: q.answer.trim(),
+        };
+      }),
     });
     onCreated();
+  };
+
+  const triggerFileInput = (key: string) => {
+    fileRefs.current[key]?.click();
   };
 
   return (
@@ -376,6 +428,7 @@ function CreateQuizView({
                   onChange={(e) => updateQuestion(qi, {
                     type: e.target.value as "MCQ" | "NUMERICAL",
                     options: e.target.value === "NUMERICAL" ? [] : ["", ""],
+                    optionImages: {},
                   })}
                   className="text-xs bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-white"
                 >
@@ -393,50 +446,132 @@ function CreateQuizView({
               </div>
             </div>
 
-            <textarea
-              value={q.text}
-              onChange={(e) => updateQuestion(qi, { text: e.target.value })}
-              className="input-dark w-full text-sm font-mono min-h-[60px]"
-              placeholder="Question text (supports multi-line & code)"
-              onKeyDown={(e) => {
-                if (e.key === "Tab") {
-                  e.preventDefault();
-                  const ta = e.currentTarget;
-                  const start = ta.selectionStart;
-                  const end = ta.selectionEnd;
-                  const val = ta.value;
-                  updateQuestion(qi, { text: val.substring(0, start) + "\t" + val.substring(end) });
-                  setTimeout(() => { ta.selectionStart = ta.selectionEnd = start + 1; }, 0);
-                }
-              }}
-            />
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <textarea
+                  value={q.text}
+                  onChange={(e) => updateQuestion(qi, { text: e.target.value })}
+                  className="input-dark flex-1 text-sm font-mono min-h-[60px]"
+                  placeholder="Question text (supports multi-line & code)"
+                  onKeyDown={(e) => {
+                    if (e.key === "Tab") {
+                      e.preventDefault();
+                      const ta = e.currentTarget;
+                      const start = ta.selectionStart;
+                      const end = ta.selectionEnd;
+                      const val = ta.value;
+                      updateQuestion(qi, { text: val.substring(0, start) + "\t" + val.substring(end) });
+                      setTimeout(() => { ta.selectionStart = ta.selectionEnd = start + 1; }, 0);
+                    }
+                  }}
+                />
+                <div className="flex flex-col gap-1 shrink-0">
+                  <input
+                    ref={(el) => { fileRefs.current[`q-${qi}`] = el; }}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleImageUpload(qi, file);
+                      e.target.value = "";
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => triggerFileInput(`q-${qi}`)}
+                    className={cn(
+                      "flex items-center justify-center w-10 h-[60px] rounded-lg border border-dashed transition-colors",
+                      q.imageUrl
+                        ? "border-accent/50 bg-accent/10 text-accent-bright"
+                        : "border-slate-700 text-slate-500 hover:border-slate-600 hover:text-slate-400"
+                    )}
+                    title="Add image to question"
+                  >
+                    <ImageIcon size={16} />
+                  </button>
+                </div>
+              </div>
+              {q.imageUrl && (
+                <div className="relative inline-block">
+                  <img src={q.imageUrl} alt="" className="max-h-32 rounded-lg border border-slate-700" />
+                  <button
+                    onClick={() => updateQuestion(qi, { imageUrl: undefined })}
+                    className="absolute -top-2 -right-2 p-1 rounded-full bg-slate-800 border border-slate-700 text-red-400 hover:bg-red-400/20"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              )}
+            </div>
 
             {q.type === "MCQ" ? (
               <div className="space-y-2">
                 {q.options.map((opt, oi) => (
-                  <div key={oi} className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name={`answer-${qi}`}
-                      checked={q.answer === opt}
-                      onChange={() => updateQuestion(qi, { answer: opt })}
-                      className="accent-[var(--accent)]"
-                      disabled={!opt.trim()}
-                    />
-                    <input
-                      type="text"
-                      value={opt}
-                      onChange={(e) => updateOption(qi, oi, e.target.value)}
-                      className="input-dark flex-1 text-sm"
-                      placeholder={`Option ${oi + 1}`}
-                    />
-                    {q.options.length > 2 && (
+                  <div key={oi} className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name={`answer-${qi}`}
+                        checked={q.answer === opt}
+                        onChange={() => updateQuestion(qi, { answer: opt })}
+                        className="accent-[var(--accent)]"
+                        disabled={!opt.trim()}
+                      />
+                      <input
+                        type="text"
+                        value={opt}
+                        onChange={(e) => updateOption(qi, oi, e.target.value)}
+                        className="input-dark flex-1 text-sm"
+                        placeholder={`Option ${oi + 1}`}
+                      />
+                      <input
+                        ref={(el) => { fileRefs.current[`q-${qi}-o-${oi}`] = el; }}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleOptionImageUpload(qi, oi, file);
+                          e.target.value = "";
+                        }}
+                      />
                       <button
-                        onClick={() => removeOption(qi, oi)}
-                        className="p-1 rounded text-slate-500 hover:text-red-400"
+                        type="button"
+                        onClick={() => triggerFileInput(`q-${qi}-o-${oi}`)}
+                        className={cn(
+                          "p-1.5 rounded-lg border border-dashed transition-colors shrink-0",
+                          q.optionImages?.[oi]
+                            ? "border-accent/50 bg-accent/10 text-accent-bright"
+                            : "border-slate-700 text-slate-500 hover:border-slate-600 hover:text-slate-400"
+                        )}
+                        title="Add image to option"
                       >
-                        <X size={12} />
+                        <ImageIcon size={12} />
                       </button>
+                      {q.options.length > 2 && (
+                        <button
+                          onClick={() => removeOption(qi, oi)}
+                          className="p-1 rounded text-slate-500 hover:text-red-400"
+                        >
+                          <X size={12} />
+                        </button>
+                      )}
+                    </div>
+                    {q.optionImages?.[oi] && (
+                      <div className="ml-6 relative inline-block">
+                        <img src={q.optionImages[oi]} alt="" className="max-h-20 rounded-lg border border-slate-700" />
+                        <button
+                          onClick={() => {
+                            const newImages = { ...q.optionImages };
+                            delete newImages[oi];
+                            updateQuestion(qi, { optionImages: newImages });
+                          }}
+                          className="absolute -top-2 -right-2 p-1 rounded-full bg-slate-800 border border-slate-700 text-red-400 hover:bg-red-400/20"
+                        >
+                          <X size={10} />
+                        </button>
+                      </div>
                     )}
                   </div>
                 ))}
@@ -801,6 +936,24 @@ function QuizDetailView({
 
 /* ─── Question Card ────────────────────────────────────────────── */
 
+function parseTextWithImages(text: string) {
+  const parts: { type: "text" | "image"; value: string }[] = [];
+  const regex = /!\[image\]\(([^)]+)\)/g;
+  let lastIndex = 0;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      parts.push({ type: "text", value: text.slice(lastIndex, match.index) });
+    }
+    parts.push({ type: "image", value: match[1] });
+    lastIndex = regex.lastIndex;
+  }
+  if (lastIndex < text.length) {
+    parts.push({ type: "text", value: text.slice(lastIndex) });
+  }
+  return parts.length > 0 ? parts : [{ type: "text", value: text }];
+}
+
 function QuestionCard({
   question,
   index,
@@ -819,6 +972,15 @@ function QuestionCard({
   userAnswer?: string;
 }) {
   const displayVal = userAnswer ?? value;
+  const textParts = parseTextWithImages(question.text);
+
+  const parseOptionText = (opt: string) => {
+    const parts = opt.split(/!\[image\]\(([^)]+)\)/);
+    return parts.map((part, i) => {
+      if (i % 2 === 1) return { type: "image" as const, value: part };
+      return { type: "text" as const, value: part };
+    }).filter((p) => p.type === "image" || p.value.trim());
+  };
 
   return (
     <div className="rounded-xl border border-slate-800 bg-surface-raised p-4 space-y-3">
@@ -827,7 +989,15 @@ function QuestionCard({
           {index + 1}
         </span>
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-white whitespace-pre-wrap font-mono">{question.text}</p>
+          <div className="text-sm text-white whitespace-pre-wrap font-mono">
+            {textParts.map((part, i) =>
+              part.type === "image" ? (
+                <img key={i} src={part.value} alt="" className="max-h-48 my-2 rounded-lg border border-slate-700" />
+              ) : (
+                <span key={i}>{part.value}</span>
+              )
+            )}
+          </div>
           <span className="mt-1 inline-block rounded-full bg-slate-800 px-2 py-0.5 text-[10px] font-medium uppercase text-ink-faint">
             {question.type === "MCQ" ? "Multiple Choice" : "Numerical"}
           </span>
@@ -836,28 +1006,39 @@ function QuestionCard({
 
       {question.type === "MCQ" && question.options ? (
         <div className="ml-9 space-y-2">
-          {JSON.parse(question.options).map((opt: string, oi: number) => (
-            <label
-              key={oi}
-              className={cn(
-                "flex items-center gap-3 rounded-lg border p-2.5 text-sm transition-colors cursor-pointer",
-                displayVal === opt
-                  ? "border-accent/50 bg-accent/10 text-white"
-                  : "border-slate-800 bg-white/[0.02] text-ink-faint hover:border-slate-700",
-                disabled && "cursor-default opacity-70"
-              )}
-            >
-              <input
-                type="radio"
-                name={`q-${question.id}`}
-                checked={displayVal === opt}
-                onChange={() => onChange(opt)}
-                disabled={disabled}
-                className="accent-[var(--accent)]"
-              />
-              <span>{opt}</span>
-            </label>
-          ))}
+          {JSON.parse(question.options).map((opt: string, oi: number) => {
+            const optParts = parseOptionText(opt);
+            return (
+              <label
+                key={oi}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg border p-2.5 text-sm transition-colors cursor-pointer",
+                  displayVal === opt
+                    ? "border-accent/50 bg-accent/10 text-white"
+                    : "border-slate-800 bg-white/[0.02] text-ink-faint hover:border-slate-700",
+                  disabled && "cursor-default opacity-70"
+                )}
+              >
+                <input
+                  type="radio"
+                  name={`q-${question.id}`}
+                  checked={displayVal === opt}
+                  onChange={() => onChange(opt)}
+                  disabled={disabled}
+                  className="accent-[var(--accent)]"
+                />
+                <div className="flex-1">
+                  {optParts.map((part, i) =>
+                    part.type === "image" ? (
+                      <img key={i} src={part.value} alt="" className="max-h-24 my-1 rounded-lg border border-slate-700" />
+                    ) : (
+                      <span key={i}>{part.value}</span>
+                    )
+                  )}
+                </div>
+              </label>
+            );
+          })}
         </div>
       ) : (
         <div className="ml-9">

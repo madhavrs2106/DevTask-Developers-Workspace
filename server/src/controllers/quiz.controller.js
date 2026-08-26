@@ -24,6 +24,17 @@ const gradeQuizSchema = z.object({
   feedback: z.string().optional(),
 });
 
+/** POST /api/rooms/:id/quizzes/upload — upload quiz image */
+export const uploadQuizImage = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  await ensureMember(id, req.user.id);
+
+  if (!req.file) throw new HttpError(400, "No file uploaded.");
+
+  const imageUrl = `/uploads/rooms/${id}/${req.file.filename}`;
+  res.json({ url: imageUrl });
+});
+
 async function ensureMember(roomId, userId) {
   const member = await prisma.roomMember.findUnique({
     where: { userId_roomId: { userId, roomId } },
