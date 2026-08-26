@@ -15,9 +15,6 @@ export function Layout() {
         <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8 animate-fade-in">
           <Outlet />
         </main>
-        <footer className="border-t border-slate-800/60 px-4 py-4 text-center font-mono text-[10px] uppercase tracking-widest text-slate-600 sm:px-6 lg:px-8">
-          DevTask · built for developers, by developers
-        </footer>
       </div>
     </div>
   );
