@@ -1511,6 +1511,7 @@ function QuizResultView({
             <thead>
               <tr className="border-b border-slate-800 bg-white/[0.02]">
                 <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-faint">Q#</th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-faint">Question</th>
                 <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-faint">Correct Answer</th>
                 <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-faint">Your Answer</th>
                 <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-ink-faint">Status</th>
@@ -1525,12 +1526,35 @@ function QuizResultView({
                   correctAnswer = opts[parseInt(q.answer)] ?? q.answer;
                 }
                 const isCorrect = (userAnswers[q.id] ?? "").trim() === q.answer.trim();
+
+                // Parse question text (strip image markdown for display)
+                const questionText = q.text.replace(/!\[image\]\([^)]+\)/g, "").trim() || "—";
+
+                // Parse option with images
+                const renderOption = (val: string) => {
+                  if (!val || val === "—") return <span>—</span>;
+                  const parts = val.split(/!\[image\]\(([^)]+)\)/);
+                  return (
+                    <>
+                      {parts.map((part, pi) => {
+                        if (pi % 2 === 0) {
+                          return part.trim() ? <span key={pi}>{part.trim()}</span> : null;
+                        }
+                        return <img key={pi} src={part} alt="" className="inline-block max-h-16 rounded border border-slate-700 mt-1" />;
+                      })}
+                    </>
+                  );
+                };
+
                 return (
                   <tr key={q.id} className={cn("transition-colors", getRowColor(userAnswers[q.id] ?? "", q.answer))}>
                     <td className="px-4 py-3 font-mono text-xs font-bold text-accent-bright">{i + 1}</td>
-                    <td className="px-4 py-3 text-white">{correctAnswer}</td>
+                    <td className="px-4 py-3 text-white max-w-[200px]">
+                      <p className="truncate" title={questionText}>{questionText}</p>
+                    </td>
+                    <td className="px-4 py-3 text-white">{renderOption(correctAnswer)}</td>
                     <td className={cn("px-4 py-3", isCorrect ? "text-teal-400" : "text-red-400")}>
-                      {userAnswer}
+                      {renderOption(userAnswer)}
                       {q.type === "MCQ" && q.options && userAnswers[q.id] && (
                         <span className="ml-2 text-xs text-ink-faint">
                           ({JSON.parse(q.options).findIndex((o: string) => o === userAnswers[q.id]) + 1})
