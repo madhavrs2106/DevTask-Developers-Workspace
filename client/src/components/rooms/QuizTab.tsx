@@ -1484,23 +1484,20 @@ function QuizResultView({
 
       {/* Score summary */}
       <div className="rounded-xl border border-slate-800 bg-surface-raised p-6">
-        <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-around">
-          <div className="text-center">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="rounded-lg border border-slate-800 bg-white/[0.02] p-4 text-center">
             <p className="text-3xl font-bold text-white">{score}/{totalQuestions}</p>
-            <p className="text-xs text-ink-faint mt-1">Total Marks</p>
+            <p className="text-xs text-ink-faint mt-1">Total Marks Obtained</p>
           </div>
-          <div className="hidden sm:block w-px h-12 bg-slate-800" />
-          <div className="text-center">
+          <div className="rounded-lg border border-slate-800 bg-white/[0.02] p-4 text-center">
             <p className={cn("text-3xl font-bold", getScoreColor(score, totalQuestions))}>{percentage}%</p>
             <p className="text-xs text-ink-faint mt-1">Percentage</p>
           </div>
-          <div className="hidden sm:block w-px h-12 bg-slate-800" />
-          <div className="text-center">
-            <p className="text-3xl font-bold text-white">{score}</p>
+          <div className="rounded-lg border border-slate-800 bg-white/[0.02] p-4 text-center">
+            <p className="text-3xl font-bold text-teal-400">{score}</p>
             <p className="text-xs text-ink-faint mt-1">Correct</p>
           </div>
-          <div className="hidden sm:block w-px h-12 bg-slate-800" />
-          <div className="text-center">
+          <div className="rounded-lg border border-slate-800 bg-white/[0.02] p-4 text-center">
             <p className="text-3xl font-bold text-red-400">{totalQuestions - score}</p>
             <p className="text-xs text-ink-faint mt-1">Incorrect</p>
           </div>
