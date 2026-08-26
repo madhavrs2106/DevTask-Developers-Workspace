@@ -12,7 +12,7 @@ import {
 } from "../../hooks/useQueries";
 import { Button } from "../ui/Button";
 import { Spinner } from "../ui/Spinner";
-import { Trash2, Plus, X, Check, Clock, FileText, ChevronDown, ChevronUp, Star, Send, EyeOff } from "lucide-react";
+import { Trash2, Plus, X, Check, Clock, FileText, ChevronDown, ChevronUp, Star, Send, EyeOff, Search } from "lucide-react";
 import { cn } from "../../lib/utils";
 import type { CoLearningRoomFull, Quiz, QuizQuestion } from "../../types";
 
@@ -501,6 +501,7 @@ function QuizDetailView({
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [gradeInputs, setGradeInputs] = useState<Record<string, { score: string; feedback: string }>>({});
+  const [submissionQuery, setSubmissionQuery] = useState("");
 
   if (isLoading) {
     return (
@@ -653,8 +654,29 @@ function QuizDetailView({
       {/* Admin: view submissions & grade */}
       {isAdmin && quiz.submissions && quiz.submissions.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-white">Submissions ({quiz.submissions.length})</h3>
-          {quiz.submissions.map((sub) => {
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-sm font-semibold text-white shrink-0">Submissions ({quiz.submissions.length})</h3>
+            <div className="relative flex-1 max-w-xs">
+              <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+              <input
+                type="text"
+                value={submissionQuery}
+                onChange={(e) => setSubmissionQuery(e.target.value)}
+                placeholder="Search by name or username…"
+                className="input-dark w-full pl-8 text-sm"
+              />
+            </div>
+          </div>
+          {quiz.submissions
+            .filter((sub) => {
+              if (!submissionQuery.trim()) return true;
+              const q = submissionQuery.toLowerCase();
+              return (
+                sub.user.name.toLowerCase().includes(q) ||
+                sub.user.username.toLowerCase().includes(q)
+              );
+            })
+            .map((sub) => {
             const parsed = JSON.parse(sub.answers ?? "{}");
             const isGraded = sub.status === "GRADED";
             return (
