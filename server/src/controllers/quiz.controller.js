@@ -42,10 +42,12 @@ async function ensureAdmin(roomId, userId) {
 
 export const listQuizzes = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  await ensureMember(id, req.user.id);
+  const member = await ensureMember(id, req.user.id);
+
+  const isAdmin = member.role === "ADMIN";
 
   const quizzes = await prisma.roomQuiz.findMany({
-    where: { roomId: id },
+    where: isAdmin ? { roomId: id } : { roomId: id, status: "PUBLISHED" },
     orderBy: { createdAt: "desc" },
     include: {
       creator: { select: { id: true, name: true, username: true, avatarColor: true } },
@@ -60,7 +62,7 @@ export const listQuizzes = asyncHandler(async (req, res) => {
 
 export const getQuiz = asyncHandler(async (req, res) => {
   const { id, quizId } = req.params;
-  await ensureMember(id, req.user.id);
+  const member = await ensureMember(id, req.user.id);
 
   const quiz = await prisma.roomQuiz.findUnique({
     where: { id: quizId },
@@ -78,7 +80,12 @@ export const getQuiz = asyncHandler(async (req, res) => {
 
   if (!quiz || quiz.roomId !== id) throw new HttpError(404, "Quiz not found");
 
-  const isAdmin = (await ensureMember(id, req.user.id)).role === "ADMIN";
+  // Non-admins can only view PUBLISHED quizzes
+  if (member.role !== "ADMIN" && quiz.status !== "PUBLISHED") {
+    throw new HttpError(404, "Quiz not found");
+  }
+
+  const isAdmin = member.role === "ADMIN";
 
   // For non-admins, hide correct answers and strip score/feedback from other users' submissions
   if (!isAdmin) {
@@ -108,6 +115,7 @@ export const createQuiz = asyncHandler(async (req, res) => {
     data: {
       title: data.title,
       description: data.description,
+      status: "DRAFT",
       roomId: id,
       creatorId: req.user.id,
       questions: {
@@ -128,6 +136,93 @@ export const createQuiz = asyncHandler(async (req, res) => {
   });
 
   res.status(201).json(quiz);
+});
+
+// ─── Update a draft quiz (admin only) ────────────────────────────
+
+export const updateQuiz = asyncHandler(async (req, res) => {
+  const { id, quizId } = req.params;
+  await ensureAdmin(id, req.user.id);
+
+  const quiz = await prisma.roomQuiz.findUnique({ where: { id: quizId } });
+  if (!quiz || quiz.roomId !== id) throw new HttpError(404, "Quiz not found");
+
+  const data = parse(createQuizSchema, req.body);
+
+  // Delete old questions and recreate
+  await prisma.roomQuizQuestion.deleteMany({ where: { quizId } });
+
+  const updated = await prisma.roomQuiz.update({
+    where: { id: quizId },
+    data: {
+      title: data.title,
+      description: data.description,
+      questions: {
+        create: data.questions.map((q, i) => ({
+          text: q.text,
+          type: q.type,
+          options: q.type === "MCQ" ? JSON.stringify(q.options) : null,
+          answer: q.answer,
+          order: i + 1,
+        })),
+      },
+    },
+    include: {
+      creator: { select: { id: true, name: true, username: true, avatarColor: true } },
+      questions: { orderBy: { order: "asc" } },
+      _count: { select: { questions: true, submissions: true } },
+    },
+  });
+
+  res.json(updated);
+});
+
+// ─── Publish a quiz (admin only) ─────────────────────────────────
+
+export const publishQuiz = asyncHandler(async (req, res) => {
+  const { id, quizId } = req.params;
+  await ensureAdmin(id, req.user.id);
+
+  const quiz = await prisma.roomQuiz.findUnique({ where: { id: quizId } });
+  if (!quiz || quiz.roomId !== id) throw new HttpError(404, "Quiz not found");
+
+  const questionCount = await prisma.roomQuizQuestion.count({ where: { quizId } });
+  if (questionCount === 0) throw new HttpError(400, "Quiz must have at least one question");
+
+  const updated = await prisma.roomQuiz.update({
+    where: { id: quizId },
+    data: { status: "PUBLISHED" },
+    include: {
+      creator: { select: { id: true, name: true, username: true, avatarColor: true } },
+      _count: { select: { questions: true, submissions: true } },
+    },
+  });
+
+  res.json(updated);
+});
+
+// ─── Unpublish a quiz (admin only, back to draft) ────────────────
+
+export const unpublishQuiz = asyncHandler(async (req, res) => {
+  const { id, quizId } = req.params;
+  await ensureAdmin(id, req.user.id);
+
+  const quiz = await prisma.roomQuiz.findUnique({ where: { id: quizId } });
+  if (!quiz || quiz.roomId !== id) throw new HttpError(404, "Quiz not found");
+
+  const hasSubmissions = await prisma.roomQuizSubmission.count({ where: { quizId } });
+  if (hasSubmissions > 0) throw new HttpError(400, "Cannot unpublish a quiz that has submissions");
+
+  const updated = await prisma.roomQuiz.update({
+    where: { id: quizId },
+    data: { status: "DRAFT" },
+    include: {
+      creator: { select: { id: true, name: true, username: true, avatarColor: true } },
+      _count: { select: { questions: true, submissions: true } },
+    },
+  });
+
+  res.json(updated);
 });
 
 // ─── Delete a quiz (admin only) ──────────────────────────────────
@@ -155,6 +250,9 @@ export const submitQuiz = asyncHandler(async (req, res) => {
     include: { questions: true },
   });
   if (!quiz || quiz.roomId !== id) throw new HttpError(404, "Quiz not found");
+
+  // Can only submit to published quizzes
+  if (quiz.status !== "PUBLISHED") throw new HttpError(400, "Quiz is not published yet");
 
   // Check if already submitted
   const existing = await prisma.roomQuizSubmission.findUnique({

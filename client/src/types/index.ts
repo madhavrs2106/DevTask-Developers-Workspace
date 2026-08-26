@@ -285,6 +285,7 @@ export interface Quiz {
   id: string;
   title: string;
   description: string | null;
+  status: "DRAFT" | "PUBLISHED";
   createdAt: string;
   creator: Pick<User, "id" | "name" | "username" | "avatarColor">;
   questions?: QuizQuestion[];

@@ -524,3 +524,30 @@ export function useDeleteSubmission(roomId: string, quizId: string) {
     },
   });
 }
+
+export function usePublishQuiz(roomId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (quizId: string) =>
+      (await api.post(`/rooms/${roomId}/quizzes/${quizId}/publish`)).data,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["quizzes", roomId] }),
+  });
+}
+
+export function useUnpublishQuiz(roomId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (quizId: string) =>
+      (await api.post(`/rooms/${roomId}/quizzes/${quizId}/unpublish`)).data,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["quizzes", roomId] }),
+  });
+}
+
+export function useUpdateQuiz(roomId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ quizId, data }: { quizId: string; data: { title: string; description?: string; questions: { text: string; type: "MCQ" | "NUMERICAL"; options?: string[]; answer: string }[] } }) =>
+      (await api.put(`/rooms/${roomId}/quizzes/${quizId}`, data)).data,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["quizzes", roomId] }),
+  });
+}

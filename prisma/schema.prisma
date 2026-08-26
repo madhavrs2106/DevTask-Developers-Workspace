@@ -336,6 +336,7 @@ model RoomQuiz {
   id          String   @id @default(cuid())
   title       String
   description String?
+  status      String   @default("DRAFT") // DRAFT | PUBLISHED
   createdAt   DateTime @default(now())
 
   room      CoLearningRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)

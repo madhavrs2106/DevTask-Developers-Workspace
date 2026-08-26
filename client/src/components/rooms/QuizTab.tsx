@@ -7,10 +7,12 @@ import {
   useSubmitQuiz,
   useGradeSubmission,
   useDeleteSubmission,
+  usePublishQuiz,
+  useUnpublishQuiz,
 } from "../../hooks/useQueries";
 import { Button } from "../ui/Button";
 import { Spinner } from "../ui/Spinner";
-import { Trash2, Plus, X, Check, Clock, FileText, ChevronDown, ChevronUp, Star } from "lucide-react";
+import { Trash2, Plus, X, Check, Clock, FileText, ChevronDown, ChevronUp, Star, Send, EyeOff } from "lucide-react";
 import { cn } from "../../lib/utils";
 import type { CoLearningRoomFull, Quiz, QuizQuestion } from "../../types";
 
@@ -79,6 +81,8 @@ function QuizListView({
 }) {
   const { data: quizzes = [], isLoading } = useQuizzes(room.id);
   const deleteQuiz = useDeleteQuiz(room.id);
+  const publishQuiz = usePublishQuiz(room.id);
+  const unpublishQuiz = useUnpublishQuiz(room.id);
 
   if (isLoading) {
     return (
@@ -120,6 +124,8 @@ function QuizListView({
               onTake={() => onTakeQuiz(quiz.id)}
               onView={() => onViewQuiz(quiz.id)}
               onDelete={() => deleteQuiz.mutateAsync(quiz.id)}
+              onPublish={() => publishQuiz.mutateAsync(quiz.id)}
+              onUnpublish={() => unpublishQuiz.mutateAsync(quiz.id)}
             />
           ))}
         </div>
@@ -134,25 +140,40 @@ function QuizCard({
   onTake,
   onView,
   onDelete,
+  onPublish,
+  onUnpublish,
 }: {
   quiz: Quiz;
   isAdmin: boolean;
   onTake: () => void;
   onView: () => void;
   onDelete: () => void;
+  onPublish: () => void;
+  onUnpublish: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const questionCount = quiz._count?.questions ?? quiz.questions?.length ?? 0;
   const submissionCount = quiz._count?.submissions ?? quiz.submissions?.length ?? 0;
+  const isDraft = quiz.status === "DRAFT";
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-surface-raised overflow-hidden">
+    <div className={cn(
+      "rounded-xl border bg-surface-raised overflow-hidden",
+      isDraft ? "border-amber-400/25" : "border-slate-800"
+    )}>
       <div
         className="flex items-center gap-4 p-4 cursor-pointer hover:bg-white/[0.02] transition-colors"
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold text-white truncate">{quiz.title}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-semibold text-white truncate">{quiz.title}</h3>
+            {isDraft && (
+              <span className="shrink-0 rounded-full bg-amber-400/10 border border-amber-400/25 px-2 py-0.5 text-[10px] font-medium uppercase text-amber-300">
+                Draft
+              </span>
+            )}
+          </div>
           <div className="mt-1 flex items-center gap-3 text-xs text-ink-faint">
             <span>{questionCount} question{questionCount !== 1 && "s"}</span>
             <span>{submissionCount} submission{submissionCount !== 1 && "s"}</span>
@@ -161,9 +182,22 @@ function QuizCard({
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {isAdmin ? (
-            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onView(); }}>
-              View
-            </Button>
+            <>
+              {isDraft ? (
+                <Button variant="primary" size="sm" onClick={(e) => { e.stopPropagation(); onPublish(); }}>
+                  <Send size={12} className="mr-1" />
+                  Publish
+                </Button>
+              ) : (
+                <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onUnpublish(); }} className="text-amber-400 hover:bg-amber-400/10">
+                  <EyeOff size={12} className="mr-1" />
+                  Unpublish
+                </Button>
+              )}
+              <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onView(); }}>
+                View
+              </Button>
+            </>
           ) : (
             <Button variant="primary" size="sm" onClick={(e) => { e.stopPropagation(); onTake(); }}>
               Take Quiz

@@ -21,6 +21,9 @@ import {
   listQuizzes,
   getQuiz,
   createQuiz,
+  updateQuiz,
+  publishQuiz,
+  unpublishQuiz,
   deleteQuiz,
   submitQuiz,
   gradeSubmission,
@@ -57,6 +60,9 @@ router.delete("/:id/members/:memberId", removeMember);
 router.get("/:id/quizzes", listQuizzes);
 router.post("/:id/quizzes", createQuiz);
 router.get("/:id/quizzes/:quizId", getQuiz);
+router.put("/:id/quizzes/:quizId", updateQuiz);
+router.post("/:id/quizzes/:quizId/publish", publishQuiz);
+router.post("/:id/quizzes/:quizId/unpublish", unpublishQuiz);
 router.delete("/:id/quizzes/:quizId", deleteQuiz);
 router.post("/:id/quizzes/:quizId/submit", submitQuiz);
 router.post("/:id/quizzes/:quizId/grade", gradeSubmission);

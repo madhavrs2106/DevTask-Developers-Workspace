@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "RoomQuiz" ADD COLUMN "status" TEXT NOT NULL DEFAULT 'DRAFT';
