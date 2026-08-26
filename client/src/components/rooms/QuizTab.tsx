@@ -841,12 +841,15 @@ function QuizDetailView({
   const isTakingQuiz = !isAdmin && !quiz?.mySubmission && !submitted;
   const {
     violations,
+    isLocked,
     showWarning,
     warningMessage,
     isFullscreen,
     requestFullscreen,
     exitFullscreen,
+    clearLock,
   } = useAntiCheat({
+    quizId,
     enabled: isTakingQuiz && quizStarted,
     onViolation: () => {},
   });
@@ -876,6 +879,7 @@ function QuizDetailView({
     const allAnswered = questions.every((q) => answers[q.id]?.trim());
     if (!allAnswered) return;
     await submitQuiz.mutateAsync(answers);
+    clearLock();
     setSubmitted(true);
   };
 
@@ -940,7 +944,7 @@ function QuizDetailView({
           )}
 
           {/* Quiz locked screen */}
-          {violations >= 3 && (
+          {isLocked && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95">
               <div className="bg-slate-900 border border-red-500 rounded-xl p-8 text-center max-w-sm mx-4">
                 <Shield size={48} className="mx-auto mb-4 text-red-400" />
@@ -1017,7 +1021,7 @@ function QuizDetailView({
                   <Button
                     variant="primary"
                     onClick={handleSubmit}
-                    disabled={submitQuiz.isPending || !questions.every((q) => answers[q.id]?.trim()) || violations >= 3}
+                    disabled={submitQuiz.isPending || !questions.every((q) => answers[q.id]?.trim()) || isLocked}
                   >
                     {submitQuiz.isPending ? "Submitting..." : "Submit Quiz"}
                   </Button>

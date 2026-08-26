@@ -1,31 +1,77 @@
 import { useEffect, useState, useCallback } from "react";
 
 interface AntiCheatOptions {
+  quizId: string;
   enabled: boolean;
   onViolation?: () => void;
 }
 
-export function useAntiCheat({ enabled, onViolation }: AntiCheatOptions) {
-  const [violations, setViolations] = useState(0);
+function getStorageKey(quizId: string) {
+  return `quiz_violations_${quizId}`;
+}
+
+function getLockedKey(quizId: string) {
+  return `quiz_locked_${quizId}`;
+}
+
+export function useAntiCheat({ quizId, enabled, onViolation }: AntiCheatOptions) {
+  const [violations, setViolations] = useState(() => {
+    try {
+      return parseInt(localStorage.getItem(getStorageKey(quizId)) ?? "0", 10);
+    } catch {
+      return 0;
+    }
+  });
+  const [isLocked, setIsLocked] = useState(() => {
+    try {
+      return localStorage.getItem(getLockedKey(quizId)) === "true";
+    } catch {
+      return false;
+    }
+  });
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
   const [warningMessage, setWarningMessage] = useState("");
 
+  const persistViolations = useCallback(
+    (count: number) => {
+      try {
+        localStorage.setItem(getStorageKey(quizId), String(count));
+      } catch {}
+    },
+    [quizId]
+  );
+
+  const persistLocked = useCallback(
+    (locked: boolean) => {
+      try {
+        localStorage.setItem(getLockedKey(quizId), locked ? "true" : "false");
+      } catch {}
+    },
+    [quizId]
+  );
+
   const triggerViolation = useCallback(
     (message: string) => {
-      if (!enabled) return;
-      setViolations((v) => v + 1);
+      if (!enabled || isLocked) return;
+      const next = violations + 1;
+      setViolations(next);
+      persistViolations(next);
       setWarningMessage(message);
       setShowWarning(true);
       onViolation?.();
+      if (next >= 3) {
+        setIsLocked(true);
+        persistLocked(true);
+      }
       setTimeout(() => setShowWarning(false), 3000);
     },
-    [enabled, onViolation]
+    [enabled, isLocked, violations, persistViolations, persistLocked, onViolation]
   );
 
   // Tab visibility detection
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || isLocked) return;
 
     const handleVisibility = () => {
       if (document.hidden) {
@@ -35,11 +81,11 @@ export function useAntiCheat({ enabled, onViolation }: AntiCheatOptions) {
 
     document.addEventListener("visibilitychange", handleVisibility);
     return () => document.removeEventListener("visibilitychange", handleVisibility);
-  }, [enabled, triggerViolation]);
+  }, [enabled, isLocked, triggerViolation]);
 
   // Window blur detection (switching to another window)
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || isLocked) return;
 
     const handleBlur = () => {
       triggerViolation("Window focus lost! Do not switch windows during the quiz.");
@@ -47,11 +93,11 @@ export function useAntiCheat({ enabled, onViolation }: AntiCheatOptions) {
 
     window.addEventListener("blur", handleBlur);
     return () => window.removeEventListener("blur", handleBlur);
-  }, [enabled, triggerViolation]);
+  }, [enabled, isLocked, triggerViolation]);
 
   // Block keyboard shortcuts for screenshots and dev tools
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || isLocked) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       // Block PrintScreen
@@ -112,11 +158,11 @@ export function useAntiCheat({ enabled, onViolation }: AntiCheatOptions) {
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [enabled, triggerViolation]);
+  }, [enabled, isLocked, triggerViolation]);
 
   // Block right-click context menu
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || isLocked) return;
 
     const handleContextMenu = (e: Event) => {
       e.preventDefault();
@@ -125,11 +171,11 @@ export function useAntiCheat({ enabled, onViolation }: AntiCheatOptions) {
 
     document.addEventListener("contextmenu", handleContextMenu);
     return () => document.removeEventListener("contextmenu", handleContextMenu);
-  }, [enabled, triggerViolation]);
+  }, [enabled, isLocked, triggerViolation]);
 
   // Block text selection on quiz content (reduces Google Lens usage)
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || isLocked) return;
 
     const handleSelectStart = (e: Event) => {
       const target = e.target as HTMLElement;
@@ -140,7 +186,7 @@ export function useAntiCheat({ enabled, onViolation }: AntiCheatOptions) {
 
     document.addEventListener("selectstart", handleSelectStart);
     return () => document.removeEventListener("selectstart", handleSelectStart);
-  }, [enabled]);
+  }, [enabled, isLocked]);
 
   // Request fullscreen
   const requestFullscreen = useCallback(async () => {
@@ -177,12 +223,24 @@ export function useAntiCheat({ enabled, onViolation }: AntiCheatOptions) {
     return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
   }, []);
 
+  // Clear lock/violations when quiz is submitted successfully
+  const clearLock = useCallback(() => {
+    try {
+      localStorage.removeItem(getStorageKey(quizId));
+      localStorage.removeItem(getLockedKey(quizId));
+    } catch {}
+    setViolations(0);
+    setIsLocked(false);
+  }, [quizId]);
+
   return {
     violations,
+    isLocked,
     showWarning,
     warningMessage,
     isFullscreen,
     requestFullscreen,
     exitFullscreen,
+    clearLock,
   };
 }
