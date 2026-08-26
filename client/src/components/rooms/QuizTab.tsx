@@ -1129,7 +1129,7 @@ function QuizDetailView({
     );
   }
 
-  const mySubmission = quiz.submissions?.find((s) => s.user.id === (quiz as any).userId);
+  const mySubmission = quiz.mySubmission;
   const hasSubmitted = !!mySubmission;
   const questions = quiz.questions ?? [];
 
@@ -1452,7 +1452,7 @@ function QuizResultView({
     );
   }
 
-  const mySubmission = quiz.submissions?.find((s) => s.user.id === (quiz as any).userId);
+  const mySubmission = quiz.mySubmission;
   if (!mySubmission) {
     return (
       <div className="text-center py-16">
