@@ -11,7 +11,7 @@ const createQuizSchema = z.object({
     type: z.enum(["MCQ", "NUMERICAL"]),
     options: z.array(z.string()).optional(),
     answer: z.string(),
-  })).min(1).max(10),
+  })).min(1).max(20),
 });
 
 const submitQuizSchema = z.object({

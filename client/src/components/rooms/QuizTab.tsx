@@ -268,7 +268,7 @@ function CreateQuizView({
   const fileRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const addQuestion = () => {
-    if (questions.length >= 10) return;
+    if (questions.length >= 20) return;
     setQuestions([...questions, { text: "", type: "MCQ", options: ["", ""], answer: "", optionImages: {} }]);
   };
 
@@ -598,9 +598,9 @@ function CreateQuizView({
       </div>
 
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="sm" onClick={addQuestion} disabled={questions.length >= 10}>
+        <Button variant="ghost" size="sm" onClick={addQuestion} disabled={questions.length >= 20}>
           <Plus size={14} className="mr-1" />
-          Add Question ({questions.length}/10)
+          Add Question ({questions.length}/20)
         </Button>
         <div className="flex-1" />
         <Button
