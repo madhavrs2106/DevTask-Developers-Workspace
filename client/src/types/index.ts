@@ -261,3 +261,33 @@ export interface RoomStats {
   resourceCount: number;
   completionsByUser: Record<string, number>;
 }
+
+export interface QuizQuestion {
+  id: string;
+  text: string;
+  type: "MCQ" | "NUMERICAL";
+  options: string | null; // JSON array of MCQ options
+  answer: string; // correct answer (MCQ option index or numerical value)
+  order: number;
+}
+
+export interface QuizSubmission {
+  id: string;
+  answers: string | null; // JSON: { questionId: answer }
+  score: number | null;
+  feedback: string | null;
+  status: "SUBMITTED" | "GRADED";
+  createdAt: string;
+  user: Pick<User, "id" | "name" | "username" | "avatarColor" | "avatarUrl">;
+}
+
+export interface Quiz {
+  id: string;
+  title: string;
+  description: string | null;
+  createdAt: string;
+  creator: Pick<User, "id" | "name" | "username" | "avatarColor">;
+  questions?: QuizQuestion[];
+  submissions?: QuizSubmission[];
+  _count?: { questions: number; submissions: number };
+}

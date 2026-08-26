@@ -18,6 +18,7 @@ import type {
   CoLearningRoom,
   CoLearningRoomFull,
   RoomStats,
+  Quiz,
 } from "../types";
 
 export const qk = {
@@ -450,5 +451,76 @@ export function useUpdateFocusStatus(roomId: string) {
     mutationFn: async ({ sessionId, status }: { sessionId: string; status: string }) =>
       (await api.put(`/rooms/${roomId}/focus/${sessionId}`, { status })).data,
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: qk.room(roomId) }),
+  });
+}
+
+/* ── Quizzes ──────────────────────────────────────────────────── */
+
+export function useQuizzes(roomId: string) {
+  return useQuery<Quiz[]>({
+    queryKey: ["quizzes", roomId],
+    queryFn: async () => (await api.get<Quiz[]>(`/rooms/${roomId}/quizzes`)).data,
+  });
+}
+
+export function useQuiz(roomId: string, quizId: string) {
+  return useQuery<Quiz>({
+    queryKey: ["quiz", roomId, quizId],
+    queryFn: async () => (await api.get<Quiz>(`/rooms/${roomId}/quizzes/${quizId}`)).data,
+    enabled: !!quizId,
+  });
+}
+
+export function useCreateQuiz(roomId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { title: string; description?: string; questions: { text: string; type: "MCQ" | "NUMERICAL"; options?: string[]; answer: string }[] }) =>
+      (await api.post(`/rooms/${roomId}/quizzes`, input)).data,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["quizzes", roomId] }),
+  });
+}
+
+export function useDeleteQuiz(roomId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (quizId: string) =>
+      (await api.delete(`/rooms/${roomId}/quizzes/${quizId}`)).data,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["quizzes", roomId] }),
+  });
+}
+
+export function useSubmitQuiz(roomId: string, quizId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (answers: Record<string, string>) =>
+      (await api.post(`/rooms/${roomId}/quizzes/${quizId}/submit`, { answers })).data,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["quiz", roomId, quizId] });
+      void queryClient.invalidateQueries({ queryKey: ["quizzes", roomId] });
+    },
+  });
+}
+
+export function useGradeSubmission(roomId: string, quizId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { submissionId: string; score: number; feedback?: string }) =>
+      (await api.post(`/rooms/${roomId}/quizzes/${quizId}/grade`, input)).data,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["quiz", roomId, quizId] });
+      void queryClient.invalidateQueries({ queryKey: ["quizzes", roomId] });
+    },
+  });
+}
+
+export function useDeleteSubmission(roomId: string, quizId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (submissionId: string) =>
+      (await api.delete(`/rooms/${roomId}/quizzes/${quizId}/submissions/${submissionId}`)).data,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["quiz", roomId, quizId] });
+      void queryClient.invalidateQueries({ queryKey: ["quizzes", roomId] });
+    },
   });
 }

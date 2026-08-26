@@ -1,0 +1,790 @@
+import { useState } from "react";
+import {
+  useQuizzes,
+  useQuiz,
+  useCreateQuiz,
+  useDeleteQuiz,
+  useSubmitQuiz,
+  useGradeSubmission,
+  useDeleteSubmission,
+} from "../../hooks/useQueries";
+import { Button } from "../ui/Button";
+import { Spinner } from "../ui/Spinner";
+import { Trash2, Plus, X, Check, Clock, FileText, ChevronDown, ChevronUp, Star } from "lucide-react";
+import { cn } from "../../lib/utils";
+import type { CoLearningRoomFull, Quiz, QuizQuestion } from "../../types";
+
+interface QuizTabProps {
+  room: CoLearningRoomFull;
+  isAdmin: boolean;
+}
+
+type View = "list" | "create" | "taking" | "detail";
+
+export function QuizTab({ room, isAdmin }: QuizTabProps) {
+  const [view, setView] = useState<View>("list");
+  const [selectedQuizId, setSelectedQuizId] = useState<string | null>(null);
+
+  const handleQuizCreated = () => {
+    setView("list");
+  };
+
+  const handleTakeQuiz = (quizId: string) => {
+    setSelectedQuizId(quizId);
+    setView("taking");
+  };
+
+  const handleViewQuiz = (quizId: string) => {
+    setSelectedQuizId(quizId);
+    setView("detail");
+  };
+
+  const handleBack = () => {
+    setView("list");
+    setSelectedQuizId(null);
+  };
+
+  if (view === "create") {
+    return <CreateQuizView roomId={room.id} onCreated={handleQuizCreated} onCancel={handleBack} />;
+  }
+
+  if ((view === "taking" || view === "detail") && selectedQuizId) {
+    return (
+      <QuizDetailView
+        roomId={room.id}
+        quizId={selectedQuizId}
+        isAdmin={isAdmin}
+        onBack={handleBack}
+      />
+    );
+  }
+
+  return <QuizListView room={room} isAdmin={isAdmin} onCreate={() => setView("create")} onTakeQuiz={handleTakeQuiz} onViewQuiz={handleViewQuiz} />;
+}
+
+/* ─── Quiz List View ───────────────────────────────────────────── */
+
+function QuizListView({
+  room,
+  isAdmin,
+  onCreate,
+  onTakeQuiz,
+  onViewQuiz,
+}: {
+  room: CoLearningRoomFull;
+  isAdmin: boolean;
+  onCreate: () => void;
+  onTakeQuiz: (id: string) => void;
+  onViewQuiz: (id: string) => void;
+}) {
+  const { data: quizzes = [], isLoading } = useQuizzes(room.id);
+  const deleteQuiz = useDeleteQuiz(room.id);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-16">
+        <Spinner />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-ink-faint">
+          {quizzes.length} quiz{quizzes.length !== 1 && "es"}
+        </p>
+        {isAdmin && (
+          <Button variant="primary" size="sm" onClick={onCreate}>
+            <Plus size={14} className="mr-1" />
+            Create Quiz
+          </Button>
+        )}
+      </div>
+
+      {quizzes.length === 0 ? (
+        <div className="rounded-xl border border-slate-800 bg-surface-raised p-8 text-center">
+          <FileText size={32} className="mx-auto mb-3 text-slate-600" />
+          <p className="text-sm font-medium text-white">No quizzes yet</p>
+          <p className="mt-1 text-xs text-ink-faint">
+            {isAdmin ? "Create a quiz to test your members' knowledge." : "The admin hasn't created any quizzes yet."}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {quizzes.map((quiz) => (
+            <QuizCard
+              key={quiz.id}
+              quiz={quiz}
+              isAdmin={isAdmin}
+              onTake={() => onTakeQuiz(quiz.id)}
+              onView={() => onViewQuiz(quiz.id)}
+              onDelete={() => deleteQuiz.mutateAsync(quiz.id)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function QuizCard({
+  quiz,
+  isAdmin,
+  onTake,
+  onView,
+  onDelete,
+}: {
+  quiz: Quiz;
+  isAdmin: boolean;
+  onTake: () => void;
+  onView: () => void;
+  onDelete: () => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const questionCount = quiz._count?.questions ?? quiz.questions?.length ?? 0;
+  const submissionCount = quiz._count?.submissions ?? quiz.submissions?.length ?? 0;
+
+  return (
+    <div className="rounded-xl border border-slate-800 bg-surface-raised overflow-hidden">
+      <div
+        className="flex items-center gap-4 p-4 cursor-pointer hover:bg-white/[0.02] transition-colors"
+        onClick={() => setExpanded(!expanded)}
+      >
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-semibold text-white truncate">{quiz.title}</h3>
+          <div className="mt-1 flex items-center gap-3 text-xs text-ink-faint">
+            <span>{questionCount} question{questionCount !== 1 && "s"}</span>
+            <span>{submissionCount} submission{submissionCount !== 1 && "s"}</span>
+            <span>by {quiz.creator.name}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          {isAdmin ? (
+            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onView(); }}>
+              View
+            </Button>
+          ) : (
+            <Button variant="primary" size="sm" onClick={(e) => { e.stopPropagation(); onTake(); }}>
+              Take Quiz
+            </Button>
+          )}
+          {isAdmin && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onDelete(); }}
+              className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+            >
+              <Trash2 size={14} />
+            </button>
+          )}
+          {expanded ? <ChevronUp size={16} className="text-slate-500" /> : <ChevronDown size={16} className="text-slate-500" />}
+        </div>
+      </div>
+
+      {expanded && quiz.description && (
+        <div className="px-4 pb-4 border-t border-slate-800/60 pt-3">
+          <p className="text-xs text-ink-faint">{quiz.description}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Create Quiz View ─────────────────────────────────────────── */
+
+function CreateQuizView({
+  roomId,
+  onCreated,
+  onCancel,
+}: {
+  roomId: string;
+  onCreated: () => void;
+  onCancel: () => void;
+}) {
+  const createQuiz = useCreateQuiz(roomId);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [questions, setQuestions] = useState<{
+    text: string;
+    type: "MCQ" | "NUMERICAL";
+    options: string[];
+    answer: string;
+  }[]>([{ text: "", type: "MCQ", options: ["", ""], answer: "" }]);
+
+  const addQuestion = () => {
+    if (questions.length >= 10) return;
+    setQuestions([...questions, { text: "", type: "MCQ", options: ["", ""], answer: "" }]);
+  };
+
+  const removeQuestion = (i: number) => {
+    if (questions.length <= 1) return;
+    setQuestions(questions.filter((_, idx) => idx !== i));
+  };
+
+  const updateQuestion = (i: number, patch: Partial<typeof questions[number]>) => {
+    setQuestions(questions.map((q, idx) => (idx === i ? { ...q, ...patch } : q)));
+  };
+
+  const updateOption = (qi: number, oi: number, value: string) => {
+    setQuestions(questions.map((q, idx) => {
+      if (idx !== qi) return q;
+      const newOpts = [...q.options];
+      newOpts[oi] = value;
+      return { ...q, options: newOpts };
+    }));
+  };
+
+  const addOption = (qi: number) => {
+    setQuestions(questions.map((q, idx) => {
+      if (idx !== qi) return q;
+      return { ...q, options: [...q.options, ""] };
+    }));
+  };
+
+  const removeOption = (qi: number, oi: number) => {
+    setQuestions(questions.map((q, idx) => {
+      if (idx !== qi) return q;
+      if (q.options.length <= 2) return q;
+      const newOpts = q.options.filter((_, idx) => idx !== oi);
+      return { ...q, options: newOpts, answer: q.answer === q.options[oi] ? "" : q.answer };
+    }));
+  };
+
+  const handleSubmit = async () => {
+    if (!title.trim()) return;
+    const valid = questions.every(
+      (q) => q.text.trim() && q.answer.trim() &&
+        (q.type === "NUMERICAL" || q.options.every((o) => o.trim()))
+    );
+    if (!valid) return;
+
+    await createQuiz.mutateAsync({
+      title: title.trim(),
+      description: description.trim() || undefined,
+      questions: questions.map((q) => ({
+        text: q.text.trim(),
+        type: q.type,
+        options: q.type === "MCQ" ? q.options.map((o) => o.trim()) : undefined,
+        answer: q.answer.trim(),
+      })),
+    });
+    onCreated();
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-bold text-white">Create Quiz</h2>
+        <Button variant="ghost" size="sm" onClick={onCancel}>
+          <X size={14} className="mr-1" />
+          Cancel
+        </Button>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <label className="block text-xs font-medium text-ink-faint mb-1.5">Title *</label>
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            className="input-dark w-full"
+            placeholder="Quiz title"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-ink-faint mb-1.5">Description</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="input-dark w-full min-h-[60px]"
+            placeholder="Optional description"
+          />
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        {questions.map((q, qi) => (
+          <div key={qi} className="rounded-xl border border-slate-800 bg-surface-raised p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-accent-bright">Question {qi + 1}</span>
+              <div className="flex items-center gap-2">
+                <select
+                  value={q.type}
+                  onChange={(e) => updateQuestion(qi, {
+                    type: e.target.value as "MCQ" | "NUMERICAL",
+                    options: e.target.value === "NUMERICAL" ? [] : ["", ""],
+                  })}
+                  className="text-xs bg-slate-800 border border-slate-700 rounded-lg px-2 py-1 text-white"
+                >
+                  <option value="MCQ">Multiple Choice</option>
+                  <option value="NUMERICAL">Numerical</option>
+                </select>
+                {questions.length > 1 && (
+                  <button
+                    onClick={() => removeQuestion(qi)}
+                    className="p-1 rounded text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <input
+              type="text"
+              value={q.text}
+              onChange={(e) => updateQuestion(qi, { text: e.target.value })}
+              className="input-dark w-full text-sm"
+              placeholder="Question text"
+            />
+
+            {q.type === "MCQ" ? (
+              <div className="space-y-2">
+                {q.options.map((opt, oi) => (
+                  <div key={oi} className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name={`answer-${qi}`}
+                      checked={q.answer === opt}
+                      onChange={() => updateQuestion(qi, { answer: opt })}
+                      className="accent-[var(--accent)]"
+                      disabled={!opt.trim()}
+                    />
+                    <input
+                      type="text"
+                      value={opt}
+                      onChange={(e) => updateOption(qi, oi, e.target.value)}
+                      className="input-dark flex-1 text-sm"
+                      placeholder={`Option ${oi + 1}`}
+                    />
+                    {q.options.length > 2 && (
+                      <button
+                        onClick={() => removeOption(qi, oi)}
+                        className="p-1 rounded text-slate-500 hover:text-red-400"
+                      >
+                        <X size={12} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+                {q.options.length < 6 && (
+                  <button
+                    onClick={() => addOption(qi)}
+                    className="text-xs text-accent-bright hover:underline"
+                  >
+                    + Add option
+                  </button>
+                )}
+              </div>
+            ) : (
+              <input
+                type="text"
+                value={q.answer}
+                onChange={(e) => updateQuestion(qi, { answer: e.target.value })}
+                className="input-dark w-full text-sm"
+                placeholder="Correct answer (number)"
+              />
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div className="flex items-center gap-3">
+        <Button variant="ghost" size="sm" onClick={addQuestion} disabled={questions.length >= 10}>
+          <Plus size={14} className="mr-1" />
+          Add Question ({questions.length}/10)
+        </Button>
+        <div className="flex-1" />
+        <Button
+          variant="primary"
+          onClick={handleSubmit}
+          disabled={createQuiz.isPending}
+        >
+          {createQuiz.isPending ? "Creating..." : "Create Quiz"}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Quiz Detail View ─────────────────────────────────────────── */
+
+function QuizDetailView({
+  roomId,
+  quizId,
+  isAdmin,
+  onBack,
+}: {
+  roomId: string;
+  quizId: string;
+  isAdmin: boolean;
+  onBack: () => void;
+}) {
+  const { data: quiz, isLoading } = useQuiz(roomId, quizId);
+  const submitQuiz = useSubmitQuiz(roomId, quizId);
+  const gradeSubmission = useGradeSubmission(roomId, quizId);
+  const deleteSubmission = useDeleteSubmission(roomId, quizId);
+
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [submitted, setSubmitted] = useState(false);
+  const [gradeInputs, setGradeInputs] = useState<Record<string, { score: string; feedback: string }>>({});
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-16">
+        <Spinner />
+      </div>
+    );
+  }
+
+  if (!quiz) {
+    return (
+      <div className="text-center py-16">
+        <p className="text-ink-faint">Quiz not found.</p>
+        <Button variant="ghost" className="mt-4" onClick={onBack}>Back</Button>
+      </div>
+    );
+  }
+
+  const mySubmission = quiz.submissions?.find((s) => s.user.id === (quiz as any).userId);
+  const hasSubmitted = !!mySubmission;
+  const questions = quiz.questions ?? [];
+
+  const handleSubmit = async () => {
+    const allAnswered = questions.every((q) => answers[q.id]?.trim());
+    if (!allAnswered) return;
+    await submitQuiz.mutateAsync(answers);
+    setSubmitted(true);
+  };
+
+  const handleGrade = async (submissionId: string) => {
+    const input = gradeInputs[submissionId];
+    if (!input || !input.score.trim()) return;
+    await gradeSubmission.mutateAsync({
+      submissionId,
+      score: parseInt(input.score, 10),
+      feedback: input.feedback.trim() || undefined,
+    });
+    setGradeInputs((prev) => ({ ...prev, [submissionId]: { score: "", feedback: "" } }));
+  };
+
+  const handleDeleteSubmission = async (submissionId: string) => {
+    await deleteSubmission.mutateAsync(submissionId);
+  };
+
+  const getScoreColor = (score: number | null, total: number) => {
+    if (score === null) return "text-slate-400";
+    const pct = (score / total) * 100;
+    if (pct >= 80) return "text-teal-400";
+    if (pct >= 50) return "text-amber-400";
+    return "text-red-400";
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <button
+            onClick={onBack}
+            className="text-xs text-ink-muted hover:text-accent-bright transition-colors mb-1"
+          >
+            Back to quizzes
+          </button>
+          <h2 className="text-lg font-bold text-white">{quiz.title}</h2>
+          {quiz.description && (
+            <p className="mt-1 text-sm text-ink-faint">{quiz.description}</p>
+          )}
+        </div>
+        <span className="text-xs text-ink-faint">
+          {questions.length} question{questions.length !== 1 && "s"}
+        </span>
+      </div>
+
+      {/* Questions — for taking or admin viewing */}
+      {!isAdmin && !hasSubmitted && !submitted && (
+        <div className="space-y-4">
+          {questions.map((q, i) => (
+            <QuestionCard
+              key={q.id}
+              question={q}
+              index={i}
+              value={answers[q.id] ?? ""}
+              onChange={(val) => setAnswers((prev) => ({ ...prev, [q.id]: val }))}
+              showAnswer={false}
+            />
+          ))}
+          <div className="flex justify-end">
+            <Button
+              variant="primary"
+              onClick={handleSubmit}
+              disabled={submitQuiz.isPending || !questions.every((q) => answers[q.id]?.trim())}
+            >
+              {submitQuiz.isPending ? "Submitting..." : "Submit Quiz"}
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* After submission */}
+      {submitted && mySubmission && (
+        <div className="rounded-xl border border-teal-400/25 bg-teal-400/5 p-6 text-center">
+          <Check size={32} className="mx-auto mb-2 text-teal-400" />
+          <p className="font-semibold text-white">Quiz submitted!</p>
+          <p className="mt-1 text-sm text-ink-faint">
+            {mySubmission.status === "GRADED"
+              ? `Score: ${mySubmission.score}/${questions.length}`
+              : "Waiting for admin to grade."}
+          </p>
+        </div>
+      )}
+
+      {/* Already submitted */}
+      {!isAdmin && hasSubmitted && mySubmission && (
+        <div className="space-y-4">
+          {questions.map((q, i) => {
+            const parsed = JSON.parse(mySubmission.answers ?? "{}");
+            return (
+              <QuestionCard
+                key={q.id}
+                question={q}
+                index={i}
+                value={parsed[q.id] ?? ""}
+                onChange={() => {}}
+                showAnswer={false}
+                disabled
+                userAnswer={parsed[q.id]}
+              />
+            );
+          })}
+          <div className="rounded-xl border border-slate-800 bg-surface-raised p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-ink-faint">Your submission</span>
+              {mySubmission.status === "GRADED" ? (
+                <span className={cn("text-sm font-bold", getScoreColor(mySubmission.score, questions.length))}>
+                  {mySubmission.score}/{questions.length}
+                </span>
+              ) : (
+                <span className="flex items-center gap-1.5 text-xs text-amber-400">
+                  <Clock size={12} />
+                  Pending review
+                </span>
+              )}
+            </div>
+            {mySubmission.feedback && (
+              <p className="mt-2 text-xs text-ink-faint">{mySubmission.feedback}</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Admin: view submissions & grade */}
+      {isAdmin && quiz.submissions && quiz.submissions.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-white">Submissions ({quiz.submissions.length})</h3>
+          {quiz.submissions.map((sub) => {
+            const parsed = JSON.parse(sub.answers ?? "{}");
+            const isGraded = sub.status === "GRADED";
+            return (
+              <div key={sub.id} className="rounded-xl border border-slate-800 bg-surface-raised p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span
+                      className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full text-xs font-bold text-slate-950"
+                      style={{
+                        background: `linear-gradient(135deg, ${sub.user.avatarColor}, rgb(var(--accent-2-rgb)))`,
+                      }}
+                    >
+                      {sub.user.avatarUrl ? (
+                        <img src={sub.user.avatarUrl} alt="" className="h-full w-full rounded-full object-cover" />
+                      ) : (
+                        sub.user.name.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase()
+                      )}
+                    </span>
+                    <div>
+                      <p className="text-sm font-medium text-white">{sub.user.name}</p>
+                      <p className="text-[11px] text-ink-faint">@{sub.user.username}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {isGraded ? (
+                      <span className={cn("text-sm font-bold", getScoreColor(sub.score, questions.length))}>
+                        {sub.score}/{questions.length}
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 text-xs text-amber-400">
+                        <Clock size={12} />
+                        Pending
+                      </span>
+                    )}
+                    <button
+                      onClick={() => handleDeleteSubmission(sub.id)}
+                      className="p-1 rounded text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Show answers */}
+                <div className="grid gap-2">
+                  {questions.map((q, i) => (
+                    <div key={q.id} className="flex items-start gap-2 text-xs">
+                      <span className="text-ink-faint shrink-0">Q{i + 1}:</span>
+                      <span className="text-white">{parsed[q.id] ?? "—"}</span>
+                      {q.type === "MCQ" && (
+                        <span className="text-ink-faint ml-auto">
+                          Answer: {JSON.parse(q.options ?? "[]")[parseInt(q.answer || "0")] ?? q.answer}
+                        </span>
+                      )}
+                      {q.type === "NUMERICAL" && (
+                        <span className="text-ink-faint ml-auto">Answer: {q.answer}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Grade input */}
+                {!isGraded && (
+                  <div className="flex items-end gap-2 border-t border-slate-800/60 pt-3">
+                    <div className="flex-1">
+                      <label className="block text-[10px] text-ink-faint mb-1">Score (0-{questions.length})</label>
+                      <input
+                        type="number"
+                        min={0}
+                        max={questions.length}
+                        value={gradeInputs[sub.id]?.score ?? ""}
+                        onChange={(e) => setGradeInputs((prev) => ({
+                          ...prev,
+                          [sub.id]: { ...prev[sub.id], score: e.target.value, feedback: prev[sub.id]?.feedback ?? "" },
+                        }))}
+                        className="input-dark w-full text-sm"
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-[10px] text-ink-faint mb-1">Feedback</label>
+                      <input
+                        type="text"
+                        value={gradeInputs[sub.id]?.feedback ?? ""}
+                        onChange={(e) => setGradeInputs((prev) => ({
+                          ...prev,
+                          [sub.id]: { ...prev[sub.id], feedback: e.target.value, score: prev[sub.id]?.score ?? "" },
+                        }))}
+                        className="input-dark w-full text-sm"
+                        placeholder="Optional feedback"
+                      />
+                    </div>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => handleGrade(sub.id)}
+                      disabled={!gradeInputs[sub.id]?.score?.trim()}
+                    >
+                      <Star size={13} className="mr-1" />
+                      Grade
+                    </Button>
+                  </div>
+                )}
+
+                {isGraded && sub.feedback && (
+                  <p className="text-xs text-ink-faint border-t border-slate-800/60 pt-2">Feedback: {sub.feedback}</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {isAdmin && quiz.submissions && quiz.submissions.length === 0 && (
+        <div className="text-center py-8">
+          <p className="text-sm text-ink-faint">No submissions yet.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Question Card ────────────────────────────────────────────── */
+
+function QuestionCard({
+  question,
+  index,
+  value,
+  onChange,
+  showAnswer,
+  disabled,
+  userAnswer,
+}: {
+  question: QuizQuestion;
+  index: number;
+  value: string;
+  onChange: (val: string) => void;
+  showAnswer?: boolean;
+  disabled?: boolean;
+  userAnswer?: string;
+}) {
+  const displayVal = userAnswer ?? value;
+
+  return (
+    <div className="rounded-xl border border-slate-800 bg-surface-raised p-4 space-y-3">
+      <div className="flex items-start gap-3">
+        <span className="shrink-0 flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 text-[11px] font-bold text-accent-bright">
+          {index + 1}
+        </span>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm text-white">{question.text}</p>
+          <span className="mt-1 inline-block rounded-full bg-slate-800 px-2 py-0.5 text-[10px] font-medium uppercase text-ink-faint">
+            {question.type === "MCQ" ? "Multiple Choice" : "Numerical"}
+          </span>
+        </div>
+      </div>
+
+      {question.type === "MCQ" && question.options ? (
+        <div className="ml-9 space-y-2">
+          {JSON.parse(question.options).map((opt: string, oi: number) => (
+            <label
+              key={oi}
+              className={cn(
+                "flex items-center gap-3 rounded-lg border p-2.5 text-sm transition-colors cursor-pointer",
+                displayVal === opt
+                  ? "border-accent/50 bg-accent/10 text-white"
+                  : "border-slate-800 bg-white/[0.02] text-ink-faint hover:border-slate-700",
+                disabled && "cursor-default opacity-70"
+              )}
+            >
+              <input
+                type="radio"
+                name={`q-${question.id}`}
+                checked={displayVal === opt}
+                onChange={() => onChange(opt)}
+                disabled={disabled}
+                className="accent-[var(--accent)]"
+              />
+              <span>{opt}</span>
+            </label>
+          ))}
+        </div>
+      ) : (
+        <div className="ml-9">
+          <input
+            type="text"
+            value={displayVal}
+            onChange={(e) => onChange(e.target.value)}
+            disabled={disabled}
+            className="input-dark w-full max-w-xs text-sm"
+            placeholder="Enter number"
+          />
+        </div>
+      )}
+
+      {showAnswer && (
+        <div className="ml-9 text-xs text-teal-400">
+          Correct: {question.type === "MCQ" && question.options
+            ? JSON.parse(question.options)[parseInt(question.answer || "0")] ?? question.answer
+            : question.answer}
+        </div>
+      )}
+    </div>
+  );
+}

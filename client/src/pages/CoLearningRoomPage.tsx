@@ -6,6 +6,7 @@ import { SyllabusTab } from "../components/rooms/SyllabusTab";
 import { DiscussionTab } from "../components/rooms/DiscussionTab";
 import { MembersTab } from "../components/rooms/MembersTab";
 import { RoomSettingsTab } from "../components/rooms/RoomSettingsTab";
+import { QuizTab } from "../components/rooms/QuizTab";
 import { Button } from "../components/ui/Button";
 import { ProgressRing } from "../components/ui/ProgressRing";
 import { ArrowLeft, Copy, Check, Users, Flame, Lock, Globe } from "lucide-react";
@@ -13,6 +14,7 @@ import { cn } from "../lib/utils";
 
 const TABS = [
   { key: "syllabus", label: "Syllabus" },
+  { key: "quizzes", label: "Quizzes" },
   { key: "discussions", label: "Discussions" },
   { key: "members", label: "Members" },
   { key: "settings", label: "Settings", adminOnly: true },
@@ -176,6 +178,7 @@ export default function CoLearningRoomPage() {
 
       {/* Tab Content */}
       {activeTab === "syllabus" && <SyllabusTab room={room} />}
+      {activeTab === "quizzes" && <QuizTab room={room} isAdmin={isAdmin} />}
       {activeTab === "discussions" && <DiscussionTab room={room} />}
       {activeTab === "members" && <MembersTab room={room} isAdmin={isAdmin} />}
       {activeTab === "settings" && isAdmin && <RoomSettingsTab room={room} />}

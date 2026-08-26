@@ -17,6 +17,15 @@ import {
   removeMember,
   getRoomStats,
 } from "../controllers/coLearning.controller.js";
+import {
+  listQuizzes,
+  getQuiz,
+  createQuiz,
+  deleteQuiz,
+  submitQuiz,
+  gradeSubmission,
+  deleteSubmission,
+} from "../controllers/quiz.controller.js";
 import { requireAuth } from "../middleware/auth.js";
 
 const router = Router();
@@ -44,5 +53,13 @@ router.post("/:id/focus", startFocusSession);
 router.put("/:id/focus/:sessionId", updateFocusStatus);
 
 router.delete("/:id/members/:memberId", removeMember);
+
+router.get("/:id/quizzes", listQuizzes);
+router.post("/:id/quizzes", createQuiz);
+router.get("/:id/quizzes/:quizId", getQuiz);
+router.delete("/:id/quizzes/:quizId", deleteQuiz);
+router.post("/:id/quizzes/:quizId/submit", submitQuiz);
+router.post("/:id/quizzes/:quizId/grade", gradeSubmission);
+router.delete("/:id/quizzes/:quizId/submissions/:submissionId", deleteSubmission);
 
 export default router;

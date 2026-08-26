@@ -45,6 +45,7 @@ model User {
   focusSessions    FocusSession[]
   syllabusCompletions RoomSyllabusCompletion[]
   roomNotes        RoomNote[]
+  quizSubmissions   RoomQuizSubmission[]
 }
 
 model Follow {
@@ -173,6 +174,7 @@ model CoLearningRoom {
   focusSessions  FocusSession[]
   streaks        RoomStreak[]
   notes          RoomNote[]
+  quizzes        RoomQuiz[]
 
   @@index([creatorId])
   @@index([inviteCode])
@@ -312,4 +314,56 @@ model RoomNote {
 
   @@index([roomId])
   @@index([parentId])
+}
+
+// ─── Quizzes ────────────────────────────────────────────────────
+
+model RoomQuiz {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  createdAt   DateTime @default(now())
+
+  room      CoLearningRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomId    String
+  creator   User           @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  creatorId String
+
+  questions   RoomQuizQuestion[]
+  submissions RoomQuizSubmission[]
+
+  @@index([roomId])
+}
+
+model RoomQuizQuestion {
+  id     String @id @default(cuid())
+  text   String
+  type   String @default("MCQ") // MCQ | NUMERICAL
+  options String? // JSON array of MCQ options, null for NUMERICAL
+  answer String // correct answer (MCQ option index or numerical value)
+  order  Int    @default(0)
+
+  quiz   RoomQuiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  quizId String
+
+  @@index([quizId])
+}
+
+model RoomQuizSubmission {
+  id        String   @id @default(cuid())
+  answers   String // JSON: { questionId: answer }
+  score     Int? // null until graded
+  feedback  String? // admin feedback
+  status    String   @default("SUBMITTED") // SUBMITTED | GRADED
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  quiz   RoomQuiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  quizId String
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  @@unique([quizId, userId])
+  @@index([quizId])
+  @@index([userId])
 }
