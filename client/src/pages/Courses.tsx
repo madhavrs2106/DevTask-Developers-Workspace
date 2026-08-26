@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   BookOpen,
   CheckCircle2,
@@ -140,6 +140,11 @@ export function Courses() {
 
   const busy = createCourse.isPending || updateCourse.isPending;
 
+  const sorted = useMemo(() => {
+    const order = { IN_PROGRESS: 0, NOT_STARTED: 1, COMPLETED: 2 };
+    return [...courses].sort((a, b) => (order[a.status] ?? 1) - (order[b.status] ?? 1));
+  }, [courses]);
+
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
@@ -159,7 +164,7 @@ export function Courses() {
         />
       ) : (
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-          {courses.map((course) => {
+          {sorted.map((course) => {
             const statusMeta = COURSE_STATUS_META[course.status];
             const completed = course.status === "COMPLETED";
             return (
