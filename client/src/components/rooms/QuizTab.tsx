@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   useQuizzes,
   useQuiz,
@@ -13,8 +13,9 @@ import {
 } from "../../hooks/useQueries";
 import { Button } from "../ui/Button";
 import { Spinner } from "../ui/Spinner";
-import { Trash2, Plus, X, Check, Clock, FileText, ChevronDown, ChevronUp, Star, Send, EyeOff, Search, Pencil } from "lucide-react";
+import { Trash2, Plus, X, Check, Clock, FileText, ChevronDown, ChevronUp, Star, Send, EyeOff, Search, Pencil, AlertTriangle, Shield } from "lucide-react";
 import { cn } from "../../lib/utils";
+import { useAntiCheat } from "../../hooks/useAntiCheat";
 import type { CoLearningRoomFull, Quiz, QuizQuestion } from "../../types";
 
 interface QuizTabProps {
@@ -835,6 +836,20 @@ function QuizDetailView({
   const [submissionQuery, setSubmissionQuery] = useState("");
   const [expandedSubmissions, setExpandedSubmissions] = useState<Set<string>>(new Set());
   const [sortMode, setSortMode] = useState<"default" | "low" | "high">("default");
+  const [quizStarted, setQuizStarted] = useState(false);
+
+  const isTakingQuiz = !isAdmin && !quiz?.mySubmission && !submitted;
+  const {
+    violations,
+    showWarning,
+    warningMessage,
+    isFullscreen,
+    requestFullscreen,
+    exitFullscreen,
+  } = useAntiCheat({
+    enabled: isTakingQuiz && quizStarted,
+    onViolation: () => {},
+  });
 
   if (isLoading) {
     return (
@@ -909,27 +924,108 @@ function QuizDetailView({
 
       {/* Questions — for taking or admin viewing */}
       {!isAdmin && !hasSubmitted && !submitted && (
-        <div className="space-y-4">
-          {questions.map((q, i) => (
-            <QuestionCard
-              key={q.id}
-              question={q}
-              index={i}
-              value={answers[q.id] ?? ""}
-              onChange={(val) => setAnswers((prev) => ({ ...prev, [q.id]: val }))}
-              showAnswer={false}
-            />
-          ))}
-          <div className="flex justify-end">
-            <Button
-              variant="primary"
-              onClick={handleSubmit}
-              disabled={submitQuiz.isPending || !questions.every((q) => answers[q.id]?.trim())}
-            >
-              {submitQuiz.isPending ? "Submitting..." : "Submit Quiz"}
-            </Button>
+        <>
+          {/* Anti-cheat warning overlay */}
+          {showWarning && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 animate-in fade-in">
+              <div className="bg-red-900/90 border border-red-500 rounded-xl p-8 text-center max-w-sm mx-4">
+                <AlertTriangle size={48} className="mx-auto mb-4 text-red-400" />
+                <p className="text-white font-bold text-lg">Warning!</p>
+                <p className="text-red-200 mt-2">{warningMessage}</p>
+                <p className="text-red-300/70 text-sm mt-3">
+                  Violations: {violations}/3 — {3 - violations} remaining
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Quiz locked screen */}
+          {violations >= 3 && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95">
+              <div className="bg-slate-900 border border-red-500 rounded-xl p-8 text-center max-w-sm mx-4">
+                <Shield size={48} className="mx-auto mb-4 text-red-400" />
+                <p className="text-white font-bold text-lg">Quiz Locked</p>
+                <p className="text-slate-300 mt-2">
+                  You have exceeded the maximum number of violations.
+                </p>
+                <p className="text-slate-400 text-sm mt-2">
+                  Please contact your admin to retake the quiz.
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-4">
+            {!quizStarted ? (
+              <div className="card p-6 text-center">
+                <Shield size={40} className="mx-auto mb-3 text-[var(--accent)]" />
+                <h3 className="text-white font-semibold mb-2">Quiz Rules</h3>
+                <ul className="text-sm text-ink-faint space-y-1.5 mb-4">
+                  <li>Tab switching is monitored</li>
+                  <li>Screenshots are blocked</li>
+                  <li>Right-click is disabled</li>
+                  <li>Keyboard shortcuts are restricted</li>
+                  <li>3 violations = quiz locked</li>
+                </ul>
+                <Button
+                  variant="primary"
+                  onClick={() => {
+                    requestFullscreen();
+                    setQuizStarted(true);
+                  }}
+                >
+                  Start Quiz
+                </Button>
+              </div>
+            ) : (
+              <>
+                {/* Violation counter */}
+                {violations > 0 && (
+                  <div className="flex items-center gap-2 text-xs text-amber-400 bg-amber-400/10 border border-amber-400/20 rounded-lg px-3 py-2">
+                    <AlertTriangle size={14} />
+                    <span>
+                      {violations} violation{violations !== 1 && "s"} — {3 - violations} remaining
+                    </span>
+                  </div>
+                )}
+
+                {/* Fullscreen indicator */}
+                {!isFullscreen && (
+                  <div className="flex items-center gap-2 text-xs text-amber-400 bg-amber-400/10 border border-amber-400/20 rounded-lg px-3 py-2">
+                    <AlertTriangle size={14} />
+                    <span>Quiz works best in fullscreen. </span>
+                    <button
+                      onClick={requestFullscreen}
+                      className="underline hover:text-amber-300"
+                    >
+                      Enter fullscreen
+                    </button>
+                  </div>
+                )}
+
+                {questions.map((q, i) => (
+                  <QuestionCard
+                    key={q.id}
+                    question={q}
+                    index={i}
+                    value={answers[q.id] ?? ""}
+                    onChange={(val) => setAnswers((prev) => ({ ...prev, [q.id]: val }))}
+                    showAnswer={false}
+                  />
+                ))}
+                <div className="flex justify-end">
+                  <Button
+                    variant="primary"
+                    onClick={handleSubmit}
+                    disabled={submitQuiz.isPending || !questions.every((q) => answers[q.id]?.trim()) || violations >= 3}
+                  >
+                    {submitQuiz.isPending ? "Submitting..." : "Submit Quiz"}
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
-        </div>
+        </>
       )}
 
       {/* After submission */}
