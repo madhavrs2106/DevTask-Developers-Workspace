@@ -833,6 +833,7 @@ function QuizDetailView({
   const [submitted, setSubmitted] = useState(false);
   const [gradeInputs, setGradeInputs] = useState<Record<string, { score: string; feedback: string }>>({});
   const [submissionQuery, setSubmissionQuery] = useState("");
+  const [expandedSubmissions, setExpandedSubmissions] = useState<Set<string>>(new Set());
 
   if (isLoading) {
     return (
@@ -1048,26 +1049,42 @@ function QuizDetailView({
                     >
                       <Trash2 size={13} />
                     </button>
+                    <button
+                      onClick={() => setExpandedSubmissions((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(sub.id)) next.delete(sub.id);
+                        else next.add(sub.id);
+                        return next;
+                      })}
+                      className="p-1 rounded text-slate-500 hover:text-white hover:bg-white/10 transition-colors"
+                    >
+                      {expandedSubmissions.has(sub.id)
+                        ? <ChevronUp size={14} />
+                        : <ChevronDown size={14} />
+                      }
+                    </button>
                   </div>
                 </div>
 
-                {/* Show answers */}
-                <div className="grid gap-2">
-                  {questions.map((q, i) => (
-                    <div key={q.id} className="flex items-start gap-2 text-xs">
-                      <span className="text-ink-faint shrink-0">Q{i + 1}:</span>
-                      <span className="text-white">{parsed[q.id] ?? "—"}</span>
-                      {q.type === "MCQ" && (
-                        <span className="text-ink-faint ml-auto">
-                          Answer: {JSON.parse(q.options ?? "[]")[parseInt(q.answer || "0")] ?? q.answer}
-                        </span>
-                      )}
-                      {q.type === "NUMERICAL" && (
-                        <span className="text-ink-faint ml-auto">Answer: {q.answer}</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                {/* Show answers — collapsed by default */}
+                {expandedSubmissions.has(sub.id) && (
+                  <div className="grid gap-2 border-t border-slate-800/60 pt-3">
+                    {questions.map((q, i) => (
+                      <div key={q.id} className="flex items-start gap-2 text-xs">
+                        <span className="text-ink-faint shrink-0">Q{i + 1}:</span>
+                        <span className="text-white">{parsed[q.id] ?? "—"}</span>
+                        {q.type === "MCQ" && (
+                          <span className="text-ink-faint ml-auto">
+                            Answer: {JSON.parse(q.options ?? "[]")[parseInt(q.answer || "0")] ?? q.answer}
+                          </span>
+                        )}
+                        {q.type === "NUMERICAL" && (
+                          <span className="text-ink-faint ml-auto">Answer: {q.answer}</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {/* Grade input */}
                 {!isGraded && (
