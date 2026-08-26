@@ -13,7 +13,7 @@ import {
 } from "../../hooks/useQueries";
 import { Button } from "../ui/Button";
 import { Spinner } from "../ui/Spinner";
-import { Trash2, Plus, X, Check, Clock, FileText, ChevronDown, ChevronUp, Star, Send, EyeOff, Search, Pencil } from "lucide-react";
+import { Trash2, Plus, X, Check, Clock, FileText, ChevronDown, ChevronUp, Star, Send, EyeOff, Search, Pencil, ArrowUpDown } from "lucide-react";
 import { cn } from "../../lib/utils";
 import type { CoLearningRoomFull, Quiz, QuizQuestion } from "../../types";
 
@@ -834,6 +834,7 @@ function QuizDetailView({
   const [gradeInputs, setGradeInputs] = useState<Record<string, { score: string; feedback: string }>>({});
   const [submissionQuery, setSubmissionQuery] = useState("");
   const [expandedSubmissions, setExpandedSubmissions] = useState<Set<string>>(new Set());
+  const [sortMode, setSortMode] = useState<"default" | "low" | "high">("default");
 
   if (isLoading) {
     return (
@@ -998,8 +999,23 @@ function QuizDetailView({
                 className="input-dark w-full pl-8 text-sm"
               />
             </div>
+            <button
+              onClick={() => setSortMode((prev) => prev === "default" ? "low" : prev === "low" ? "high" : "default")}
+              className="shrink-0 flex items-center gap-1.5 rounded-lg border border-slate-800 bg-surface-raised px-3 py-1.5 text-xs text-ink-faint hover:text-white hover:border-slate-700 transition-colors"
+            >
+              {sortMode === "low" && <span className="text-teal-400">↑ Low</span>}
+              {sortMode === "high" && <span className="text-amber-400">↓ High</span>}
+              {sortMode === "default" && <><ArrowUpDown size={12} />Sort</>}
+            </button>
           </div>
           {quiz.submissions
+            .slice()
+            .sort((a, b) => {
+              if (sortMode === "default") return 0;
+              const pctA = questions.length > 0 ? ((a.score ?? 0) / questions.length) * 100 : 0;
+              const pctB = questions.length > 0 ? ((b.score ?? 0) / questions.length) * 100 : 0;
+              return sortMode === "low" ? pctA - pctB : pctB - pctA;
+            })
             .filter((sub) => {
               if (!submissionQuery.trim()) return true;
               const q = submissionQuery.toLowerCase();
