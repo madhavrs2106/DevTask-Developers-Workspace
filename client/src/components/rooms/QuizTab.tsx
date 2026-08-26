@@ -13,7 +13,7 @@ import {
 } from "../../hooks/useQueries";
 import { Button } from "../ui/Button";
 import { Spinner } from "../ui/Spinner";
-import { Trash2, Plus, X, Check, Clock, FileText, ChevronDown, ChevronUp, Star, Send, EyeOff, Search, Pencil, ArrowUpDown } from "lucide-react";
+import { Trash2, Plus, X, Check, Clock, FileText, ChevronDown, ChevronUp, Star, Send, EyeOff, Search, Pencil } from "lucide-react";
 import { cn } from "../../lib/utils";
 import type { CoLearningRoomFull, Quiz, QuizQuestion } from "../../types";
 
@@ -989,24 +989,27 @@ function QuizDetailView({
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-sm font-semibold text-white shrink-0">Submissions ({quiz.submissions.length})</h3>
-            <div className="relative flex-1 max-w-xs">
-              <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-              <input
-                type="text"
-                value={submissionQuery}
-                onChange={(e) => setSubmissionQuery(e.target.value)}
-                placeholder="Search by name or username…"
-                className="input-dark w-full pl-8 text-sm"
-              />
+            <div className="flex-1 flex items-center gap-2 max-w-xs">
+              <div className="relative flex-1">
+                <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <input
+                  type="text"
+                  value={submissionQuery}
+                  onChange={(e) => setSubmissionQuery(e.target.value)}
+                  placeholder="Search by name or username…"
+                  className="input-dark w-full pl-8 text-sm"
+                />
+              </div>
+              <select
+                value={sortMode}
+                onChange={(e) => setSortMode(e.target.value as "default" | "low" | "high")}
+                className="shrink-0 bg-slate-800 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-ink-faint"
+              >
+                <option value="default">Sort</option>
+                <option value="low">Low %</option>
+                <option value="high">High %</option>
+              </select>
             </div>
-            <button
-              onClick={() => setSortMode((prev) => prev === "default" ? "low" : prev === "low" ? "high" : "default")}
-              className="shrink-0 flex items-center gap-1.5 rounded-lg border border-slate-800 bg-surface-raised px-3 py-1.5 text-xs text-ink-faint hover:text-white hover:border-slate-700 transition-colors"
-            >
-              {sortMode === "low" && <span className="text-teal-400">↑ Low</span>}
-              {sortMode === "high" && <span className="text-amber-400">↓ High</span>}
-              {sortMode === "default" && <><ArrowUpDown size={12} />Sort</>}
-            </button>
           </div>
           {quiz.submissions
             .slice()

@@ -436,6 +436,15 @@ export function useAddDiscussion(roomId: string) {
   });
 }
 
+export function useDeleteDiscussion(roomId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (postId: string) =>
+      (await api.delete(`/rooms/${roomId}/discussions/${postId}`)).data,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: qk.room(roomId) }),
+  });
+}
+
 export function useStartFocusSession(roomId: string) {
   const queryClient = useQueryClient();
   return useMutation({

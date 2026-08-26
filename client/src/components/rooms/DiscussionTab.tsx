@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from "react";
-import { useAddDiscussion } from "../../hooks/useQueries";
+import { useAddDiscussion, useDeleteDiscussion, useMe } from "../../hooks/useQueries";
 import { Button } from "../ui/Button";
+import { Trash2 } from "lucide-react";
 import type { CoLearningRoomFull, RoomDiscussion } from "../../types";
 
 interface Props {
@@ -49,13 +50,17 @@ function ReplyForm({
 function DiscussionPost({
   post,
   roomId,
+  currentUserId,
   depth = 0,
 }: {
   post: RoomDiscussion;
   roomId: string;
+  currentUserId: string;
   depth?: number;
 }) {
   const [showReply, setShowReply] = useState(false);
+  const deleteDiscussion = useDeleteDiscussion(roomId);
+  const isAuthor = post.author.id === currentUserId;
 
   return (
     <div className={depth > 0 ? "ml-6 pl-3 border-l-2 border-[var(--border)]" : ""}>
@@ -88,12 +93,24 @@ function DiscussionPost({
           </span>
         </div>
         <p className="text-sm text-[var(--text-primary)] whitespace-pre-wrap">{post.content}</p>
-        <button
-          onClick={() => setShowReply(!showReply)}
-          className="mt-2 text-xs text-[var(--accent)] hover:underline"
-        >
-          Reply
-        </button>
+        <div className="flex items-center gap-3 mt-2">
+          <button
+            onClick={() => setShowReply(!showReply)}
+            className="text-xs text-[var(--accent)] hover:underline"
+          >
+            Reply
+          </button>
+          {isAuthor && (
+            <button
+              onClick={() => deleteDiscussion.mutateAsync(post.id)}
+              disabled={deleteDiscussion.isPending}
+              className="text-xs text-red-400 hover:text-red-300 hover:underline flex items-center gap-1"
+            >
+              <Trash2 size={11} />
+              Delete
+            </button>
+          )}
+        </div>
       </div>
 
       {showReply && (
@@ -105,7 +122,7 @@ function DiscussionPost({
       {post.replies && post.replies.length > 0 && (
         <div className="mt-2 space-y-2">
           {post.replies.map((reply) => (
-            <DiscussionPost key={reply.id} post={reply} roomId={roomId} depth={depth + 1} />
+            <DiscussionPost key={reply.id} post={reply} roomId={roomId} currentUserId={currentUserId} depth={depth + 1} />
           ))}
         </div>
       )}
@@ -115,6 +132,7 @@ function DiscussionPost({
 
 export function DiscussionTab({ room }: Props) {
   const addDiscussion = useAddDiscussion(room.id);
+  const { data: me } = useMe();
   const [content, setContent] = useState("");
   const [selectedItemId, setSelectedItemId] = useState<string>("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -181,7 +199,7 @@ export function DiscussionTab({ room }: Props) {
       ) : (
         <div className="space-y-3">
           {room.discussions.map((post) => (
-            <DiscussionPost key={post.id} post={post} roomId={room.id} />
+            <DiscussionPost key={post.id} post={post} roomId={room.id} currentUserId={me?.id ?? ""} />
           ))}
         </div>
       )}
