@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { existsSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { env } from "./config/env.js";
@@ -29,9 +29,10 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Serve uploaded files
 const uploadsDir = join(__dirname, "../uploads");
-if (existsSync(uploadsDir)) {
-  app.use("/uploads", express.static(uploadsDir));
+if (!existsSync(uploadsDir)) {
+  mkdirSync(uploadsDir, { recursive: true });
 }
+app.use("/uploads", express.static(uploadsDir));
 
 app.get("/api/health", (_req, res) =>
   res.json({ status: "ok", service: "devtask-api", time: new Date().toISOString() })
