@@ -950,15 +950,26 @@ function QuizDetailView({
                 <AlertTriangle size={48} className="mx-auto mb-4 text-red-400" />
                 <p className="text-white font-bold text-lg">Warning!</p>
                 <p className="text-red-200 mt-2">{warningMessage}</p>
-                <p className="text-red-300/70 text-sm mt-3">
-                  This is your only attempt.
-                </p>
               </div>
             </div>
           )}
 
-          {/* Quiz locked screen */}
-          {isMyLocked && (
+          {/* Quiz locked — cannot start */}
+          {isMyLocked && !quizStarted && (
+            <div className="card p-8 text-center">
+              <Shield size={48} className="mx-auto mb-4 text-red-400" />
+              <p className="text-white font-bold text-lg">Quiz Locked</p>
+              <p className="text-slate-300 mt-2">
+                Your quiz access has been revoked due to a rule violation.
+              </p>
+              <p className="text-slate-400 text-sm mt-2">
+                Please contact the room admin to retake this quiz.
+              </p>
+            </div>
+          )}
+
+          {/* Quiz locked overlay (during quiz) */}
+          {isMyLocked && quizStarted && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95">
               <div className="bg-slate-900 border border-red-500 rounded-xl p-8 text-center max-w-sm mx-4">
                 <Shield size={48} className="mx-auto mb-4 text-red-400" />
@@ -973,74 +984,68 @@ function QuizDetailView({
             </div>
           )}
 
-          <div className="space-y-4">
-            {!quizStarted ? (
-              <div className="card p-6 text-center">
-                <Shield size={40} className="mx-auto mb-3 text-[var(--accent)]" />
-                <h3 className="text-white font-semibold mb-2">Quiz Rules</h3>
-                <ul className="text-sm text-ink-faint space-y-1.5 mb-4">
-                  <li>Tab switching is monitored</li>
-                  <li>Screenshots are blocked</li>
-                  <li>Right-click is disabled</li>
-                  <li>Keyboard shortcuts are restricted</li>
-                  <li>1 violation = quiz locked immediately</li>
-                </ul>
+          {/* Not locked — show quiz rules and start button */}
+          {!isMyLocked && !quizStarted && (
+            <div className="card p-6 text-center">
+              <Shield size={40} className="mx-auto mb-3 text-[var(--accent)]" />
+              <h3 className="text-white font-semibold mb-2">Quiz Rules</h3>
+              <ul className="text-sm text-ink-faint space-y-1.5 mb-4">
+                <li>Tab switching is monitored</li>
+                <li>Screenshots are blocked</li>
+                <li>Right-click is disabled</li>
+                <li>Keyboard shortcuts are restricted</li>
+                <li>1 violation = quiz locked immediately</li>
+              </ul>
+              <Button
+                variant="primary"
+                onClick={() => {
+                  requestFullscreen();
+                  setQuizStarted(true);
+                }}
+              >
+                Start Quiz
+              </Button>
+            </div>
+          )}
+
+          {/* Quiz started and not locked — show questions */}
+          {!isMyLocked && quizStarted && (
+            <div className="space-y-4">
+              {/* Fullscreen indicator */}
+              {!isFullscreen && (
+                <div className="flex items-center gap-2 text-xs text-amber-400 bg-amber-400/10 border border-amber-400/20 rounded-lg px-3 py-2">
+                  <AlertTriangle size={14} />
+                  <span>Quiz works best in fullscreen. </span>
+                  <button
+                    onClick={requestFullscreen}
+                    className="underline hover:text-amber-300"
+                  >
+                    Enter fullscreen
+                  </button>
+                </div>
+              )}
+
+              {questions.map((q, i) => (
+                <QuestionCard
+                  key={q.id}
+                  question={q}
+                  index={i}
+                  value={answers[q.id] ?? ""}
+                  onChange={(val) => setAnswers((prev) => ({ ...prev, [q.id]: val }))}
+                  showAnswer={false}
+                />
+              ))}
+              <div className="flex justify-end">
                 <Button
                   variant="primary"
-                  onClick={() => {
-                    requestFullscreen();
-                    setQuizStarted(true);
-                  }}
+                  onClick={handleSubmit}
+                  disabled={submitQuiz.isPending || !questions.every((q) => answers[q.id]?.trim())}
                 >
-                  Start Quiz
+                  {submitQuiz.isPending ? "Submitting..." : "Submit Quiz"}
                 </Button>
               </div>
-            ) : (
-              <>
-                {/* Locked indicator */}
-                {isMyLocked && (
-                  <div className="flex items-center gap-2 text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">
-                    <Shield size={14} />
-                    <span>Quiz locked — contact admin to unlock</span>
-                  </div>
-                )}
-
-                {/* Fullscreen indicator */}
-                {!isFullscreen && (
-                  <div className="flex items-center gap-2 text-xs text-amber-400 bg-amber-400/10 border border-amber-400/20 rounded-lg px-3 py-2">
-                    <AlertTriangle size={14} />
-                    <span>Quiz works best in fullscreen. </span>
-                    <button
-                      onClick={requestFullscreen}
-                      className="underline hover:text-amber-300"
-                    >
-                      Enter fullscreen
-                    </button>
-                  </div>
-                )}
-
-                {questions.map((q, i) => (
-                  <QuestionCard
-                    key={q.id}
-                    question={q}
-                    index={i}
-                    value={answers[q.id] ?? ""}
-                    onChange={(val) => setAnswers((prev) => ({ ...prev, [q.id]: val }))}
-                    showAnswer={false}
-                  />
-                ))}
-                <div className="flex justify-end">
-                  <Button
-                    variant="primary"
-                    onClick={handleSubmit}
-                    disabled={submitQuiz.isPending || !questions.every((q) => answers[q.id]?.trim()) || isMyLocked}
-                  >
-                    {submitQuiz.isPending ? "Submitting..." : "Submit Quiz"}
-                  </Button>
-                </div>
-              </>
-            )}
-          </div>
+            </div>
+          )}
         </>
       )}
 
