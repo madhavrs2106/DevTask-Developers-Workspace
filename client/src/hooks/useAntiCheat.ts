@@ -5,14 +5,22 @@ interface AntiCheatOptions {
   roomId: string;
   quizId: string;
   enabled: boolean;
+  isLocked: boolean;
   onViolation?: () => void;
 }
 
-export function useAntiCheat({ roomId, quizId, enabled, onViolation }: AntiCheatOptions) {
-  const [isLocked, setIsLocked] = useState(false);
+export function useAntiCheat({ roomId, quizId, enabled, isLocked: backendLocked, onViolation }: AntiCheatOptions) {
+  const [isLocked, setIsLocked] = useState(backendLocked);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
   const [warningMessage, setWarningMessage] = useState("");
+
+  // Sync with backend lock state
+  useEffect(() => {
+    if (backendLocked) {
+      setIsLocked(true);
+    }
+  }, [backendLocked]);
 
   const triggerViolation = useCallback(
     async (message: string) => {
@@ -43,7 +51,7 @@ export function useAntiCheat({ roomId, quizId, enabled, onViolation }: AntiCheat
     return () => document.removeEventListener("visibilitychange", handleVisibility);
   }, [enabled, isLocked, triggerViolation]);
 
-  // Window blur detection (switching to another window)
+  // Window blur detection
   useEffect(() => {
     if (!enabled || isLocked) return;
 
@@ -55,7 +63,7 @@ export function useAntiCheat({ roomId, quizId, enabled, onViolation }: AntiCheat
     return () => window.removeEventListener("blur", handleBlur);
   }, [enabled, isLocked, triggerViolation]);
 
-  // Block keyboard shortcuts for screenshots and dev tools
+  // Block keyboard shortcuts
   useEffect(() => {
     if (!enabled || isLocked) return;
 
@@ -105,7 +113,7 @@ export function useAntiCheat({ roomId, quizId, enabled, onViolation }: AntiCheat
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [enabled, isLocked, triggerViolation]);
 
-  // Block right-click context menu
+  // Block right-click
   useEffect(() => {
     if (!enabled || isLocked) return;
 
@@ -118,7 +126,7 @@ export function useAntiCheat({ roomId, quizId, enabled, onViolation }: AntiCheat
     return () => document.removeEventListener("contextmenu", handleContextMenu);
   }, [enabled, isLocked, triggerViolation]);
 
-  // Block text selection on quiz content
+  // Block text selection
   useEffect(() => {
     if (!enabled || isLocked) return;
 
@@ -153,16 +161,11 @@ export function useAntiCheat({ roomId, quizId, enabled, onViolation }: AntiCheat
     return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
   }, []);
 
-  const setLocked = useCallback((locked: boolean) => {
-    setIsLocked(locked);
-  }, []);
-
   return {
     isLocked,
     showWarning,
     warningMessage,
     isFullscreen,
     requestFullscreen,
-    setLocked,
   };
 }

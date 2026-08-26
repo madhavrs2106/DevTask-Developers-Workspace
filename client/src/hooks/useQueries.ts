@@ -570,6 +570,31 @@ export function useUnlockQuiz(roomId: string, quizId: string) {
   });
 }
 
+export function useSubmitZero(roomId: string, quizId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (userId: string) =>
+      (await api.post(`/rooms/${roomId}/quizzes/${quizId}/submit-zero/${userId}`)).data,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["quizLocks", roomId, quizId] });
+      void queryClient.invalidateQueries({ queryKey: ["quiz", roomId, quizId] });
+      void queryClient.invalidateQueries({ queryKey: ["leaderboard", roomId] });
+    },
+  });
+}
+
+export function useAllowRetake(roomId: string, quizId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (userId: string) =>
+      (await api.post(`/rooms/${roomId}/quizzes/${quizId}/retake/${userId}`)).data,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["quizLocks", roomId, quizId] });
+      void queryClient.invalidateQueries({ queryKey: ["quiz", roomId, quizId] });
+    },
+  });
+}
+
 export function usePublishQuiz(roomId: string) {
   const queryClient = useQueryClient();
   return useMutation({

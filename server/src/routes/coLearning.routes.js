@@ -33,6 +33,8 @@ import {
   getQuizLocks,
   unlockQuiz,
   getLeaderboard,
+  submitZero,
+  allowRetake,
 } from "../controllers/quiz.controller.js";
 import { requireAuth } from "../middleware/auth.js";
 import { uploadNoteFile } from "../middleware/upload.js";
@@ -78,5 +80,7 @@ router.delete("/:id/quizzes/:quizId/submissions/:submissionId", deleteSubmission
 router.post("/:id/quizzes/:quizId/lock", lockQuiz);
 router.get("/:id/quizzes/:quizId/locks", getQuizLocks);
 router.post("/:id/quizzes/:quizId/unlock/:userId", unlockQuiz);
+router.post("/:id/quizzes/:quizId/submit-zero/:userId", submitZero);
+router.post("/:id/quizzes/:quizId/retake/:userId", allowRetake);
 
 export default router;

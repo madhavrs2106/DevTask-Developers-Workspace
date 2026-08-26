@@ -455,3 +455,74 @@ export const unlockQuiz = asyncHandler(async (req, res) => {
 
   res.json({ unlocked: true });
 });
+
+// ─── Admin submit 0 for locked member ──
+
+export const submitZero = asyncHandler(async (req, res) => {
+  const { id, quizId, userId } = req.params;
+  const member = await ensureMember(id, req.user.id);
+  if (member.role !== "ADMIN") throw new HttpError(403, "Admin only");
+
+  const quiz = await prisma.roomQuiz.findUnique({ where: { id: quizId } });
+  if (!quiz || quiz.roomId !== id) throw new HttpError(404, "Quiz not found");
+
+  // Check if already submitted
+  const existing = await prisma.roomQuizSubmission.findUnique({
+    where: { quizId_userId: { quizId, userId } },
+  });
+  if (existing) throw new HttpError(400, "User already has a submission");
+
+  // Create submission with 0 score
+  const questionCount = await prisma.roomQuizQuestion.count({ where: { quizId } });
+  const emptyAnswers = JSON.stringify({});
+
+  const submission = await prisma.roomQuizSubmission.create({
+    data: {
+      quizId,
+      userId,
+      answers: emptyAnswers,
+      score: 0,
+      feedback: "Scored 0 — quiz was locked",
+      status: "GRADED",
+    },
+    include: {
+      user: { select: { id: true, name: true, username: true, avatarColor: true, avatarUrl: true } },
+    },
+  });
+
+  // Remove the lock
+  const lock = await prisma.roomQuizLock.findUnique({
+    where: { quizId_userId: { quizId, userId } },
+  });
+  if (lock) {
+    await prisma.roomQuizLock.delete({ where: { id: lock.id } });
+  }
+
+  res.json(submission);
+});
+
+// ─── Admin retake: unlock for member to retry ──
+
+export const allowRetake = asyncHandler(async (req, res) => {
+  const { id, quizId, userId } = req.params;
+  const member = await ensureMember(id, req.user.id);
+  if (member.role !== "ADMIN") throw new HttpError(403, "Admin only");
+
+  // Delete existing submission if any (so they can retake)
+  const existing = await prisma.roomQuizSubmission.findUnique({
+    where: { quizId_userId: { quizId, userId } },
+  });
+  if (existing) {
+    await prisma.roomQuizSubmission.delete({ where: { id: existing.id } });
+  }
+
+  // Remove the lock
+  const lock = await prisma.roomQuizLock.findUnique({
+    where: { quizId_userId: { quizId, userId } },
+  });
+  if (lock) {
+    await prisma.roomQuizLock.delete({ where: { id: lock.id } });
+  }
+
+  res.json({ retakeAllowed: true });
+});

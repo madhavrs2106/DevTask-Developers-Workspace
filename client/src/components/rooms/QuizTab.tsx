@@ -12,6 +12,8 @@ import {
   useUnpublishQuiz,
   useQuizLocks,
   useUnlockQuiz,
+  useSubmitZero,
+  useAllowRetake,
   useMe,
 } from "../../hooks/useQueries";
 import { Button } from "../ui/Button";
@@ -834,6 +836,8 @@ function QuizDetailView({
   const deleteSubmission = useDeleteSubmission(roomId, quizId);
   const { data: locks = [] } = useQuizLocks(roomId, quizId);
   const unlockQuiz = useUnlockQuiz(roomId, quizId);
+  const submitZero = useSubmitZero(roomId, quizId);
+  const allowRetake = useAllowRetake(roomId, quizId);
   const { data: me } = useMe();
 
   const [answers, setAnswers] = useState<Record<string, string>>({});
@@ -851,17 +855,20 @@ function QuizDetailView({
     warningMessage,
     isFullscreen,
     requestFullscreen,
-    setLocked,
   } = useAntiCheat({
     roomId,
     quizId,
     enabled: isTakingQuiz && quizStarted,
+    isLocked: locks.some((l: { userId: string }) => l.userId === me?.id),
     onViolation: () => {},
   });
 
   const isMyLocked = locks.some((l: { userId: string }) => l.userId === me?.id) || clientLocked;
 
-  if (isLoading) {
+  // Wait for locks to load before determining lock state
+  const locksLoaded = !isAdmin || locks !== undefined;
+
+  if (isLoading || !locksLoaded) {
     return (
       <div className="flex justify-center py-16">
         <Spinner />
@@ -1088,51 +1095,6 @@ function QuizDetailView({
         </div>
       )}
 
-      {/* Admin: locked members */}
-      {isAdmin && locks.length > 0 && (
-        <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-white flex items-center gap-2">
-            <Shield size={14} className="text-red-400" />
-            Locked Members ({locks.length})
-          </h3>
-          <div className="space-y-2">
-            {locks.map((lock: { id: string; userId: string; user: { id: string; name: string; username: string; avatarColor: string; avatarUrl: string | null } }) => (
-              <div
-                key={lock.id}
-                className="flex items-center justify-between bg-red-500/5 border border-red-500/20 rounded-lg px-4 py-3"
-              >
-                <div className="flex items-center gap-3">
-                  {lock.user.avatarUrl ? (
-                    <img src={lock.user.avatarUrl} alt={lock.user.username} className="w-8 h-8 rounded-full object-cover" />
-                  ) : (
-                    <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
-                      style={{ backgroundColor: lock.user.avatarColor }}
-                    >
-                      {lock.user.username[0].toUpperCase()}
-                    </div>
-                  )}
-                  <div>
-                    <p className="text-sm font-medium text-white">{lock.user.name}</p>
-                    <p className="text-xs text-slate-400">@{lock.user.username}</p>
-                  </div>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => unlockQuiz.mutateAsync(lock.userId)}
-                  disabled={unlockQuiz.isPending}
-                  className="text-teal-400 hover:bg-teal-400/10"
-                >
-                  <Unlock size={14} className="mr-1.5" />
-                  Unlock
-                </Button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Admin: view submissions & grade */}
       {isAdmin && quiz.submissions && quiz.submissions.length > 0 && (
         <div className="space-y-3">
@@ -1312,6 +1274,61 @@ function QuizDetailView({
       {isAdmin && quiz.submissions && quiz.submissions.length === 0 && (
         <div className="text-center py-8">
           <p className="text-sm text-ink-faint">No submissions yet.</p>
+        </div>
+      )}
+
+      {/* Admin: locked members (after submissions) */}
+      {isAdmin && locks.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+            <Shield size={14} className="text-red-400" />
+            Locked Members ({locks.length})
+          </h3>
+          <div className="space-y-2">
+            {locks.map((lock: { id: string; userId: string; user: { id: string; name: string; username: string; avatarColor: string; avatarUrl: string | null } }) => (
+              <div
+                key={lock.id}
+                className="flex items-center justify-between bg-red-500/5 border border-red-500/20 rounded-lg px-4 py-3"
+              >
+                <div className="flex items-center gap-3">
+                  {lock.user.avatarUrl ? (
+                    <img src={lock.user.avatarUrl} alt={lock.user.username} className="w-8 h-8 rounded-full object-cover" />
+                  ) : (
+                    <div
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                      style={{ backgroundColor: lock.user.avatarColor }}
+                    >
+                      {lock.user.username[0].toUpperCase()}
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-sm font-medium text-white">{lock.user.name}</p>
+                    <p className="text-xs text-slate-400">@{lock.user.username}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => allowRetake.mutateAsync(lock.userId)}
+                    disabled={allowRetake.isPending}
+                    className="text-emerald-400 hover:bg-emerald-400/10"
+                  >
+                    Retake
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => submitZero.mutateAsync(lock.userId)}
+                    disabled={submitZero.isPending}
+                    className="text-red-400 hover:bg-red-400/10"
+                  >
+                    Submit 0
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
