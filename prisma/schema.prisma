@@ -57,6 +57,7 @@ model User {
   syllabusCompletions RoomSyllabusCompletion[]
   roomNotes        RoomNote[]
   quizSubmissions   RoomQuizSubmission[]
+  createdQuizzes   RoomQuiz[]
 }
 
 model Follow {
