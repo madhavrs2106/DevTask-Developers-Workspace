@@ -23,7 +23,7 @@ interface QuizTabProps {
   isAdmin: boolean;
 }
 
-type View = "list" | "create" | "edit" | "taking" | "detail";
+type View = "list" | "create" | "edit" | "taking" | "detail" | "result";
 
 export function QuizTab({ room, isAdmin }: QuizTabProps) {
   const [view, setView] = useState<View>("list");
@@ -48,6 +48,11 @@ export function QuizTab({ room, isAdmin }: QuizTabProps) {
     setView("edit");
   };
 
+  const handleViewResult = (quizId: string) => {
+    setSelectedQuizId(quizId);
+    setView("result");
+  };
+
   const handleBack = () => {
     setView("list");
     setSelectedQuizId(null);
@@ -61,6 +66,10 @@ export function QuizTab({ room, isAdmin }: QuizTabProps) {
     return <EditQuizView roomId={room.id} quizId={selectedQuizId} onSaved={handleQuizSaved} onCancel={handleBack} />;
   }
 
+  if (view === "result" && selectedQuizId) {
+    return <QuizResultView roomId={room.id} quizId={selectedQuizId} onBack={handleBack} />;
+  }
+
   if ((view === "taking" || view === "detail") && selectedQuizId) {
     return (
       <QuizDetailView
@@ -72,7 +81,7 @@ export function QuizTab({ room, isAdmin }: QuizTabProps) {
     );
   }
 
-  return <QuizListView room={room} isAdmin={isAdmin} onCreate={() => setView("create")} onTakeQuiz={handleTakeQuiz} onViewQuiz={handleViewQuiz} onEditQuiz={handleEditQuiz} />;
+  return <QuizListView room={room} isAdmin={isAdmin} onCreate={() => setView("create")} onTakeQuiz={handleTakeQuiz} onViewQuiz={handleViewQuiz} onEditQuiz={handleEditQuiz} onViewResult={handleViewResult} />;
 }
 
 /* ─── Quiz List View ───────────────────────────────────────────── */
@@ -84,6 +93,7 @@ function QuizListView({
   onTakeQuiz,
   onViewQuiz,
   onEditQuiz,
+  onViewResult,
 }: {
   room: CoLearningRoomFull;
   isAdmin: boolean;
@@ -91,6 +101,7 @@ function QuizListView({
   onTakeQuiz: (id: string) => void;
   onViewQuiz: (id: string) => void;
   onEditQuiz: (id: string) => void;
+  onViewResult: (id: string) => void;
 }) {
   const { data: quizzes = [], isLoading } = useQuizzes(room.id);
   const deleteQuiz = useDeleteQuiz(room.id);
@@ -137,6 +148,7 @@ function QuizListView({
               onTake={() => onTakeQuiz(quiz.id)}
               onView={() => onViewQuiz(quiz.id)}
               onEdit={() => onEditQuiz(quiz.id)}
+              onViewResult={() => onViewResult(quiz.id)}
               onDelete={() => deleteQuiz.mutateAsync(quiz.id)}
               onPublish={() => publishQuiz.mutateAsync(quiz.id)}
               onUnpublish={() => unpublishQuiz.mutateAsync(quiz.id)}
@@ -154,6 +166,7 @@ function QuizCard({
   onTake,
   onView,
   onEdit,
+  onViewResult,
   onDelete,
   onPublish,
   onUnpublish,
@@ -163,6 +176,7 @@ function QuizCard({
   onTake: () => void;
   onView: () => void;
   onEdit: () => void;
+  onViewResult: () => void;
   onDelete: () => void;
   onPublish: () => void;
   onUnpublish: () => void;
@@ -238,11 +252,16 @@ function QuizCard({
             </Button>
           </div>
         ) : hasSubmitted ? (
-          <div className="mt-3 flex items-center justify-between rounded-lg border border-slate-800 bg-white/[0.02] px-4 py-2.5">
-            <span className="text-xs text-ink-faint">Your score</span>
-            <span className={cn("text-sm font-bold", getScoreColor(mySubmission.score, questionCount))}>
-              {mySubmission.score}/{questionCount}
-            </span>
+          <div className="mt-3 flex items-center gap-2">
+            <div className="flex-1 flex items-center justify-between rounded-lg border border-slate-800 bg-white/[0.02] px-4 py-2.5">
+              <span className="text-xs text-ink-faint">Your score</span>
+              <span className={cn("text-sm font-bold", getScoreColor(mySubmission.score, questionCount))}>
+                {mySubmission.score}/{questionCount}
+              </span>
+            </div>
+            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onViewResult(); }}>
+              Result
+            </Button>
           </div>
         ) : (
           <div className="mt-3">
@@ -1383,6 +1402,165 @@ function QuizDetailView({
 }
 
 /* ─── Question Card ────────────────────────────────────────────── */
+
+/* ─── Quiz Result View ────────────────────────────────────────── */
+
+function QuizResultView({
+  roomId,
+  quizId,
+  onBack,
+}: {
+  roomId: string;
+  quizId: string;
+  onBack: () => void;
+}) {
+  const { data: quiz, isLoading } = useQuiz(roomId, quizId);
+
+  const getScoreColor = (score: number, total: number) => {
+    const pct = (score / total) * 100;
+    if (pct >= 80) return "text-teal-400";
+    if (pct >= 50) return "text-amber-400";
+    return "text-red-400";
+  };
+
+  const getRowColor = (userAnswer: string, correctAnswer: string) => {
+    if (userAnswer === correctAnswer) return "bg-teal-400/5";
+    return "bg-red-400/5";
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-16">
+        <Spinner />
+      </div>
+    );
+  }
+
+  if (!quiz) {
+    return (
+      <div className="text-center py-16">
+        <p className="text-ink-faint">Quiz not found.</p>
+        <Button variant="ghost" className="mt-4" onClick={onBack}>Back</Button>
+      </div>
+    );
+  }
+
+  const mySubmission = quiz.submissions?.find((s) => s.user.id === (quiz as any).userId);
+  if (!mySubmission) {
+    return (
+      <div className="text-center py-16">
+        <p className="text-ink-faint">No submission found.</p>
+        <Button variant="ghost" className="mt-4" onClick={onBack}>Back</Button>
+      </div>
+    );
+  }
+
+  const questions = quiz.questions ?? [];
+  const userAnswers = JSON.parse(mySubmission.answers ?? "{}");
+  const totalQuestions = questions.length;
+  const score = mySubmission.score ?? 0;
+  const percentage = totalQuestions > 0 ? Math.round((score / totalQuestions) * 100) : 0;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <button
+            onClick={onBack}
+            className="text-xs text-ink-muted hover:text-accent-bright transition-colors mb-1"
+          >
+            Back to quizzes
+          </button>
+          <h2 className="text-lg font-bold text-white">Result: {quiz.title}</h2>
+        </div>
+      </div>
+
+      {/* Score summary */}
+      <div className="rounded-xl border border-slate-800 bg-surface-raised p-6">
+        <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-around">
+          <div className="text-center">
+            <p className="text-3xl font-bold text-white">{score}/{totalQuestions}</p>
+            <p className="text-xs text-ink-faint mt-1">Total Marks</p>
+          </div>
+          <div className="hidden sm:block w-px h-12 bg-slate-800" />
+          <div className="text-center">
+            <p className={cn("text-3xl font-bold", getScoreColor(score, totalQuestions))}>{percentage}%</p>
+            <p className="text-xs text-ink-faint mt-1">Percentage</p>
+          </div>
+          <div className="hidden sm:block w-px h-12 bg-slate-800" />
+          <div className="text-center">
+            <p className="text-3xl font-bold text-white">{score}</p>
+            <p className="text-xs text-ink-faint mt-1">Correct</p>
+          </div>
+          <div className="hidden sm:block w-px h-12 bg-slate-800" />
+          <div className="text-center">
+            <p className="text-3xl font-bold text-red-400">{totalQuestions - score}</p>
+            <p className="text-xs text-ink-faint mt-1">Incorrect</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Results table */}
+      <div className="rounded-xl border border-slate-800 bg-surface-raised overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-slate-800 bg-white/[0.02]">
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-faint">Q#</th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-faint">Correct Answer</th>
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-faint">Your Answer</th>
+                <th className="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider text-ink-faint">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800/60">
+              {questions.map((q, i) => {
+                const userAnswer = userAnswers[q.id] ?? "—";
+                let correctAnswer = q.answer;
+                if (q.type === "MCQ" && q.options) {
+                  const opts = JSON.parse(q.options);
+                  correctAnswer = opts[parseInt(q.answer)] ?? q.answer;
+                }
+                const isCorrect = (userAnswers[q.id] ?? "").trim() === q.answer.trim();
+                return (
+                  <tr key={q.id} className={cn("transition-colors", getRowColor(userAnswers[q.id] ?? "", q.answer))}>
+                    <td className="px-4 py-3 font-mono text-xs font-bold text-accent-bright">{i + 1}</td>
+                    <td className="px-4 py-3 text-white">{correctAnswer}</td>
+                    <td className={cn("px-4 py-3", isCorrect ? "text-teal-400" : "text-red-400")}>
+                      {userAnswer}
+                      {q.type === "MCQ" && q.options && userAnswers[q.id] && (
+                        <span className="ml-2 text-xs text-ink-faint">
+                          ({JSON.parse(q.options).findIndex((o: string) => o === userAnswers[q.id]) + 1})
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      {isCorrect ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-teal-400/10 px-2 py-0.5 text-[10px] font-medium text-teal-400">
+                          <Check size={10} /> Correct
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-red-400/10 px-2 py-0.5 text-[10px] font-medium text-red-400">
+                          <X size={10} /> Wrong
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {mySubmission.feedback && (
+        <div className="rounded-xl border border-slate-800 bg-surface-raised p-4">
+          <p className="text-xs font-medium text-ink-faint mb-1">Admin Feedback</p>
+          <p className="text-sm text-white">{mySubmission.feedback}</p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function parseTextWithImages(text: string) {
   const parts: { type: "text" | "image"; value: string }[] = [];
