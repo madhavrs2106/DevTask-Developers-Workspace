@@ -162,57 +162,57 @@ function QuizCard({
       isDraft ? "border-amber-400/25" : "border-slate-800"
     )}>
       <div
-        className="flex items-center gap-4 p-4 cursor-pointer hover:bg-white/[0.02] transition-colors"
+        className="p-4 cursor-pointer hover:bg-white/[0.02] transition-colors"
         onClick={() => setExpanded(!expanded)}
       >
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-white truncate">{quiz.title}</h3>
-            {isDraft && (
-              <span className="shrink-0 rounded-full bg-amber-400/10 border border-amber-400/25 px-2 py-0.5 text-[10px] font-medium uppercase text-amber-300">
-                Draft
-              </span>
-            )}
-          </div>
-          <div className="mt-1 flex items-center gap-3 text-xs text-ink-faint">
-            <span>{questionCount} question{questionCount !== 1 && "s"}</span>
-            <span>{submissionCount} submission{submissionCount !== 1 && "s"}</span>
-            <span>by {quiz.creator.name}</span>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          {isAdmin ? (
-            <>
-              {isDraft ? (
-                <Button variant="primary" size="sm" onClick={(e) => { e.stopPropagation(); onPublish(); }}>
-                  <Send size={12} className="mr-1" />
-                  Publish
-                </Button>
-              ) : (
-                <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onUnpublish(); }} className="text-amber-400 hover:bg-amber-400/10">
-                  <EyeOff size={12} className="mr-1" />
-                  Unpublish
-                </Button>
-              )}
-              <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onView(); }}>
-                View
-              </Button>
-            </>
-          ) : (
-            <Button variant="primary" size="sm" onClick={(e) => { e.stopPropagation(); onTake(); }}>
-              Take Quiz
-            </Button>
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-white truncate flex-1 min-w-0">{quiz.title}</h3>
+          {isDraft && (
+            <span className="shrink-0 rounded-full bg-amber-400/10 border border-amber-400/25 px-2 py-0.5 text-[10px] font-medium uppercase text-amber-300">
+              Draft
+            </span>
           )}
           {isAdmin && (
             <button
               onClick={(e) => { e.stopPropagation(); onDelete(); }}
-              className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-colors"
+              className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-colors shrink-0"
             >
               <Trash2 size={14} />
             </button>
           )}
-          {expanded ? <ChevronUp size={16} className="text-slate-500" /> : <ChevronDown size={16} className="text-slate-500" />}
+          {expanded ? <ChevronUp size={16} className="text-slate-500 shrink-0" /> : <ChevronDown size={16} className="text-slate-500 shrink-0" />}
         </div>
+        <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs text-ink-faint">
+          <span>{questionCount} question{questionCount !== 1 && "s"}</span>
+          <span>{submissionCount} submission{submissionCount !== 1 && "s"}</span>
+          <span>by {quiz.creator.name}</span>
+        </div>
+
+        {/* Action buttons — full width below info */}
+        {isAdmin ? (
+          <div className="mt-3 flex items-center gap-2">
+            {isDraft ? (
+              <Button variant="primary" size="sm" onClick={(e) => { e.stopPropagation(); onPublish(); }} className="flex-1">
+                <Send size={12} className="mr-1" />
+                Publish
+              </Button>
+            ) : (
+              <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onUnpublish(); }} className="flex-1 text-amber-400 hover:bg-amber-400/10">
+                <EyeOff size={12} className="mr-1" />
+                Unpublish
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onView(); }} className="flex-1">
+              View
+            </Button>
+          </div>
+        ) : (
+          <div className="mt-3">
+            <Button variant="primary" size="sm" onClick={(e) => { e.stopPropagation(); onTake(); }} className="w-full">
+              Take Quiz
+            </Button>
+          </div>
+        )}
       </div>
 
       {expanded && quiz.description && (
