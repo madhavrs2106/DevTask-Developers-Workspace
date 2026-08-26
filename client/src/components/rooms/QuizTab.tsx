@@ -834,7 +834,8 @@ function QuizDetailView({
   const submitQuiz = useSubmitQuiz(roomId, quizId);
   const gradeSubmission = useGradeSubmission(roomId, quizId);
   const deleteSubmission = useDeleteSubmission(roomId, quizId);
-  const { data: locks = [] } = useQuizLocks(roomId, quizId);
+  const { data: locks, isLoading: locksLoading } = useQuizLocks(roomId, quizId);
+  const lockList = locks ?? [];
   const unlockQuiz = useUnlockQuiz(roomId, quizId);
   const submitZero = useSubmitZero(roomId, quizId);
   const allowRetake = useAllowRetake(roomId, quizId);
@@ -859,14 +860,14 @@ function QuizDetailView({
     roomId,
     quizId,
     enabled: isTakingQuiz && quizStarted,
-    isLocked: locks.some((l: { userId: string }) => l.userId === me?.id),
+    isLocked: lockList.some((l: { userId: string }) => l.userId === me?.id),
     onViolation: () => {},
   });
 
-  const isMyLocked = locks.some((l: { userId: string }) => l.userId === me?.id) || clientLocked;
+  const isMyLocked = lockList.some((l: { userId: string }) => l.userId === me?.id) || clientLocked;
 
   // Wait for locks to load before determining lock state
-  const locksLoaded = !isAdmin || locks !== undefined;
+  const locksLoaded = !locksLoading;
 
   if (isLoading || !locksLoaded) {
     return (
@@ -1278,14 +1279,14 @@ function QuizDetailView({
       )}
 
       {/* Admin: locked members (after submissions) */}
-      {isAdmin && locks.length > 0 && (
+      {isAdmin && lockList.length > 0 && (
         <div className="space-y-3">
           <h3 className="text-sm font-semibold text-white flex items-center gap-2">
             <Shield size={14} className="text-red-400" />
-            Locked Members ({locks.length})
+            Locked Members ({lockList.length})
           </h3>
           <div className="space-y-2">
-            {locks.map((lock: { id: string; userId: string; user: { id: string; name: string; username: string; avatarColor: string; avatarUrl: string | null } }) => (
+            {lockList.map((lock: { id: string; userId: string; user: { id: string; name: string; username: string; avatarColor: string; avatarUrl: string | null } }) => (
               <div
                 key={lock.id}
                 className="flex items-center justify-between bg-red-500/5 border border-red-500/20 rounded-lg px-4 py-3"
