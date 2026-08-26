@@ -60,7 +60,7 @@ export function useAntiCheat({ quizId, enabled, onViolation }: AntiCheatOptions)
       setWarningMessage(message);
       setShowWarning(true);
       onViolation?.();
-      if (next >= 3) {
+      if (next >= 1) {
         setIsLocked(true);
         persistLocked(true);
       }

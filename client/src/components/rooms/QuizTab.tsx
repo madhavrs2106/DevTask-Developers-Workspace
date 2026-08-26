@@ -937,7 +937,7 @@ function QuizDetailView({
                 <p className="text-white font-bold text-lg">Warning!</p>
                 <p className="text-red-200 mt-2">{warningMessage}</p>
                 <p className="text-red-300/70 text-sm mt-3">
-                  Violations: {violations}/3 — {3 - violations} remaining
+                  This is your only attempt.
                 </p>
               </div>
             </div>
@@ -969,7 +969,7 @@ function QuizDetailView({
                   <li>Screenshots are blocked</li>
                   <li>Right-click is disabled</li>
                   <li>Keyboard shortcuts are restricted</li>
-                  <li>3 violations = quiz locked</li>
+                  <li>1 violation = quiz locked immediately</li>
                 </ul>
                 <Button
                   variant="primary"
@@ -988,7 +988,7 @@ function QuizDetailView({
                   <div className="flex items-center gap-2 text-xs text-amber-400 bg-amber-400/10 border border-amber-400/20 rounded-lg px-3 py-2">
                     <AlertTriangle size={14} />
                     <span>
-                      {violations} violation{violations !== 1 && "s"} — {3 - violations} remaining
+                      {violations} violation — quiz is now locked
                     </span>
                   </div>
                 )}
