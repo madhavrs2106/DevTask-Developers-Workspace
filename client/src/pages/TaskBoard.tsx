@@ -140,7 +140,7 @@ export function TaskBoard() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="flex h-[calc(100vh-8rem)] flex-col space-y-4 overflow-hidden">
       {/* ── Toolbar ─────────────────────────────────────────────── */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap items-center gap-2">
@@ -288,7 +288,7 @@ export function TaskBoard() {
           }
         />
       ) : (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid min-h-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4 flex-1">
           {TASK_STATUSES.map((col) => {
             const columnTasks = columns.get(col.id) ?? [];
             return (
@@ -304,13 +304,13 @@ export function TaskBoard() {
                   if (dragId) moveTask(dragId, col.id);
                 }}
                 className={cn(
-                  "card flex min-h-[260px] flex-col p-3 transition-all duration-200",
+                  "card flex min-h-0 flex-col p-3 transition-all duration-200",
                   dragOverCol === col.id && dragId
                     ? "border-accent/60 bg-accent/[.04] shadow-glow-sm"
                     : ""
                 )}
               >
-                <header className="mb-3 flex items-center gap-2 px-1">
+                <header className="mb-3 flex items-center gap-2 px-1 shrink-0">
                   <span
                     aria-hidden
                     className="h-2 w-2 rounded-full"
@@ -332,7 +332,7 @@ export function TaskBoard() {
                   </button>
                 </header>
 
-                <div className="flex flex-1 flex-col gap-2">
+                <div className="flex flex-1 flex-col gap-2 overflow-y-auto min-h-0 pr-1 scrollbar-thin">
                   {columnTasks.map((task) => (
                     <TaskCard
                       key={task.id}
