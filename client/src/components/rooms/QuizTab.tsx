@@ -1340,7 +1340,7 @@ function QuizDetailView({
                     disabled={submitZero.isPending}
                     className="text-red-400 hover:bg-red-400/10"
                   >
-                    Submit 0
+                    Submit
                   </Button>
                 </div>
               </div>
