@@ -31,6 +31,7 @@ export function LeaderboardTab({ room }: Props) {
   const entries = new Map<string, LeaderboardEntry>();
 
   for (const member of room.members) {
+    if (member.role === "ADMIN") continue;
     entries.set(member.user.id, {
       userId: member.user.id,
       name: member.user.name,
