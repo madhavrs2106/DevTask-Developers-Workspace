@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api";
 
 interface AntiCheatOptions {
@@ -10,6 +11,7 @@ interface AntiCheatOptions {
 }
 
 export function useAntiCheat({ roomId, quizId, enabled, isLocked: backendLocked, onViolation }: AntiCheatOptions) {
+  const queryClient = useQueryClient();
   const [isLocked, setIsLocked] = useState(backendLocked);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
@@ -27,6 +29,8 @@ export function useAntiCheat({ roomId, quizId, enabled, isLocked: backendLocked,
       if (!enabled || isLocked) return;
       try {
         await api.post(`/rooms/${roomId}/quizzes/${quizId}/lock`);
+        void queryClient.invalidateQueries({ queryKey: ["quizzes", roomId] });
+        void queryClient.invalidateQueries({ queryKey: ["quizLocks", roomId, quizId] });
       } catch {}
       setIsLocked(true);
       setWarningMessage(message);
