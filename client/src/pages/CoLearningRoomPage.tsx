@@ -4,7 +4,6 @@ import { useRoom, useLeaveRoom } from "../hooks/useQueries";
 import { useAuth } from "../context/AuthContext";
 import { SyllabusTab } from "../components/rooms/SyllabusTab";
 import { DiscussionTab } from "../components/rooms/DiscussionTab";
-import { FocusTab } from "../components/rooms/FocusTab";
 import { MembersTab } from "../components/rooms/MembersTab";
 import { RoomSettingsTab } from "../components/rooms/RoomSettingsTab";
 import { Button } from "../components/ui/Button";
@@ -15,7 +14,6 @@ import { cn } from "../lib/utils";
 const TABS = [
   { key: "syllabus", label: "Syllabus" },
   { key: "discussions", label: "Discussions" },
-  { key: "focus", label: "Focus" },
   { key: "members", label: "Members" },
   { key: "settings", label: "Settings", adminOnly: true },
 ] as const;
@@ -179,7 +177,6 @@ export default function CoLearningRoomPage() {
       {/* Tab Content */}
       {activeTab === "syllabus" && <SyllabusTab room={room} />}
       {activeTab === "discussions" && <DiscussionTab room={room} />}
-      {activeTab === "focus" && <FocusTab room={room} />}
       {activeTab === "members" && <MembersTab room={room} isAdmin={isAdmin} />}
       {activeTab === "settings" && isAdmin && <RoomSettingsTab room={room} />}
     </div>
