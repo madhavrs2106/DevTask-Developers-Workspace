@@ -31,8 +31,13 @@ export const uploadQuizImage = asyncHandler(async (req, res) => {
 
   if (!req.file) throw new HttpError(400, "No file uploaded.");
 
-  const imageUrl = `/uploads/rooms/${id}/${req.file.filename}`;
-  res.json({ url: imageUrl });
+  const { readFileSync } = await import("node:fs");
+  const imageData = readFileSync(req.file.path);
+  const base64 = imageData.toString("base64");
+  const mimeType = req.file.mimetype || "image/png";
+  const dataUrl = `data:${mimeType};base64,${base64}`;
+
+  res.json({ url: dataUrl });
 });
 
 async function ensureMember(roomId, userId) {
