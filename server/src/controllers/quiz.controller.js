@@ -86,6 +86,25 @@ export const listQuizzes = asyncHandler(async (req, res) => {
   res.json(result);
 });
 
+// ─── Get leaderboard data for a room ──
+
+export const getLeaderboard = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  await ensureMember(id, req.user.id);
+
+  const quizzes = await prisma.roomQuiz.findMany({
+    where: { roomId: id, status: "PUBLISHED" },
+    include: {
+      questions: { select: { id: true } },
+      submissions: {
+        select: { score: true, userId: true },
+      },
+    },
+  });
+
+  res.json(quizzes);
+});
+
 // ─── Get a single quiz with questions ────────────────────────────
 
 export const getQuiz = asyncHandler(async (req, res) => {
@@ -377,4 +396,62 @@ export const deleteSubmission = asyncHandler(async (req, res) => {
 
   await prisma.roomQuizSubmission.delete({ where: { id: submissionId } });
   res.json({ deleted: true });
+});
+
+// ─── Lock quiz for a user (self-reported violation) ──
+
+export const lockQuiz = asyncHandler(async (req, res) => {
+  const { id, quizId } = req.params;
+  await ensureMember(id, req.user.id);
+
+  const quiz = await prisma.roomQuiz.findUnique({ where: { id: quizId } });
+  if (!quiz || quiz.roomId !== id) throw new HttpError(404, "Quiz not found");
+
+  const existing = await prisma.roomQuizLock.findUnique({
+    where: { quizId_userId: { quizId, userId: req.user.id } },
+  });
+  if (existing) {
+    return res.json({ locked: true });
+  }
+
+  await prisma.roomQuizLock.create({
+    data: { quizId, userId: req.user.id },
+  });
+
+  res.json({ locked: true });
+});
+
+// ─── Get quiz locks (admin only) ──
+
+export const getQuizLocks = asyncHandler(async (req, res) => {
+  const { id, quizId } = req.params;
+  const member = await ensureMember(id, req.user.id);
+  if (member.role !== "ADMIN") throw new HttpError(403, "Admin only");
+
+  const locks = await prisma.roomQuizLock.findMany({
+    where: { quizId },
+    include: {
+      user: { select: { id: true, name: true, username: true, avatarColor: true, avatarUrl: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  res.json(locks);
+});
+
+// ─── Unlock quiz for a user (admin only) ──
+
+export const unlockQuiz = asyncHandler(async (req, res) => {
+  const { id, quizId, userId } = req.params;
+  const member = await ensureMember(id, req.user.id);
+  if (member.role !== "ADMIN") throw new HttpError(403, "Admin only");
+
+  const lock = await prisma.roomQuizLock.findUnique({
+    where: { quizId_userId: { quizId, userId } },
+  });
+  if (!lock) throw new HttpError(404, "Lock not found");
+
+  await prisma.roomQuizLock.delete({ where: { id: lock.id } });
+
+  res.json({ unlocked: true });
 });

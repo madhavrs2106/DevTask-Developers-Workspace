@@ -472,6 +472,13 @@ export function useQuizzes(roomId: string) {
   });
 }
 
+export function useLeaderboard(roomId: string) {
+  return useQuery({
+    queryKey: ["leaderboard", roomId],
+    queryFn: async () => (await api.get(`/rooms/${roomId}/quizzes/leaderboard`)).data,
+  });
+}
+
 export function useQuiz(roomId: string, quizId: string) {
   return useQuery<Quiz>({
     queryKey: ["quiz", roomId, quizId],
@@ -530,6 +537,35 @@ export function useDeleteSubmission(roomId: string, quizId: string) {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["quiz", roomId, quizId] });
       void queryClient.invalidateQueries({ queryKey: ["quizzes", roomId] });
+    },
+  });
+}
+
+export function useLockQuiz(roomId: string, quizId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async () =>
+      (await api.post(`/rooms/${roomId}/quizzes/${quizId}/lock`)).data,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["quiz", roomId, quizId] }),
+  });
+}
+
+export function useQuizLocks(roomId: string, quizId: string) {
+  return useQuery({
+    queryKey: ["quizLocks", roomId, quizId],
+    queryFn: async () => (await api.get(`/rooms/${roomId}/quizzes/${quizId}/locks`)).data,
+    enabled: !!quizId,
+  });
+}
+
+export function useUnlockQuiz(roomId: string, quizId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (userId: string) =>
+      (await api.post(`/rooms/${roomId}/quizzes/${quizId}/unlock/${userId}`)).data,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["quizLocks", roomId, quizId] });
+      void queryClient.invalidateQueries({ queryKey: ["quiz", roomId, quizId] });
     },
   });
 }

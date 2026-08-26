@@ -29,6 +29,10 @@ import {
   gradeSubmission,
   deleteSubmission,
   uploadQuizImage,
+  lockQuiz,
+  getQuizLocks,
+  unlockQuiz,
+  getLeaderboard,
 } from "../controllers/quiz.controller.js";
 import { requireAuth } from "../middleware/auth.js";
 import { uploadNoteFile } from "../middleware/upload.js";
@@ -60,6 +64,7 @@ router.put("/:id/focus/:sessionId", updateFocusStatus);
 router.delete("/:id/members/:memberId", removeMember);
 
 router.get("/:id/quizzes", listQuizzes);
+router.get("/:id/quizzes/leaderboard", getLeaderboard);
 router.post("/:id/quizzes", createQuiz);
 router.post("/:id/quizzes/upload", uploadNoteFile.single("file"), uploadQuizImage);
 router.get("/:id/quizzes/:quizId", getQuiz);
@@ -70,5 +75,8 @@ router.delete("/:id/quizzes/:quizId", deleteQuiz);
 router.post("/:id/quizzes/:quizId/submit", submitQuiz);
 router.post("/:id/quizzes/:quizId/grade", gradeSubmission);
 router.delete("/:id/quizzes/:quizId/submissions/:submissionId", deleteSubmission);
+router.post("/:id/quizzes/:quizId/lock", lockQuiz);
+router.get("/:id/quizzes/:quizId/locks", getQuizLocks);
+router.post("/:id/quizzes/:quizId/unlock/:userId", unlockQuiz);
 
 export default router;

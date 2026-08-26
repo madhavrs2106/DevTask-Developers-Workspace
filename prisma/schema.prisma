@@ -57,6 +57,7 @@ model User {
   syllabusCompletions RoomSyllabusCompletion[]
   roomNotes        RoomNote[]
   quizSubmissions   RoomQuizSubmission[]
+  quizLocks         RoomQuizLock[]
   createdQuizzes   RoomQuiz[]
 }
 
@@ -346,6 +347,7 @@ model RoomQuiz {
 
   questions   RoomQuizQuestion[]
   submissions RoomQuizSubmission[]
+  locks       RoomQuizLock[]
 
   @@index([roomId])
 }
@@ -372,6 +374,20 @@ model RoomQuizSubmission {
   status    String   @default("SUBMITTED") // SUBMITTED | GRADED
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  quiz   RoomQuiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  quizId String
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  @@unique([quizId, userId])
+  @@index([quizId])
+  @@index([userId])
+}
+
+model RoomQuizLock {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
 
   quiz   RoomQuiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
   quizId String

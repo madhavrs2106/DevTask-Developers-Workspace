@@ -1,4 +1,4 @@
-import { useQuizzes, useMe } from "../../hooks/useQueries";
+import { useLeaderboard, useMe } from "../../hooks/useQueries";
 import type { CoLearningRoomFull } from "../../types";
 import { Trophy, Medal } from "lucide-react";
 
@@ -18,11 +18,15 @@ interface LeaderboardEntry {
   averagePercent: number;
 }
 
-export function LeaderboardTab({ room }: Props) {
-  const { data: quizzes = [] } = useQuizzes(room.id);
-  const { data: me } = useMe();
+interface QuizWithSubmissions {
+  id: string;
+  questions: { id: string }[];
+  submissions: { score: number | null; userId: string }[];
+}
 
-  const published = quizzes.filter((q) => q.status === "PUBLISHED");
+export function LeaderboardTab({ room }: Props) {
+  const { data: quizzes = [] } = useLeaderboard(room.id) as { data: QuizWithSubmissions[] };
+  const { data: me } = useMe();
 
   const entries = new Map<string, LeaderboardEntry>();
 
@@ -40,10 +44,10 @@ export function LeaderboardTab({ room }: Props) {
     });
   }
 
-  for (const quiz of published) {
+  for (const quiz of quizzes) {
     const maxScore = quiz.questions?.length ?? 0;
     for (const sub of quiz.submissions ?? []) {
-      const entry = entries.get(sub.user.id);
+      const entry = entries.get(sub.userId);
       if (!entry) continue;
       entry.quizzesTaken += 1;
       entry.totalScore += sub.score ?? 0;
@@ -64,7 +68,7 @@ export function LeaderboardTab({ room }: Props) {
     <div>
       <h2 className="font-semibold text-[var(--text-primary)] mb-4">Leaderboard</h2>
 
-      {published.length === 0 ? (
+      {quizzes.length === 0 ? (
         <p className="text-[var(--text-secondary)] text-sm py-8 text-center">
           No published quizzes yet. Rankings will appear here once quizzes are taken.
         </p>

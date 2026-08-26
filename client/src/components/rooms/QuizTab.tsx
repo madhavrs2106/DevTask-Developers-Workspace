@@ -10,10 +10,13 @@ import {
   useDeleteSubmission,
   usePublishQuiz,
   useUnpublishQuiz,
+  useQuizLocks,
+  useUnlockQuiz,
+  useMe,
 } from "../../hooks/useQueries";
 import { Button } from "../ui/Button";
 import { Spinner } from "../ui/Spinner";
-import { Trash2, Plus, X, Check, Clock, FileText, ChevronDown, ChevronUp, Star, Send, EyeOff, Search, Pencil, AlertTriangle, Shield } from "lucide-react";
+import { Trash2, Plus, X, Check, Clock, FileText, ChevronDown, ChevronUp, Star, Send, EyeOff, Search, Pencil, AlertTriangle, Shield, Unlock } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useAntiCheat } from "../../hooks/useAntiCheat";
 import type { CoLearningRoomFull, Quiz, QuizQuestion } from "../../types";
@@ -829,6 +832,9 @@ function QuizDetailView({
   const submitQuiz = useSubmitQuiz(roomId, quizId);
   const gradeSubmission = useGradeSubmission(roomId, quizId);
   const deleteSubmission = useDeleteSubmission(roomId, quizId);
+  const { data: locks = [] } = useQuizLocks(roomId, quizId);
+  const unlockQuiz = useUnlockQuiz(roomId, quizId);
+  const { data: me } = useMe();
 
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
@@ -840,19 +846,20 @@ function QuizDetailView({
 
   const isTakingQuiz = !isAdmin && !quiz?.mySubmission && !submitted;
   const {
-    violations,
-    isLocked,
+    isLocked: clientLocked,
     showWarning,
     warningMessage,
     isFullscreen,
     requestFullscreen,
-    exitFullscreen,
-    clearLock,
+    setLocked,
   } = useAntiCheat({
+    roomId,
     quizId,
     enabled: isTakingQuiz && quizStarted,
     onViolation: () => {},
   });
+
+  const isMyLocked = locks.some((l: { userId: string }) => l.userId === me?.id) || clientLocked;
 
   if (isLoading) {
     return (
@@ -879,7 +886,6 @@ function QuizDetailView({
     const allAnswered = questions.every((q) => answers[q.id]?.trim());
     if (!allAnswered) return;
     await submitQuiz.mutateAsync(answers);
-    clearLock();
     setSubmitted(true);
   };
 
@@ -944,16 +950,16 @@ function QuizDetailView({
           )}
 
           {/* Quiz locked screen */}
-          {isLocked && (
+          {isMyLocked && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95">
               <div className="bg-slate-900 border border-red-500 rounded-xl p-8 text-center max-w-sm mx-4">
                 <Shield size={48} className="mx-auto mb-4 text-red-400" />
                 <p className="text-white font-bold text-lg">Quiz Locked</p>
                 <p className="text-slate-300 mt-2">
-                  You have exceeded the maximum number of violations.
+                  You violated the quiz rules.
                 </p>
                 <p className="text-slate-400 text-sm mt-2">
-                  Please contact your admin to retake the quiz.
+                  Please contact your admin to unlock this quiz.
                 </p>
               </div>
             </div>
@@ -983,13 +989,11 @@ function QuizDetailView({
               </div>
             ) : (
               <>
-                {/* Violation counter */}
-                {violations > 0 && (
-                  <div className="flex items-center gap-2 text-xs text-amber-400 bg-amber-400/10 border border-amber-400/20 rounded-lg px-3 py-2">
-                    <AlertTriangle size={14} />
-                    <span>
-                      {violations} violation — quiz is now locked
-                    </span>
+                {/* Locked indicator */}
+                {isMyLocked && (
+                  <div className="flex items-center gap-2 text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">
+                    <Shield size={14} />
+                    <span>Quiz locked — contact admin to unlock</span>
                   </div>
                 )}
 
@@ -1021,7 +1025,7 @@ function QuizDetailView({
                   <Button
                     variant="primary"
                     onClick={handleSubmit}
-                    disabled={submitQuiz.isPending || !questions.every((q) => answers[q.id]?.trim()) || isLocked}
+                    disabled={submitQuiz.isPending || !questions.every((q) => answers[q.id]?.trim()) || isMyLocked}
                   >
                     {submitQuiz.isPending ? "Submitting..." : "Submit Quiz"}
                   </Button>
@@ -1080,6 +1084,51 @@ function QuizDetailView({
             {mySubmission.feedback && (
               <p className="mt-2 text-xs text-ink-faint">{mySubmission.feedback}</p>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Admin: locked members */}
+      {isAdmin && locks.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-sm font-semibold text-white flex items-center gap-2">
+            <Shield size={14} className="text-red-400" />
+            Locked Members ({locks.length})
+          </h3>
+          <div className="space-y-2">
+            {locks.map((lock: { id: string; userId: string; user: { id: string; name: string; username: string; avatarColor: string; avatarUrl: string | null } }) => (
+              <div
+                key={lock.id}
+                className="flex items-center justify-between bg-red-500/5 border border-red-500/20 rounded-lg px-4 py-3"
+              >
+                <div className="flex items-center gap-3">
+                  {lock.user.avatarUrl ? (
+                    <img src={lock.user.avatarUrl} alt={lock.user.username} className="w-8 h-8 rounded-full object-cover" />
+                  ) : (
+                    <div
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold"
+                      style={{ backgroundColor: lock.user.avatarColor }}
+                    >
+                      {lock.user.username[0].toUpperCase()}
+                    </div>
+                  )}
+                  <div>
+                    <p className="text-sm font-medium text-white">{lock.user.name}</p>
+                    <p className="text-xs text-slate-400">@{lock.user.username}</p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => unlockQuiz.mutateAsync(lock.userId)}
+                  disabled={unlockQuiz.isPending}
+                  className="text-teal-400 hover:bg-teal-400/10"
+                >
+                  <Unlock size={14} className="mr-1.5" />
+                  Unlock
+                </Button>
+              </div>
+            ))}
           </div>
         </div>
       )}
