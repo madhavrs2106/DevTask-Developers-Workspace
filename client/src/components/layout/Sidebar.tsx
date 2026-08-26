@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import {
   FolderGit2,
   GraduationCap,
@@ -28,8 +28,13 @@ const NAV_ITEMS = [
   { to: "/search", label: "Find Devs", icon: Search },
 ] as const;
 
+const SIDEBAR_ROUTES: Record<string, string[]> = {
+  "/board": ["/board", "/tasks"],
+};
+
 export function Sidebar({ open, onClose }: SidebarProps) {
   const { user } = useAuth();
+  const location = useLocation();
 
   return (
     <>
@@ -70,13 +75,16 @@ export function Sidebar({ open, onClose }: SidebarProps) {
 
         {/* Nav */}
         <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-          {NAV_ITEMS.map(({ to, label, icon: Icon, ...rest }) => (
+          {NAV_ITEMS.map(({ to, label, icon: Icon, ...rest }) => {
+            const routes = SIDEBAR_ROUTES[to] ?? [to];
+            const isActive = routes.some((r) => location.pathname === r || location.pathname.startsWith(r + "/"));
+            return (
             <NavLink
               key={to}
               to={to}
               end={"end" in rest ? rest.end : false}
               onClick={onClose}
-              className={({ isActive }) =>
+              className={() =>
                 cn(
                   "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
                   isActive
@@ -85,7 +93,6 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                 )
               }
             >
-              {({ isActive }) => (
                 <>
                   {/* Glowing cyan active indicator */}
                   <span
@@ -104,9 +111,9 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                   />
                   <span>{label}</span>
                 </>
-              )}
             </NavLink>
-          ))}
+            );
+          })}
         </nav>
 
         {/* Bottom: Profile + Settings */}
