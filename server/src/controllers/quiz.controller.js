@@ -52,10 +52,22 @@ export const listQuizzes = asyncHandler(async (req, res) => {
     include: {
       creator: { select: { id: true, name: true, username: true, avatarColor: true } },
       _count: { select: { questions: true, submissions: true } },
+      submissions: {
+        where: { userId: req.user.id },
+        select: { id: true, score: true, status: true },
+        take: 1,
+      },
     },
   });
 
-  res.json(quizzes);
+  // Flatten mySubmission for convenience
+  const result = quizzes.map((q) => ({
+    ...q,
+    mySubmission: q.submissions[0] ?? null,
+    submissions: undefined,
+  }));
+
+  res.json(result);
 });
 
 // ─── Get a single quiz with questions ────────────────────────────
@@ -267,11 +279,23 @@ export const submitQuiz = asyncHandler(async (req, res) => {
     }
   }
 
+  // Auto-grade: compare answers against correct answers
+  let score = 0;
+  for (const q of quiz.questions) {
+    const userAnswer = (data.answers[q.id] || "").trim();
+    const correctAnswer = q.answer.trim();
+    if (userAnswer === correctAnswer) {
+      score++;
+    }
+  }
+
   const submission = await prisma.roomQuizSubmission.create({
     data: {
       quizId,
       userId: req.user.id,
       answers: JSON.stringify(data.answers),
+      score,
+      status: "GRADED",
     },
     include: {
       user: { select: { id: true, name: true, username: true, avatarColor: true, avatarUrl: true } },

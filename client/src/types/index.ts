@@ -290,5 +290,6 @@ export interface Quiz {
   creator: Pick<User, "id" | "name" | "username" | "avatarColor">;
   questions?: QuizQuestion[];
   submissions?: QuizSubmission[];
+  mySubmission?: { id: string; score: number | null; status: string } | null;
   _count?: { questions: number; submissions: number };
 }

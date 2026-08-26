@@ -155,6 +155,16 @@ function QuizCard({
   const questionCount = quiz._count?.questions ?? quiz.questions?.length ?? 0;
   const submissionCount = quiz._count?.submissions ?? quiz.submissions?.length ?? 0;
   const isDraft = quiz.status === "DRAFT";
+  const mySubmission = quiz.mySubmission;
+  const hasSubmitted = !!mySubmission;
+
+  const getScoreColor = (score: number | null, total: number) => {
+    if (score === null) return "text-slate-400";
+    const pct = (score / total) * 100;
+    if (pct >= 80) return "text-teal-400";
+    if (pct >= 50) return "text-amber-400";
+    return "text-red-400";
+  };
 
   return (
     <div className={cn(
@@ -205,6 +215,13 @@ function QuizCard({
             <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onView(); }} className="flex-1">
               View
             </Button>
+          </div>
+        ) : hasSubmitted ? (
+          <div className="mt-3 flex items-center justify-between rounded-lg border border-slate-800 bg-white/[0.02] px-4 py-2.5">
+            <span className="text-xs text-ink-faint">Your score</span>
+            <span className={cn("text-sm font-bold", getScoreColor(mySubmission.score, questionCount))}>
+              {mySubmission.score}/{questionCount}
+            </span>
           </div>
         ) : (
           <div className="mt-3">
