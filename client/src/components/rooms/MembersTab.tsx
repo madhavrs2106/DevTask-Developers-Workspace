@@ -1,7 +1,9 @@
+import { Link } from "react-router-dom";
 import { useLeaveRoom } from "../../hooks/useQueries";
 import { Button } from "../ui/Button";
 import type { CoLearningRoomFull } from "../../types";
 import { useNavigate } from "react-router";
+import { Crown, CalendarClock, Trash2 } from "lucide-react";
 
 interface Props {
   room: CoLearningRoomFull;
@@ -18,8 +20,8 @@ export function MembersTab({ room, isAdmin }: Props) {
   };
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-4">
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
         <h2 className="font-semibold text-[var(--text-primary)]">
           Members ({room.members.length}/{room.maxMembers})
         </h2>
@@ -30,45 +32,55 @@ export function MembersTab({ room, isAdmin }: Props) {
         )}
       </div>
 
-      <div className="space-y-2">
+      <ul className="space-y-2">
         {room.members.map((member) => (
-          <div
-            key={member.id}
-            className="flex items-center gap-3 p-3 rounded-lg bg-[var(--bg-card)] border border-[var(--border)]"
-          >
-            {member.user.avatarUrl ? (
-              <img
-                src={member.user.avatarUrl}
-                alt={member.user.username}
-                className="w-8 h-8 rounded-full object-cover shrink-0"
-              />
-            ) : (
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
-                style={{ backgroundColor: member.user.avatarColor }}
+          <li key={member.id}>
+            <Link
+              to={`/u/${member.user.username}`}
+              className="card card-interactive group flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3.5 sm:flex-nowrap"
+            >
+              {/* Avatar */}
+              <span
+                className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full text-xs font-bold text-slate-950"
+                style={{
+                  background: `linear-gradient(135deg, ${member.user.avatarColor}, rgb(var(--accent-2-rgb)))`,
+                  boxShadow: `0 0 14px ${member.user.avatarColor}55`,
+                }}
               >
-                {member.user.username[0].toUpperCase()}
-              </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-[var(--text-primary)]">
-                {member.user.name}
-              </p>
-              <p className="text-xs text-[var(--text-secondary)]">@{member.user.username}</p>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              {member.role === "ADMIN" && (
-                <span className="text-xs bg-[var(--accent)]/10 text-[var(--accent)] px-2 py-0.5 rounded-full">
-                  Admin
-                </span>
-              )}
-              <span className="text-xs text-[var(--text-secondary)]">
-                Joined {new Date(member.joinedAt).toLocaleDateString()}
+                {member.user.avatarUrl ? (
+                  <img src={member.user.avatarUrl} alt="" className="h-full w-full rounded-full object-cover" />
+                ) : (
+                  member.user.name.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase()
+                )}
               </span>
-            </div>
-          </div>
+
+              {/* Name + username */}
+              <div className="min-w-0 flex-1 basis-full sm:basis-auto">
+                <div className="flex min-w-0 items-center gap-2">
+                  <h4 className="truncate text-sm font-medium text-slate-100">
+                    {member.user.name}
+                  </h4>
+                  {member.role === "ADMIN" && (
+                    <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-amber-400/10 border border-amber-400/25 px-2 py-0.5 text-[10px] font-medium uppercase text-amber-300">
+                      <Crown size={10} />
+                      Admin
+                    </span>
+                  )}
+                </div>
+                <p className="mt-0.5 font-mono text-[11px] text-accent-bright/80">
+                  @{member.user.username}
+                </p>
+              </div>
+
+              {/* Joined date */}
+              <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-ink-faint">
+                <CalendarClock size={12} />
+                {new Date(member.joinedAt).toLocaleDateString()}
+              </span>
+            </Link>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }
