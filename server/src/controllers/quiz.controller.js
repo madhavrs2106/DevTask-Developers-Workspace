@@ -109,16 +109,22 @@ export const getQuiz = asyncHandler(async (req, res) => {
   }
 
   const isAdmin = member.role === "ADMIN";
+  const hasSubmitted = quiz.submissions.some((s) => s.userId === req.user.id);
 
   // Flatten mySubmission for convenience (before stripping other users' data)
   quiz.mySubmission = quiz.submissions.find((s) => s.userId === req.user.id) ?? null;
 
-  // For non-admins, hide correct answers and strip score/feedback from other users' submissions
-  if (!isAdmin) {
+  // For non-admins: strip answers only if they haven't submitted yet (during quiz taking)
+  // If they already submitted, keep answers so they can see correct answers in Result view
+  if (!isAdmin && !hasSubmitted) {
     quiz.questions = quiz.questions.map((q) => ({
       ...q,
       answer: undefined,
     }));
+  }
+
+  // For non-admins, strip score/feedback from other users' submissions
+  if (!isAdmin) {
     quiz.submissions = quiz.submissions.map((s) => ({
       ...s,
       answers: s.userId === req.user.id ? s.answers : undefined,
