@@ -73,14 +73,19 @@ export const listQuizzes = asyncHandler(async (req, res) => {
         select: { id: true, score: true, status: true },
         take: 1,
       },
+      locks: {
+        select: { userId: true },
+      },
     },
   });
 
-  // Flatten mySubmission for convenience
+  // Flatten mySubmission and add lockedUserIds for convenience
   const result = quizzes.map((q) => ({
     ...q,
     mySubmission: q.submissions[0] ?? null,
     submissions: undefined,
+    lockedUserIds: q.locks.map((l) => l.userId),
+    locks: undefined,
   }));
 
   res.json(result);

@@ -109,6 +109,7 @@ function QuizListView({
   onViewResult: (id: string) => void;
 }) {
   const { data: quizzes = [], isLoading } = useQuizzes(room.id);
+  const { data: me } = useMe();
   const deleteQuiz = useDeleteQuiz(room.id);
   const publishQuiz = usePublishQuiz(room.id);
   const unpublishQuiz = useUnpublishQuiz(room.id);
@@ -150,6 +151,7 @@ function QuizListView({
               key={quiz.id}
               quiz={quiz}
               isAdmin={isAdmin}
+              isLocked={quiz.lockedUserIds?.includes(me?.id ?? "") ?? false}
               onTake={() => onTakeQuiz(quiz.id)}
               onView={() => onViewQuiz(quiz.id)}
               onEdit={() => onEditQuiz(quiz.id)}
@@ -168,6 +170,7 @@ function QuizListView({
 function QuizCard({
   quiz,
   isAdmin,
+  isLocked,
   onTake,
   onView,
   onEdit,
@@ -178,6 +181,7 @@ function QuizCard({
 }: {
   quiz: Quiz;
   isAdmin: boolean;
+  isLocked: boolean;
   onTake: () => void;
   onView: () => void;
   onEdit: () => void;
@@ -277,9 +281,16 @@ function QuizCard({
           </div>
         ) : (
           <div className="mt-3">
-            <Button variant="primary" size="sm" onClick={(e) => { e.stopPropagation(); onTake(); }} className="w-full">
-              Take Quiz
-            </Button>
+            {isLocked ? (
+              <div className="flex items-center justify-center gap-2 text-xs text-red-400 bg-red-400/10 border border-red-400/20 rounded-lg px-3 py-2">
+                <Shield size={13} />
+                <span className="font-medium">Locked — contact admin</span>
+              </div>
+            ) : (
+              <Button variant="primary" size="sm" onClick={(e) => { e.stopPropagation(); onTake(); }} className="w-full">
+                Take Quiz
+              </Button>
+            )}
           </div>
         )}
       </div>

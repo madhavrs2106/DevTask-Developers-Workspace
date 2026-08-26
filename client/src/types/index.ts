@@ -292,4 +292,5 @@ export interface Quiz {
   submissions?: QuizSubmission[];
   mySubmission?: { id: string; score: number | null; status: string; answers?: string | null; feedback?: string | null } | null;
   _count?: { questions: number; submissions: number };
+  lockedUserIds?: string[];
 }
