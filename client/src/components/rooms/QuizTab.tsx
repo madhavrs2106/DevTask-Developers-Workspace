@@ -217,7 +217,7 @@ function QuizCard({
 
       {expanded && quiz.description && (
         <div className="px-4 pb-4 border-t border-slate-800/60 pt-3">
-          <p className="text-xs text-ink-faint">{quiz.description}</p>
+          <p className="text-xs text-ink-faint whitespace-pre-wrap">{quiz.description}</p>
         </div>
       )}
     </div>
@@ -331,8 +331,19 @@ function CreateQuizView({
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="input-dark w-full min-h-[60px]"
-            placeholder="Optional description"
+            className="input-dark w-full min-h-[60px] font-mono"
+            placeholder="Optional description (supports multi-line)"
+            onKeyDown={(e) => {
+              if (e.key === "Tab") {
+                e.preventDefault();
+                const ta = e.currentTarget;
+                const start = ta.selectionStart;
+                const end = ta.selectionEnd;
+                const val = ta.value;
+                setDescription(val.substring(0, start) + "\t" + val.substring(end));
+                setTimeout(() => { ta.selectionStart = ta.selectionEnd = start + 1; }, 0);
+              }
+            }}
           />
         </div>
       </div>
@@ -537,7 +548,7 @@ function QuizDetailView({
           </button>
           <h2 className="text-lg font-bold text-white">{quiz.title}</h2>
           {quiz.description && (
-            <p className="mt-1 text-sm text-ink-faint">{quiz.description}</p>
+            <p className="mt-1 text-sm text-ink-faint whitespace-pre-wrap">{quiz.description}</p>
           )}
         </div>
         <span className="text-xs text-ink-faint">
