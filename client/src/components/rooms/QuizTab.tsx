@@ -1036,6 +1036,9 @@ function QuizDetailView({
                     {isGraded ? (
                       <span className={cn("text-sm font-bold", getScoreColor(sub.score, questions.length))}>
                         {sub.score}/{questions.length}
+                        <span className="text-xs font-normal text-ink-faint ml-1.5">
+                          ({Math.round(((sub.score ?? 0) / questions.length) * 100)}%)
+                        </span>
                       </span>
                     ) : (
                       <span className="flex items-center gap-1 text-xs text-amber-400">
