@@ -14,7 +14,7 @@ import {
 } from "../../hooks/useQueries";
 import { Button } from "../ui/Button";
 import { Spinner } from "../ui/Spinner";
-import { Trash2, Plus, X, Check, Clock, FileText, ChevronDown, ChevronUp, Star, Send, EyeOff, Search, Image as ImageIcon } from "lucide-react";
+import { Trash2, Plus, X, Check, Clock, FileText, ChevronDown, ChevronUp, Star, Send, EyeOff, Search, Image as ImageIcon, Pencil } from "lucide-react";
 import { cn } from "../../lib/utils";
 import type { CoLearningRoomFull, Quiz, QuizQuestion } from "../../types";
 
@@ -238,14 +238,21 @@ function QuizCard({
                   Publish
                 </Button>
                 <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onEdit(); }} className="flex-1">
+                  <Pencil size={12} className="mr-1" />
                   Edit
                 </Button>
               </>
             ) : (
-              <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onUnpublish(); }} className="flex-1 text-amber-400 hover:bg-amber-400/10">
-                <EyeOff size={12} className="mr-1" />
-                Unpublish
-              </Button>
+              <>
+                <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onUnpublish(); }} className="flex-1 text-amber-400 hover:bg-amber-400/10">
+                  <EyeOff size={12} className="mr-1" />
+                  Unpublish
+                </Button>
+                <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onEdit(); }} className="flex-1">
+                  <Pencil size={12} className="mr-1" />
+                  Edit
+                </Button>
+              </>
             )}
             <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); onView(); }} className="flex-1">
               View
