@@ -38,11 +38,39 @@ export function SearchPage() {
       </div>
 
       {debounced.trim().length < 2 ? (
-        <EmptyState
-          icon={Users}
-          title="Search for developers"
-          hint="Type at least 2 characters to find other developers by their username or name."
-        />
+        <>
+          <EmptyState
+            icon={Users}
+            title="Search for developers"
+            hint="Type at least 2 characters to find other developers by their username or name."
+          />
+          <div>
+            <p className="mb-3 text-xs font-medium uppercase tracking-wider text-ink-faint">Suggested accounts</p>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {[
+                { username: "satoshi_demo", name: "Satoshi Demo", color: "#8B5CF6" },
+                { username: "madhavrs_official", name: "Madhav RS", color: "#06B6D4" },
+              ].map((u) => (
+                <Link
+                  key={u.username}
+                  to={`/u/${u.username}`}
+                  className="flex items-center gap-3 rounded-xl border border-slate-800 bg-surface-raised p-3 transition-colors hover:border-slate-700 hover:bg-surface-raised/80"
+                >
+                  <span
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold text-slate-950"
+                    style={{ backgroundColor: u.color }}
+                  >
+                    {u.name[0]}
+                  </span>
+                  <div className="min-w-0">
+                    <span className="block truncate text-sm font-medium text-white">{u.name}</span>
+                    <span className="block truncate font-mono text-[11px] text-accent-bright/80">@{u.username}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </>
       ) : isLoading ? (
         <div className="flex justify-center py-16">
           <Spinner />
