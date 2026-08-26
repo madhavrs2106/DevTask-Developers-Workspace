@@ -259,7 +259,7 @@ export function SyllabusTab({ room }: Props) {
                       )}
                     </div>
                     {item.description && (
-                      <p className="text-xs text-[var(--text-secondary)] mt-0.5 line-clamp-2">{item.description}</p>
+                      <p className="text-xs text-[var(--text-secondary)] mt-0.5 whitespace-pre-wrap">{item.description}</p>
                     )}
                     {/* Member completion avatars */}
                     <MemberCompletionAvatars
