@@ -110,6 +110,9 @@ export const getQuiz = asyncHandler(async (req, res) => {
 
   const isAdmin = member.role === "ADMIN";
 
+  // Flatten mySubmission for convenience (before stripping other users' data)
+  quiz.mySubmission = quiz.submissions.find((s) => s.userId === req.user.id) ?? null;
+
   // For non-admins, hide correct answers and strip score/feedback from other users' submissions
   if (!isAdmin) {
     quiz.questions = quiz.questions.map((q) => ({
