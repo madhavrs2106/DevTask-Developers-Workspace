@@ -973,6 +973,8 @@ function QuestionCard({
 }) {
   const displayVal = userAnswer ?? value;
   const textParts = parseTextWithImages(question.text);
+  const textOnly = textParts.filter((p) => p.type === "text").map((p) => p.value).join("").trim();
+  const imagesOnly = textParts.filter((p) => p.type === "image");
 
   const parseOptionText = (opt: string) => {
     const parts = opt.split(/!\[image\]\(([^)]+)\)/);
@@ -989,15 +991,16 @@ function QuestionCard({
           {index + 1}
         </span>
         <div className="flex-1 min-w-0">
-          <div className="text-sm text-white whitespace-pre-wrap font-mono">
-            {textParts.map((part, i) =>
-              part.type === "image" ? (
-                <img key={i} src={part.value} alt="" className="max-h-48 my-2 rounded-lg border border-slate-700" />
-              ) : (
-                <span key={i}>{part.value}</span>
-              )
-            )}
-          </div>
+          {textOnly && (
+            <p className="text-sm text-white whitespace-pre-wrap font-mono">{textOnly}</p>
+          )}
+          {imagesOnly.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {imagesOnly.map((part, i) => (
+                <img key={i} src={part.value} alt="" className="max-h-48 rounded-lg border border-slate-700" />
+              ))}
+            </div>
+          )}
           <span className="mt-1 inline-block rounded-full bg-slate-800 px-2 py-0.5 text-[10px] font-medium uppercase text-ink-faint">
             {question.type === "MCQ" ? "Multiple Choice" : "Numerical"}
           </span>
