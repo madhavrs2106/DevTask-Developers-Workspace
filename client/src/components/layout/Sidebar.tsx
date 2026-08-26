@@ -3,7 +3,6 @@ import {
   FolderGit2,
   GraduationCap,
   LayoutDashboard,
-  ListChecks,
   Search,
   Settings,
   SquareKanban,
@@ -23,7 +22,6 @@ interface SidebarProps {
 const NAV_ITEMS = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/board", label: "Task Board", icon: SquareKanban },
-  { to: "/tasks", label: "All Tasks", icon: ListChecks },
   { to: "/projects", label: "Projects", icon: FolderGit2 },
   { to: "/courses", label: "Courses", icon: GraduationCap },
   { to: "/rooms", label: "Co-Learning", icon: Users },
