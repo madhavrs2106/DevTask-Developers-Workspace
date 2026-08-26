@@ -253,6 +253,25 @@ export function useSearchUsers(query: string) {
   });
 }
 
+export function useSuggestedUsers() {
+  return useQuery<User[]>({
+    queryKey: ["suggestedUsers"],
+    queryFn: async () => {
+      const results = await Promise.all(
+        ["satoshi_demo", "madhavrs_official"].map(async (username) => {
+          try {
+            const res = await api.get<{ user: User }>(`/users/${username}`);
+            return res.data.user;
+          } catch {
+            return null;
+          }
+        })
+      );
+      return results.filter((u): u is User => u !== null);
+    },
+  });
+}
+
 /* ── Follows ────────────────────────────────────────────────── */
 
 export function useFollowUser() {

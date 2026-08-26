@@ -36,12 +36,20 @@ function FocusTimer({ session, roomId }: { session: FocusSession; roomId: string
   return (
     <div className="p-3 rounded-lg bg-[var(--bg-card)] border border-[var(--border)]">
       <div className="flex items-center gap-3">
-        <div
-          className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
-          style={{ backgroundColor: session.user.avatarColor }}
-        >
-          {session.user.username[0].toUpperCase()}
-        </div>
+        {session.user.avatarUrl ? (
+          <img
+            src={session.user.avatarUrl}
+            alt={session.user.username}
+            className="w-8 h-8 rounded-full object-cover shrink-0"
+          />
+        ) : (
+          <div
+            className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold shrink-0"
+            style={{ backgroundColor: session.user.avatarColor }}
+          >
+            {session.user.username[0].toUpperCase()}
+          </div>
+        )}
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium text-[var(--text-primary)] truncate">{session.task}</p>
           <p className="text-xs text-[var(--text-secondary)]">{session.user.username}</p>
