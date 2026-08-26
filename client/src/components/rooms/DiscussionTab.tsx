@@ -198,9 +198,22 @@ export function DiscussionTab({ room }: Props) {
         </p>
       ) : (
         <div className="space-y-3">
-          {room.discussions.map((post) => (
+          {room.discussions
+            .filter((post) => {
+              if (!selectedItemId) return !post.syllabusItem;
+              return post.syllabusItem?.id === selectedItemId;
+            })
+            .map((post) => (
             <DiscussionPost key={post.id} post={post} roomId={room.id} currentUserId={me?.id ?? ""} />
           ))}
+          {room.discussions.filter((post) => {
+            if (!selectedItemId) return !post.syllabusItem;
+            return post.syllabusItem?.id === selectedItemId;
+          }).length === 0 && (
+            <p className="text-[var(--text-secondary)] text-sm py-8 text-center">
+              No discussions for this topic yet.
+            </p>
+          )}
         </div>
       )}
     </div>
