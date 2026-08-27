@@ -83,6 +83,7 @@ export default function CoLearningRoomPage() {
   return (
     <div className="p-4 sm:p-6 max-w-6xl mx-auto">
       {/* Header */}
+      {activeTab === "syllabus" && (
       <section className="card relative overflow-hidden p-6 mb-6">
         <div aria-hidden className="pointer-events-none absolute inset-0 bg-hero-radial" />
         <div className="relative flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
@@ -162,6 +163,7 @@ export default function CoLearningRoomPage() {
           </div>
         </div>
       </section>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-1 border-b border-[var(--border)] mb-6 overflow-x-auto">
