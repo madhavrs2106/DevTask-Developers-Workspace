@@ -135,16 +135,16 @@ export function NoupeChatbot() {
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label="Open DevTask assistant"
-        className="fixed bottom-5 right-5 z-[60] h-12 w-12 rounded-full bg-[var(--accent)] text-white shadow-lg flex items-center justify-center hover:scale-105 transition-transform"
+        className="fixed bottom-5 right-5 z-[60] h-12 w-12 rounded-full bg-accent text-white shadow-lg flex items-center justify-center hover:scale-105 transition-transform"
       >
         {open ? <X size={20} /> : <MessageCircle size={20} />}
       </button>
 
       {open && (
-        <div className="fixed bottom-20 right-5 z-[60] flex h-[28rem] w-80 flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-card)] shadow-2xl">
-          <div className="flex items-center justify-between border-b border-[var(--border)] px-3 py-2">
-            <span className="text-sm font-semibold text-[var(--text-primary)]">DevTask Assistant</span>
-            <button onClick={() => setOpen(false)} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
+        <div className="fixed bottom-20 right-5 z-[60] flex h-[28rem] w-80 flex-col overflow-hidden rounded-xl border border-slate-700 bg-surface-raised shadow-2xl">
+          <div className="flex items-center justify-between border-b border-slate-700 px-3 py-2">
+            <span className="text-sm font-semibold text-ink">DevTask Assistant</span>
+            <button onClick={() => setOpen(false)} className="text-ink-muted hover:text-ink">
               <X size={16} />
             </button>
           </div>
@@ -154,8 +154,8 @@ export function NoupeChatbot() {
                 <div
                   className={`max-w-[85%] rounded-lg px-3 py-2 text-xs leading-relaxed ${
                     m.role === "user"
-                      ? "bg-[var(--accent)] text-white"
-                      : "bg-[var(--bg)] text-[var(--text-primary)] border border-[var(--border)]"
+                      ? "bg-accent text-white"
+                      : "bg-surface text-ink border border-slate-700"
                   }`}
                 >
                   {m.text}
@@ -163,17 +163,17 @@ export function NoupeChatbot() {
               </div>
             ))}
           </div>
-          <div className="flex items-center gap-2 border-t border-[var(--border)] p-2">
+          <div className="flex items-center gap-2 border-t border-slate-700 p-2">
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && send()}
               placeholder="Ask about DevTask or study help…"
-              className="flex-1 rounded-lg border border-[var(--border)] bg-[var(--bg)] px-2 py-1.5 text-xs text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
+              className="flex-1 rounded-lg border border-slate-700 bg-surface px-2 py-1.5 text-xs text-ink placeholder:text-ink-faint focus:outline-none focus:border-accent"
             />
             <button
               onClick={send}
-              className="rounded-lg bg-[var(--accent)] p-2 text-white hover:opacity-90"
+              className="rounded-lg bg-accent p-2 text-white hover:opacity-90"
               aria-label="Send"
             >
               <Send size={14} />
