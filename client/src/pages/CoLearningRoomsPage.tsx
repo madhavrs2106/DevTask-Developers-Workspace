@@ -329,9 +329,6 @@ export default function CoLearningRoomsPage() {
                         </span>
                         <span className="text-sm font-medium text-[var(--text-primary)]">{item.title}</span>
                       </div>
-                      {item.description && (
-                        <p className="mt-1 text-xs text-[var(--text-secondary)] whitespace-pre-wrap line-clamp-2">{item.description}</p>
-                      )}
                     </div>
                   ))}
                 </div>
