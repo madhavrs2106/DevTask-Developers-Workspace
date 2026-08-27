@@ -359,23 +359,29 @@ function SolveView({ roomId, problemId, isAdmin, onBack }: { roomId: string; pro
           </div>
 
           {sampleCases.length > 0 && (
-            <div className="space-y-3">
-              <h4 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-2">
-                <ListChecks size={14} /> Sample Test Cases
-              </h4>
-              {sampleCases.map((tc, i) => (
-                <div key={i} className="space-y-2">
-                  <div className="text-xs font-semibold text-[var(--text-primary)]">Sample {i + 1}</div>
-                  <div>
-                    <div className="text-[11px] uppercase tracking-wide text-[var(--text-secondary)]">Input</div>
-                    <pre className="mt-0.5 bg-[var(--bg)] border border-[var(--border)] rounded-lg p-2 text-xs font-mono text-[var(--text-primary)] whitespace-pre-wrap">{tc.input}</pre>
-                  </div>
-                  <div>
-                    <div className="text-[11px] uppercase tracking-wide text-[var(--text-secondary)]">Output</div>
-                    <pre className="mt-0.5 bg-[var(--bg)] border border-[var(--border)] rounded-lg p-2 text-xs font-mono text-[var(--text-primary)] whitespace-pre-wrap">{tc.expected}</pre>
-                  </div>
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-2">Sample Input</h4>
+                <div className="space-y-2">
+                  {sampleCases.map((tc, i) => (
+                    <div key={i}>
+                      <div className="text-[11px] text-[var(--text-secondary)] mb-0.5">Sample {i + 1}</div>
+                      <pre className="bg-[var(--bg)] border border-[var(--border)] rounded-lg p-2 text-xs font-mono text-[var(--text-primary)] whitespace-pre-wrap">{tc.input}</pre>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+              <div>
+                <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-2">Sample Output</h4>
+                <div className="space-y-2">
+                  {sampleCases.map((tc, i) => (
+                    <div key={i}>
+                      <div className="text-[11px] text-[var(--text-secondary)] mb-0.5">Sample {i + 1}</div>
+                      <pre className="bg-[var(--bg)] border border-[var(--border)] rounded-lg p-2 text-xs font-mono text-[var(--text-primary)] whitespace-pre-wrap">{tc.expected}</pre>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
         </div>
