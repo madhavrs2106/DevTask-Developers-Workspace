@@ -1,0 +1,7 @@
+# Python libraries available to coding-problem submissions (auto-judged sandbox).
+# Keep this list lean; heavy ML frameworks are intentionally excluded.
+numpy
+pandas
+scipy
+sympy
+matplotlib

@@ -360,6 +360,12 @@ function SolveView({ roomId, problemId, isAdmin, onBack }: { roomId: string; pro
             </Button>
           </div>
 
+          {effectiveLang === "python" && (
+            <p className="text-[11px] text-[var(--text-secondary)]">
+              Available libraries: <span className="font-mono">numpy, pandas, scipy, sympy, matplotlib</span> — just <span className="font-mono">import</span> them.
+            </p>
+          )}
+
           <CodeEditor value={editorValue} onChange={setCode} language={effectiveLang} />
 
           {result && (
