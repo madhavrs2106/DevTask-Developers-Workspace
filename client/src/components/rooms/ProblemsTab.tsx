@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Code2,
   Plus,
@@ -16,6 +16,7 @@ import {
 import { Button } from "../ui/Button";
 import { Modal } from "../ui/Modal";
 import { EmptyState } from "../ui/EmptyState";
+import { useFullScreen } from "../../context/FullScreenContext";
 import {
   useProblems,
   useProblem,
@@ -277,9 +278,15 @@ function CreateProblemForm({ roomId, onDone }: { roomId: string; onDone: () => v
 function SolveView({ roomId, problemId, isAdmin, onBack }: { roomId: string; problemId: string; isAdmin: boolean; onBack: () => void }) {
   const { data: problem, isLoading } = useProblem(roomId, problemId);
   const submit = useSubmitSolution(roomId, problemId);
+  const { setFullScreen } = useFullScreen();
   const [lang, setLang] = useState<ProblemLanguage>("javascript");
   const [code, setCode] = useState("");
   const [result, setResult] = useState<{ status: string; passed: number; total: number; results: SubmissionResult[]; run?: boolean } | null>(null);
+
+  useEffect(() => {
+    setFullScreen(true);
+    return () => setFullScreen(false);
+  }, [setFullScreen]);
 
   if (isLoading || !problem) {
     return <div className="flex justify-center py-10"><Loader2 className="animate-spin text-[var(--accent)]" /></div>;

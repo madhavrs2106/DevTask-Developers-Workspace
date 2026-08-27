@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { useRoom, useLeaveRoom } from "../hooks/useQueries";
 import { useAuth } from "../context/AuthContext";
+import { useFullScreen } from "../context/FullScreenContext";
 import { SyllabusTab } from "../components/rooms/SyllabusTab";
 import { DiscussionTab } from "../components/rooms/DiscussionTab";
 import { LeaderboardTab } from "../components/rooms/LeaderboardTab";
@@ -33,6 +34,7 @@ export default function CoLearningRoomPage() {
 
   const [activeTab, setActiveTab] = useState<(typeof TABS)[number]["key"]>("syllabus");
   const [copied, setCopied] = useState(false);
+  const { fullScreen } = useFullScreen();
 
   if (isLoading) {
     return (
@@ -81,7 +83,7 @@ export default function CoLearningRoomPage() {
   const topicProgress = totalTopics > 0 ? Math.round((completedTopics / totalTopics) * 100) : 0;
 
   return (
-    <div className="p-4 sm:p-6 max-w-6xl mx-auto">
+    <div className={fullScreen ? "w-full p-4 sm:p-6" : "p-4 sm:p-6 max-w-6xl mx-auto"}>
       {/* Tabs */}
       <div className="flex gap-1 border-b border-[var(--border)] mb-6 overflow-x-auto">
         {visibleTabs.map((tab) => (
