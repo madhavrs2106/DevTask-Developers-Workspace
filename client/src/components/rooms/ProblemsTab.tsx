@@ -24,6 +24,7 @@ import {
   useDeleteProblem,
   useSubmitSolution,
   useProblemSubmissions,
+  useDeleteProblemSubmission,
   type ProblemInput,
 } from "../../hooks/useQueries";
 import type {
@@ -508,6 +509,7 @@ function SolveView({ roomId, problemId, isAdmin, onBack }: { roomId: string; pro
 
 function SubmissionsView({ roomId, problemId, isAdmin, onBack }: { roomId: string; problemId: string; isAdmin: boolean; onBack: () => void }) {
   const { data, isLoading } = useProblemSubmissions(roomId, problemId);
+  const delSub = useDeleteProblemSubmission(roomId, problemId);
   return (
     <div className="space-y-4">
       <button onClick={onBack} className="flex items-center gap-1 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
@@ -530,6 +532,19 @@ function SubmissionsView({ roomId, problemId, isAdmin, onBack }: { roomId: strin
               <div className="flex items-center gap-3">
                 <span className="text-xs text-[var(--text-secondary)]">{s.passed}/{s.total}</span>
                 <StatusBadge status={s.status} />
+                {isAdmin && (
+                  <button
+                    onClick={() => {
+                      if (window.confirm("Delete this submission? This cannot be undone.")) {
+                        delSub.mutate(s.id);
+                      }
+                    }}
+                    className="text-red-400 hover:text-red-300 p-1"
+                    title="Delete submission"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                )}
               </div>
             </div>
           ))}

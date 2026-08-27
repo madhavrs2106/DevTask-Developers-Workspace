@@ -44,6 +44,7 @@ import {
   deleteProblem,
   submitSolution,
   listSubmissions,
+  deleteProblemSubmission,
 } from "../controllers/problem.controller.js";
 import { requireAuth } from "../middleware/auth.js";
 import { uploadNoteFile } from "../middleware/upload.js";
@@ -99,5 +100,6 @@ router.get("/:id/problems/:problemId", getProblem);
 router.delete("/:id/problems/:problemId", deleteProblem);
 router.post("/:id/problems/:problemId/submit", submitSolution);
 router.get("/:id/problems/:problemId/submissions", listSubmissions);
+router.delete("/:id/problems/:problemId/submissions/:submissionId", deleteProblemSubmission);
 
 export default router;

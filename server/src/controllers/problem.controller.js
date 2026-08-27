@@ -236,3 +236,17 @@ export const listSubmissions = asyncHandler(async (req, res) => {
     }))
   );
 });
+
+export const deleteProblemSubmission = asyncHandler(async (req, res) => {
+  const member = await getMembership(req.params.id, req.user.id);
+  if (member.role !== "ADMIN") throw new HttpError(403, "Only admins can delete submissions");
+
+  const problem = await prisma.roomProblem.findUnique({ where: { id: req.params.problemId } });
+  if (!problem || problem.roomId !== req.params.id) throw new HttpError(404, "Problem not found");
+
+  const submission = await prisma.roomProblemSubmission.findUnique({ where: { id: req.params.submissionId } });
+  if (!submission || submission.problemId !== problem.id) throw new HttpError(404, "Submission not found");
+
+  await prisma.roomProblemSubmission.delete({ where: { id: submission.id } });
+  res.json({ success: true });
+});

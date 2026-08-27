@@ -693,6 +693,18 @@ export function useProblemSubmissions(roomId: string, problemId: string) {
   });
 }
 
+export function useDeleteProblemSubmission(roomId: string, problemId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (submissionId: string) =>
+      (await api.delete(`/rooms/${roomId}/problems/${problemId}/submissions/${submissionId}`)).data,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["problemSubmissions", roomId, problemId] });
+      void queryClient.invalidateQueries({ queryKey: ["problems", roomId] });
+    },
+  });
+}
+
 export function useUpdateQuiz(roomId: string) {
   const queryClient = useQueryClient();
   return useMutation({
