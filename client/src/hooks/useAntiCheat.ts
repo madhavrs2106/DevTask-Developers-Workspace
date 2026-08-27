@@ -117,18 +117,20 @@ export function useAntiCheat({ roomId, quizId, enabled, isLocked: backendLocked,
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [enabled, isLocked, triggerViolation]);
 
-  // Block right-click
+  // Block right-click — warning only, no lock
   useEffect(() => {
     if (!enabled || isLocked) return;
 
     const handleContextMenu = (e: Event) => {
       e.preventDefault();
-      triggerViolation("Right-click blocked! Quiz locked. Contact admin to unlock.");
+      setWarningMessage("Right-click is disabled during the quiz.");
+      setShowWarning(true);
+      setTimeout(() => setShowWarning(false), 3000);
     };
 
     document.addEventListener("contextmenu", handleContextMenu);
     return () => document.removeEventListener("contextmenu", handleContextMenu);
-  }, [enabled, isLocked, triggerViolation]);
+  }, [enabled, isLocked]);
 
   // Block text selection
   useEffect(() => {
