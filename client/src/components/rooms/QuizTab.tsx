@@ -156,7 +156,11 @@ function QuizListView({
               onView={() => onViewQuiz(quiz.id)}
               onEdit={() => onEditQuiz(quiz.id)}
               onViewResult={() => onViewResult(quiz.id)}
-              onDelete={() => deleteQuiz.mutateAsync(quiz.id)}
+              onDelete={() => {
+                if (window.confirm(`Are you sure you want to delete "${quiz.title}"? This cannot be undone.`)) {
+                  deleteQuiz.mutateAsync(quiz.id);
+                }
+              }}
               onPublish={() => publishQuiz.mutateAsync(quiz.id)}
               onUnpublish={() => unpublishQuiz.mutateAsync(quiz.id)}
             />
