@@ -172,15 +172,6 @@ export const getRoomPreview = asyncHandler(async (req, res) => {
     return res.status(404).json({ error: "Room not found" });
   }
 
-  if (room.visibility !== "PUBLIC") {
-    const member = await prisma.roomMember.findUnique({
-      where: { userId_roomId: { userId: req.user.id, roomId: id } },
-    });
-    if (!member) {
-      return res.status(403).json({ error: "This room is private" });
-    }
-  }
-
   const syllabusItems = await prisma.roomSyllabusItem.findMany({
     where: { roomId: id },
     orderBy: { order: "asc" },
