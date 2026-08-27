@@ -18,6 +18,7 @@ import {
   Lock,
   Globe,
   Eye,
+  LogIn,
 } from "lucide-react";
 import { api } from "../lib/api";
 import { ROLE_META } from "../lib/constants";
@@ -356,16 +357,33 @@ export function UserProfile() {
                     {room.streakCount > 0 && <span className="text-orange-400 ml-2">🔥 {room.streakCount}d</span>}
                   </span>
                   {!room.isMember && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setExploreRoomId(room.id);
-                      }}
-                      className="flex items-center gap-1 text-[11px] font-medium text-[var(--accent)] hover:underline"
-                    >
-                      <Eye size={12} />
-                      Explore
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExploreRoomId(room.id);
+                        }}
+                        className="flex items-center gap-1 text-[11px] font-medium text-[var(--accent)] hover:underline"
+                      >
+                        <Eye size={12} />
+                        Explore
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedRoom({
+                            id: room.id,
+                            name: room.name,
+                            visibility: room.visibility,
+                            inviteCode: room.inviteCode,
+                          });
+                        }}
+                        className="flex items-center gap-1 text-[11px] font-medium text-green-400 hover:underline"
+                      >
+                        <LogIn size={12} />
+                        Join
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>
