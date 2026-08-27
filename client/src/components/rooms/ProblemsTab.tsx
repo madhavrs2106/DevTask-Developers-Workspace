@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Code2,
   Plus,
@@ -283,10 +283,52 @@ function SolveView({ roomId, problemId, isAdmin, onBack }: { roomId: string; pro
   const [code, setCode] = useState("");
   const [result, setResult] = useState<{ status: string; passed: number; total: number; results: SubmissionResult[]; run?: boolean } | null>(null);
 
+  const [leftPct, setLeftPct] = useState(28);
+  const [rightPct, setRightPct] = useState(28);
+  const [dragging, setDragging] = useState<null | "left" | "right">(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isWide, setIsWide] = useState(
+    typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches
+  );
+
   useEffect(() => {
     setFullScreen(true);
     return () => setFullScreen(false);
   }, [setFullScreen]);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const handler = () => setIsWide(mq.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  useEffect(() => {
+    if (!dragging) return;
+    const onMove = (e: MouseEvent) => {
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const x = e.clientX - rect.left;
+      const pct = (x / rect.width) * 100;
+      if (dragging === "left") {
+        setLeftPct(Math.min(Math.max(pct, 15), 50));
+      } else {
+        const fromRight = ((rect.width - x) / rect.width) * 100;
+        setRightPct(Math.min(Math.max(fromRight, 15), 50));
+      }
+    };
+    const onUp = () => setDragging(null);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+  }, [dragging]);
 
   if (isLoading || !problem) {
     return <div className="flex justify-center py-10"><Loader2 className="animate-spin text-[var(--accent)]" /></div>;
@@ -341,10 +383,13 @@ function SolveView({ roomId, problemId, isAdmin, onBack }: { roomId: string; pro
         </div>
       </div>
 
-      {/* Three-column workspace */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
+      {/* Three-column workspace (resizable) */}
+      <div ref={containerRef} className={`flex flex-col lg:flex-row gap-2 items-stretch ${dragging ? "select-none" : ""}`}>
         {/* Left: problem statement */}
-        <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-4 space-y-4 lg:h-[72vh] overflow-y-auto">
+        <div
+          style={isWide ? { width: `${leftPct}%` } : undefined}
+          className="w-full lg:w-auto bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-4 space-y-4 lg:h-[72vh] overflow-y-auto"
+        >
           <div className="flex items-center gap-3">
             <h3 className="text-lg font-bold text-[var(--text-primary)]">{problem.title}</h3>
             {difficultyBadge(problem.difficulty)}
@@ -388,13 +433,30 @@ function SolveView({ roomId, problemId, isAdmin, onBack }: { roomId: string; pro
           )}
         </div>
 
+        {/* Resize divider: left | middle */}
+        <div
+          onMouseDown={() => setDragging("left")}
+          className="hidden lg:block w-1.5 shrink-0 cursor-col-resize bg-[var(--border)] hover:bg-[var(--accent)] rounded transition-colors self-stretch"
+          title="Drag to resize"
+        />
+
         {/* Middle: editor */}
-        <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-0 overflow-hidden lg:h-[72vh] flex flex-col">
+        <div className="flex-1 min-w-0 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-0 overflow-hidden lg:h-[72vh] flex flex-col">
           <CodeEditor value={editorValue} onChange={setCode} language={effectiveLang} />
         </div>
 
+        {/* Resize divider: middle | right */}
+        <div
+          onMouseDown={() => setDragging("right")}
+          className="hidden lg:block w-1.5 shrink-0 cursor-col-resize bg-[var(--border)] hover:bg-[var(--accent)] rounded transition-colors self-stretch"
+          title="Drag to resize"
+        />
+
         {/* Right: test results console */}
-        <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-4 space-y-3 lg:h-[72vh] overflow-y-auto">
+        <div
+          style={isWide ? { width: `${rightPct}%` } : undefined}
+          className="w-full lg:w-auto bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-4 space-y-3 lg:h-[72vh] overflow-y-auto"
+        >
           <div className="flex items-center justify-between">
             <h4 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-2">
               <Terminal size={14} /> Test Results
