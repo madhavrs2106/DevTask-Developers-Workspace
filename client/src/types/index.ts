@@ -295,7 +295,7 @@ export interface Quiz {
   lockedUserIds?: string[];
 }
 
-export type ProblemLanguage = "javascript" | "python";
+export type ProblemLanguage = "javascript" | "python" | "c" | "cpp" | "java" | "go" | "ruby";
 export type ProblemDifficulty = "EASY" | "MEDIUM" | "HARD";
 export type SubmissionStatus = "ACCEPTED" | "WRONG" | "TIME_LIMIT" | "RUNTIME_ERROR" | "PENDING";
 

@@ -24,7 +24,7 @@ const createSchema = z.object({
   title: z.string().min(1).max(200),
   description: z.string().min(1),
   difficulty: z.enum(["EASY", "MEDIUM", "HARD"]).default("EASY"),
-  languages: z.array(z.enum(["javascript", "python"])).min(1),
+  languages: z.array(z.enum(["javascript", "python", "c", "cpp", "java", "go", "ruby"])).min(1),
   starterCode: z.record(z.string()).optional().default({}),
   testCases: z
     .array(
@@ -136,7 +136,7 @@ export const deleteProblem = asyncHandler(async (req, res) => {
 
 const submitSchema = z.object({
   code: z.string().min(1),
-  language: z.enum(["javascript", "python"]),
+  language: z.enum(["javascript", "python", "c", "cpp", "java", "go", "ruby"]),
 });
 
 export const submitSolution = asyncHandler(async (req, res) => {

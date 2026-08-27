@@ -22,6 +22,7 @@ import type {
   RoomProblem,
   ProblemDetail,
   RoomProblemSubmission,
+  ProblemLanguage,
 } from "../types";
 
 export const qk = {
@@ -631,8 +632,8 @@ export interface ProblemInput {
   title: string;
   description: string;
   difficulty: "EASY" | "MEDIUM" | "HARD";
-  languages: ("javascript" | "python")[];
-  starterCode?: Partial<Record<"javascript" | "python", string>>;
+  languages: ProblemLanguage[];
+  starterCode?: Partial<Record<ProblemLanguage, string>>;
   testCases: { input: string; expected: string; hidden?: boolean }[];
 }
 
@@ -673,7 +674,7 @@ export function useDeleteProblem(roomId: string) {
 export function useSubmitSolution(roomId: string, problemId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { code: string; language: "javascript" | "python" }) =>
+    mutationFn: async (input: { code: string; language: ProblemLanguage }) =>
       (await api.post(`/rooms/${roomId}/problems/${problemId}/submit`, input)).data,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["problems", roomId] });

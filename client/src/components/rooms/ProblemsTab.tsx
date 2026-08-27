@@ -36,6 +36,11 @@ import type {
 const LANG_OPTIONS: { id: ProblemLanguage; label: string; note: string }[] = [
   { id: "javascript", label: "JavaScript", note: "Node.js" },
   { id: "python", label: "Python", note: "Python 3" },
+  { id: "c", label: "C", note: "GCC" },
+  { id: "cpp", label: "C++", note: "G++" },
+  { id: "java", label: "Java", note: "JDK" },
+  { id: "go", label: "Go", note: "Go" },
+  { id: "ruby", label: "Ruby", note: "Ruby" },
 ];
 
 const DIFFICULTY_COLOR: Record<string, string> = {
