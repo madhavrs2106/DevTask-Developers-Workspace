@@ -4,11 +4,12 @@ import {
   useMyRooms,
   useCreateRoom,
   useJoinRoom,
+  useRoomPreview,
 } from "../hooks/useQueries";
 import { Modal } from "../components/ui/Modal";
 import { Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
-import { Users, Lock, Globe, Flame, Crown } from "lucide-react";
+import { Users, Lock, Globe, Flame, Crown, Eye, BookOpen } from "lucide-react";
 import { AVATAR_COLORS } from "../lib/constants";
 import { formatDate } from "../lib/utils";
 
@@ -19,6 +20,9 @@ export default function CoLearningRoomsPage() {
 
   const [showCreate, setShowCreate] = useState(false);
   const [showJoin, setShowJoin] = useState(false);
+  const [showExplore, setShowExplore] = useState(false);
+  const [exploreRoomId, setExploreRoomId] = useState<string | null>(null);
+  const { data: previewRoom, isLoading: previewLoading } = useRoomPreview(exploreRoomId ?? "");
   const [name, setName] = useState("");
   const [topic, setTopic] = useState("");
   const [description, setDescription] = useState("");
@@ -145,9 +149,23 @@ export default function CoLearningRoomsPage() {
                 <span className="font-mono text-[11px] text-ink-faint">
                   created {formatDate(room.createdAt)}
                 </span>
-                <span className="text-[var(--accent)] text-[11px] font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                  Open →
-                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setExploreRoomId(room.id);
+                      setShowExplore(true);
+                    }}
+                    className="flex items-center gap-1 text-[11px] font-medium text-[var(--accent)] hover:underline opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Eye size={12} />
+                    Explore
+                  </button>
+                  <span className="text-[var(--accent)] text-[11px] font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                    Open →
+                  </span>
+                </div>
               </footer>
             </Link>
           ))}
@@ -263,6 +281,86 @@ export default function CoLearningRoomsPage() {
             {joinRoom.isPending ? "Joining..." : "Join Room"}
           </Button>
         </form>
+      </Modal>
+
+      {/* Explore Modal */}
+      <Modal open={showExplore} onClose={() => { setShowExplore(false); setExploreRoomId(null); }} title="Room Preview">
+        {previewLoading ? (
+          <div className="flex justify-center py-8">
+            <div className="w-6 h-6 border-2 border-[var(--accent)] border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : previewRoom ? (
+          <div className="space-y-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-lg font-bold text-[var(--text-primary)]">{previewRoom.name}</h3>
+                {previewRoom.visibility === "PRIVATE" ? (
+                  <Lock size={14} className="text-yellow-400" />
+                ) : (
+                  <Globe size={14} className="text-green-400" />
+                )}
+              </div>
+              <p className="text-sm text-[var(--accent)]">{previewRoom.topic}</p>
+              {previewRoom.description && (
+                <p className="mt-2 text-sm text-[var(--text-secondary)] whitespace-pre-wrap">{previewRoom.description}</p>
+              )}
+            </div>
+
+            <div className="flex items-center gap-4 text-xs text-[var(--text-secondary)]">
+              <span className="inline-flex items-center gap-1">
+                <Users size={12} />
+                {previewRoom.memberCount} member{previewRoom.memberCount !== 1 ? "s" : ""}
+              </span>
+              <span>Max {previewRoom.maxMembers}</span>
+            </div>
+
+            {previewRoom.syllabusItems && previewRoom.syllabusItems.length > 0 && (
+              <div>
+                <h4 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-2 mb-2">
+                  <BookOpen size={14} />
+                  Syllabus ({previewRoom.syllabusItems.length} topics)
+                </h4>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {previewRoom.syllabusItems.map((item: { id: string; title: string; description: string | null; order: number }) => (
+                    <div key={item.id} className="bg-[var(--bg)] border border-[var(--border)] rounded-lg px-3 py-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-mono text-[var(--text-secondary)] bg-[var(--bg-card)] px-1.5 py-0.5 rounded">
+                          {item.order}
+                        </span>
+                        <span className="text-sm font-medium text-[var(--text-primary)]">{item.title}</span>
+                      </div>
+                      {item.description && (
+                        <p className="mt-1 text-xs text-[var(--text-secondary)] whitespace-pre-wrap line-clamp-2">{item.description}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {(!previewRoom.syllabusItems || previewRoom.syllabusItems.length === 0) && (
+              <p className="text-xs text-[var(--text-secondary)] text-center py-4">
+                No syllabus topics yet.
+              </p>
+            )}
+
+            <Button variant="primary" className="w-full" onClick={() => {
+              setShowExplore(false);
+              setExploreRoomId(null);
+              if (previewRoom.visibility === "PRIVATE") {
+                setJoinPassword("");
+                setInviteCode(previewRoom.inviteCode);
+                setShowJoin(true);
+              } else {
+                joinRoom.mutateAsync({ inviteCode: previewRoom.inviteCode });
+              }
+            }} disabled={joinRoom.isPending}>
+              {joinRoom.isPending ? "Joining..." : "Join This Room"}
+            </Button>
+          </div>
+        ) : (
+          <p className="text-sm text-[var(--text-secondary)] text-center py-8">Room not found.</p>
+        )}
       </Modal>
     </div>
   );

@@ -148,6 +148,45 @@ export const getRoom = asyncHandler(async (req, res) => {
   });
 });
 
+// ─── Get room preview (no membership required, public rooms only) ──
+
+export const getRoomPreview = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const room = await prisma.coLearningRoom.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      name: true,
+      topic: true,
+      description: true,
+      visibility: true,
+      inviteCode: true,
+      maxMembers: true,
+      createdAt: true,
+      creator: { select: { id: true, name: true, username: true, avatarColor: true } },
+      _count: { select: { members: true } },
+      syllabusItems: {
+        orderBy: { order: "asc" },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          order: true,
+        },
+      },
+    },
+  });
+
+  if (!room) throw new HttpError(404, "Room not found");
+  if (room.visibility !== "PUBLIC") throw new HttpError(403, "This room is private");
+
+  res.json({
+    ...room,
+    memberCount: room._count.members,
+  });
+});
+
 export const createRoom = asyncHandler(async (req, res) => {
   const data = parse(createRoomSchema, req.body);
 

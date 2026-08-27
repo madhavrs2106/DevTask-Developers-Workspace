@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   listMyRooms,
   getRoom,
+  getRoomPreview,
   createRoom,
   updateRoom,
   joinRoom,
@@ -44,6 +45,7 @@ const router = Router();
 router.use(requireAuth);
 
 router.get("/", listMyRooms);
+router.get("/:id/preview", getRoomPreview);
 router.post("/", createRoom);
 router.get("/:id", getRoom);
 router.put("/:id", updateRoom);

@@ -337,6 +337,14 @@ export function useRoom(id: string) {
   });
 }
 
+export function useRoomPreview(id: string) {
+  return useQuery({
+    queryKey: ["roomPreview", id],
+    queryFn: async () => (await api.get(`/rooms/${id}/preview`)).data,
+    enabled: !!id,
+  });
+}
+
 export function useRoomStats(id: string) {
   return useQuery<RoomStats>({
     queryKey: qk.roomStats(id),
