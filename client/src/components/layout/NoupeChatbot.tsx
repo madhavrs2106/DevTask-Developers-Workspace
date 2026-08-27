@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { MessageCircle, X, Send } from "lucide-react";
-import { useSetting } from "../../hooks/useQueries";
+import { useSetting, useKnowledge } from "../../hooks/useQueries";
+import type { KnowledgeItem } from "../../types";
 
 // Noupe AI is a no-code, embeddable conversational chatbot.
 // Configuration precedence:
@@ -98,6 +99,22 @@ function getReply(text: string): string {
   return "I can help with DevTask's Co-Learning Rooms, coding problems, quizzes, syllabus/progress, leaderboards, and study tips. Try asking something like “How do coding problems work?” or “Give me study tips”. (Admins can connect Noupe AI in Settings for a full chatbot.)";
 }
 
+// Search admin-uploaded knowledge (FAQs + documents) for the best matching answer.
+function searchKnowledge(text: string, items?: KnowledgeItem[]): string | null {
+  if (!items || items.length === 0) return null;
+  const t = text.toLowerCase();
+  const words = t.split(/\W+/).filter((w) => w.length > 2);
+  let best: { score: number; answer: string } | null = null;
+  for (const it of items) {
+    const hay = `${it.question || ""} ${it.answer} ${it.title || ""}`.toLowerCase();
+    let score = 0;
+    if (it.question && t.includes(it.question.toLowerCase())) score += 10;
+    for (const w of words) if (hay.includes(w)) score += 1;
+    if (score > 0 && (!best || score > best.score)) best = { score, answer: it.answer };
+  }
+  return best ? best.answer : null;
+}
+
 export function NoupeChatbot() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([
@@ -105,6 +122,7 @@ export function NoupeChatbot() {
   ]);
   const [input, setInput] = useState("");
   const { data: setting } = useSetting("noupe-embed");
+  const { data: knowledge } = useKnowledge();
 
   const snippet = SNIPPET || setting?.value || "";
   const CONFIGURED = Boolean(snippet || (SCRIPT_SRC && !SNIPPET));
@@ -120,7 +138,8 @@ export function NoupeChatbot() {
   const send = () => {
     const text = input.trim();
     if (!text) return;
-    setMessages((m) => [...m, { role: "user", text }, { role: "bot", text: getReply(text) }]);
+    const reply = searchKnowledge(text, knowledge) ?? getReply(text);
+    setMessages((m) => [...m, { role: "user", text }, { role: "bot", text: reply }]);
     setInput("");
   };
 

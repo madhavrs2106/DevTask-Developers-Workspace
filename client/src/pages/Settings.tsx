@@ -13,6 +13,9 @@ import {
   useDeleteAccount,
   useSetting,
   useUpdateSetting,
+  useKnowledge,
+  useAddKnowledge,
+  useDeleteKnowledge,
 } from "../hooks/useQueries";
 import type { Role, SkillProgress } from "../types";
 import { Button } from "../components/ui/Button";
@@ -48,6 +51,21 @@ export function Settings() {
   useEffect(() => {
     if (noupeSetting.data) setNoupeSnippet(noupeSetting.data.value);
   }, [noupeSetting.data]);
+
+  const [kbType, setKbType] = useState<"FAQ" | "DOCUMENT">("FAQ");
+  const [kbQuestion, setKbQuestion] = useState("");
+  const [kbTitle, setKbTitle] = useState("");
+  const [kbAnswer, setKbAnswer] = useState("");
+  const knowledge = useKnowledge();
+  const addKnowledge = useAddKnowledge();
+  const deleteKnowledge = useDeleteKnowledge();
+  const handleAddKnowledge = () => {
+    if (!kbAnswer.trim()) return;
+    addKnowledge.mutate(
+      { type: kbType, question: kbType === "FAQ" ? kbQuestion.trim() : undefined, title: kbType === "DOCUMENT" ? kbTitle.trim() : undefined, answer: kbAnswer.trim() },
+      { onSuccess: () => { setKbQuestion(""); setKbTitle(""); setKbAnswer(""); } }
+    );
+  };
 
   // Re-sync local state when the user object changes (e.g. after login)
   useEffect(() => {
@@ -519,6 +537,81 @@ export function Settings() {
             </span>
           )}
           {updateNoupe.isError && <span className="text-xs text-rose-400">Failed to save.</span>}
+        </div>
+      </section>
+
+      {/* ── Knowledge Base (trains the assistant) ──────────────── */}
+      <section className="card p-6">
+        <h2 className="text-sm font-semibold text-white">Knowledge Base</h2>
+        <p className="mt-1 text-xs text-ink-faint">
+          Add FAQs or documents so the DevTask assistant can answer from them. (To train Noupe specifically, also paste the same content into your Noupe dashboard's Knowledge Base.)
+        </p>
+
+        <div className="mt-3 flex flex-wrap gap-2">
+          {(["FAQ", "DOCUMENT"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setKbType(t)}
+              className={`rounded-lg px-3 py-1 text-xs ${
+                kbType === t ? "bg-accent text-white" : "bg-surface text-ink-muted border border-slate-700"
+              }`}
+            >
+              {t === "FAQ" ? "FAQ" : "Document"}
+            </button>
+          ))}
+        </div>
+
+        {kbType === "FAQ" ? (
+          <input
+            className="input-dark mt-3 w-full"
+            placeholder="Question (e.g. How do I join a room?)"
+            value={kbQuestion}
+            onChange={(e) => setKbQuestion(e.target.value)}
+          />
+        ) : (
+          <input
+            className="input-dark mt-3 w-full"
+            placeholder="Document title (e.g. Course Syllabus)"
+            value={kbTitle}
+            onChange={(e) => setKbTitle(e.target.value)}
+          />
+        )}
+        <textarea
+          className="input-dark mt-2 h-24 w-full font-mono text-xs"
+          placeholder={kbType === "FAQ" ? "Answer…" : "Paste the document text / notes here…"}
+          value={kbAnswer}
+          onChange={(e) => setKbAnswer(e.target.value)}
+        />
+        <div className="mt-2">
+          <Button variant="primary" onClick={handleAddKnowledge} disabled={addKnowledge.isPending || !kbAnswer.trim()}>
+            <Plus size={14} /> {addKnowledge.isPending ? "Adding…" : "Add to Knowledge Base"}
+          </Button>
+        </div>
+
+        <div className="mt-4 space-y-2">
+          {knowledge.isLoading ? (
+            <p className="text-xs text-ink-faint">Loading…</p>
+          ) : !knowledge.data || knowledge.data.length === 0 ? (
+            <p className="text-xs text-ink-faint">No knowledge added yet.</p>
+          ) : (
+            knowledge.data.map((k) => (
+              <div key={k.id} className="flex items-start justify-between gap-3 rounded-lg border border-slate-700 bg-surface p-2">
+                <div className="min-w-0">
+                  <div className="text-xs font-semibold text-ink">
+                    {k.type === "FAQ" ? k.question || "(no question)" : k.title || "(untitled)"}
+                  </div>
+                  <div className="mt-0.5 line-clamp-2 text-[11px] text-ink-muted">{k.answer}</div>
+                </div>
+                <button
+                  onClick={() => deleteKnowledge.mutate(k.id)}
+                  className="shrink-0 text-rose-400 hover:text-rose-300"
+                  title="Delete"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))
+          )}
         </div>
       </section>
 

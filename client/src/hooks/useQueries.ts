@@ -23,6 +23,7 @@ import type {
   ProblemDetail,
   RoomProblemSubmission,
   ProblemLanguage,
+  KnowledgeItem,
 } from "../types";
 
 export const qk = {
@@ -740,5 +741,29 @@ export function useUpdateSetting(key: string) {
   return useMutation({
     mutationFn: async (value: string) => (await api.put(`/settings/${key}`, { value })).data,
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["setting", key] }),
+  });
+}
+
+export function useKnowledge() {
+  return useQuery<KnowledgeItem[]>({
+    queryKey: ["knowledge"],
+    queryFn: async () => (await api.get<KnowledgeItem[]>("/knowledge")).data,
+  });
+}
+
+export function useAddKnowledge() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: { type: "FAQ" | "DOCUMENT"; question?: string; answer: string; title?: string }) =>
+      (await api.post("/knowledge", data)).data,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["knowledge"] }),
+  });
+}
+
+export function useDeleteKnowledge() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => (await api.delete(`/knowledge/${id}`)).data,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["knowledge"] }),
   });
 }

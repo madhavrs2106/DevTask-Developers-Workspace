@@ -343,3 +343,12 @@ export interface RoomProblemSubmission {
   status: SubmissionStatus;
   createdAt: string;
 }
+
+export interface KnowledgeItem {
+  id: string;
+  type: "FAQ" | "DOCUMENT";
+  question?: string | null;
+  answer: string;
+  title?: string | null;
+  createdAt: string;
+}

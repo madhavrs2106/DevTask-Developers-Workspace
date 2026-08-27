@@ -438,3 +438,14 @@ model AppSetting {
   value     String   @default("")
   updatedAt DateTime @updatedAt
 }
+
+model KnowledgeItem {
+  id        String   @id @default(cuid())
+  type      String   @default("FAQ") // FAQ | DOCUMENT
+  question  String?
+  answer    String // answer text (FAQ) or document body (DOCUMENT)
+  title     String?
+  createdAt DateTime @default(now())
+
+  @@index([type])
+}
