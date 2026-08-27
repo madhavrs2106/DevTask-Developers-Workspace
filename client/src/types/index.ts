@@ -294,3 +294,52 @@ export interface Quiz {
   _count?: { questions: number; submissions: number };
   lockedUserIds?: string[];
 }
+
+export type ProblemLanguage = "javascript" | "python";
+export type ProblemDifficulty = "EASY" | "MEDIUM" | "HARD";
+export type SubmissionStatus = "ACCEPTED" | "WRONG" | "TIME_LIMIT" | "RUNTIME_ERROR" | "PENDING";
+
+export interface ProblemTestCase {
+  hidden: boolean;
+  input: string | null;
+  expected: string | null;
+}
+
+export interface RoomProblem {
+  id: string;
+  title: string;
+  description: string;
+  difficulty: ProblemDifficulty;
+  languages: ProblemLanguage[];
+  starterCode: Partial<Record<ProblemLanguage, string>>;
+  testCases: ProblemTestCase[];
+  createdById: string;
+  creator: Pick<User, "id" | "name" | "username" | "avatarColor" | "avatarUrl">;
+  submissionsCount: number;
+  solved: boolean;
+}
+
+export interface ProblemDetail extends Omit<RoomProblem, "testCases" | "starterCode"> {
+  testCases: ProblemTestCase[];
+  starterCode: Partial<Record<ProblemLanguage, string>>;
+}
+
+export interface SubmissionResult {
+  hidden: boolean;
+  input?: string | null;
+  expected?: string | null;
+  actual?: string | null;
+  passed: boolean;
+  error?: string | null;
+}
+
+export interface RoomProblemSubmission {
+  id: string;
+  userId: string;
+  user?: Pick<User, "id" | "name" | "username" | "avatarColor" | "avatarUrl">;
+  language: ProblemLanguage;
+  passed: number;
+  total: number;
+  status: SubmissionStatus;
+  createdAt: string;
+}

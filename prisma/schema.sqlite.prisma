@@ -48,6 +48,8 @@ model User {
   quizSubmissions   RoomQuizSubmission[]
   quizLocks         RoomQuizLock[]
   createdQuizzes   RoomQuiz[]
+  createdProblems  RoomProblem[]
+  roomProblemSubmissions RoomProblemSubmission[]
 }
 
 model Follow {
@@ -177,6 +179,7 @@ model CoLearningRoom {
   streaks        RoomStreak[]
   notes          RoomNote[]
   quizzes        RoomQuiz[]
+  problems       RoomProblem[]
 
   @@index([creatorId])
   @@index([inviteCode])
@@ -384,4 +387,48 @@ model RoomQuizLock {
   @@unique([quizId, userId])
   @@index([quizId])
   @@index([userId])
+}
+
+model RoomProblem {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  room        CoLearningRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  roomId      String
+  creator     User           @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  createdById String
+
+  title       String
+  description String // problem statement
+  difficulty  String @default("EASY") // EASY | MEDIUM | HARD
+  languages   String @default("[\"javascript\",\"python\"]") // JSON array of allowed languages
+  starterCode String @default("{}") // JSON map language -> starter code
+  testCases   String // JSON array of { input, expected, hidden }
+
+  submissions RoomProblemSubmission[]
+
+  @@index([roomId])
+  @@index([createdById])
+}
+
+model RoomProblemSubmission {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  problem   RoomProblem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  problemId String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  code     String
+  language String
+  passed   Int    @default(0)
+  total    Int    @default(0)
+  status   String @default("PENDING") // ACCEPTED | WRONG | TIME_LIMIT | RUNTIME_ERROR
+  results  String @default("[]") // JSON array of { input, expected, actual, passed, error }
+
+  @@index([problemId])
+  @@index([userId])
+  @@index([problemId, userId])
 }

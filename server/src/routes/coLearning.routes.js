@@ -37,6 +37,14 @@ import {
   submitZero,
   allowRetake,
 } from "../controllers/quiz.controller.js";
+import {
+  createProblem,
+  listProblems,
+  getProblem,
+  deleteProblem,
+  submitSolution,
+  listSubmissions,
+} from "../controllers/problem.controller.js";
 import { requireAuth } from "../middleware/auth.js";
 import { uploadNoteFile } from "../middleware/upload.js";
 
@@ -84,5 +92,12 @@ router.get("/:id/quizzes/:quizId/locks", getQuizLocks);
 router.post("/:id/quizzes/:quizId/unlock/:userId", unlockQuiz);
 router.post("/:id/quizzes/:quizId/submit-zero/:userId", submitZero);
 router.post("/:id/quizzes/:quizId/retake/:userId", allowRetake);
+
+router.get("/:id/problems", listProblems);
+router.post("/:id/problems", createProblem);
+router.get("/:id/problems/:problemId", getProblem);
+router.delete("/:id/problems/:problemId", deleteProblem);
+router.post("/:id/problems/:problemId/submit", submitSolution);
+router.get("/:id/problems/:problemId/submissions", listSubmissions);
 
 export default router;

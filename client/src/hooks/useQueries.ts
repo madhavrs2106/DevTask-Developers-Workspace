@@ -19,6 +19,9 @@ import type {
   CoLearningRoomFull,
   RoomStats,
   Quiz,
+  RoomProblem,
+  ProblemDetail,
+  RoomProblemSubmission,
 } from "../types";
 
 export const qk = {
@@ -620,6 +623,70 @@ export function useUnpublishQuiz(roomId: string) {
     mutationFn: async (quizId: string) =>
       (await api.post(`/rooms/${roomId}/quizzes/${quizId}/unpublish`)).data,
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["quizzes", roomId] }),
+  });
+}
+
+// ── Co-Learning Room Coding Problems ──────────────────────────────
+export interface ProblemInput {
+  title: string;
+  description: string;
+  difficulty: "EASY" | "MEDIUM" | "HARD";
+  languages: ("javascript" | "python")[];
+  starterCode?: Partial<Record<"javascript" | "python", string>>;
+  testCases: { input: string; expected: string; hidden?: boolean }[];
+}
+
+export function useProblems(roomId: string) {
+  return useQuery<RoomProblem[]>({
+    queryKey: ["problems", roomId],
+    queryFn: async () => (await api.get<RoomProblem[]>(`/rooms/${roomId}/problems`)).data,
+    enabled: !!roomId,
+  });
+}
+
+export function useProblem(roomId: string, problemId: string) {
+  return useQuery<ProblemDetail>({
+    queryKey: ["problem", roomId, problemId],
+    queryFn: async () => (await api.get<ProblemDetail>(`/rooms/${roomId}/problems/${problemId}`)).data,
+    enabled: !!problemId,
+  });
+}
+
+export function useCreateProblem(roomId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: ProblemInput) =>
+      (await api.post<RoomProblem>(`/rooms/${roomId}/problems`, input)).data,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["problems", roomId] }),
+  });
+}
+
+export function useDeleteProblem(roomId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (problemId: string) =>
+      (await api.delete(`/rooms/${roomId}/problems/${problemId}`)).data,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["problems", roomId] }),
+  });
+}
+
+export function useSubmitSolution(roomId: string, problemId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { code: string; language: "javascript" | "python" }) =>
+      (await api.post(`/rooms/${roomId}/problems/${problemId}/submit`, input)).data,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["problems", roomId] });
+      void queryClient.invalidateQueries({ queryKey: ["problem", roomId, problemId] });
+    },
+  });
+}
+
+export function useProblemSubmissions(roomId: string, problemId: string) {
+  return useQuery<RoomProblemSubmission[]>({
+    queryKey: ["problemSubmissions", roomId, problemId],
+    queryFn: async () => (await api.get<RoomProblemSubmission[]>(`/rooms/${roomId}/problems/${problemId}/submissions`)).data,
+    enabled: !!problemId,
   });
 }
 
