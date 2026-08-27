@@ -79,7 +79,7 @@ export function UserProfile() {
   const [joinPassword, setJoinPassword] = useState("");
   const [joinError, setJoinError] = useState("");
   const [exploreRoomId, setExploreRoomId] = useState<string | null>(null);
-  const { data: previewRoom, isLoading: previewLoading } = useRoomPreview(exploreRoomId ?? "");
+  const { data: previewRoom, isLoading: previewLoading, error: previewError } = useRoomPreview(exploreRoomId ?? "");
 
   const { data, isLoading, error } = useQuery<{ user: PublicProfile }>({
     queryKey: ["userProfile", username],
@@ -354,7 +354,7 @@ export function UserProfile() {
                     {room._count.members} member{room._count.members !== 1 ? "s" : ""}
                     {room.streakCount > 0 && <span className="text-orange-400 ml-2">🔥 {room.streakCount}d</span>}
                   </span>
-                  {!room.isMember && (
+                  {!room.isMember && room.visibility === "PUBLIC" && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -365,6 +365,12 @@ export function UserProfile() {
                       <Eye size={12} />
                       Explore
                     </button>
+                  )}
+                  {!room.isMember && room.visibility === "PRIVATE" && (
+                    <span className="text-[11px] font-medium text-yellow-400 flex items-center gap-1">
+                      <Lock size={12} />
+                      Private
+                    </span>
                   )}
                 </div>
               </div>
@@ -493,7 +499,9 @@ export function UserProfile() {
             </Button>
           </div>
         ) : (
-          <p className="text-sm text-[var(--text-secondary)] text-center py-8">Room not found.</p>
+          <p className="text-sm text-[var(--text-secondary)] text-center py-8">
+            {previewError ? "Could not load room preview." : "Room not found."}
+          </p>
         )}
       </Modal>
 

@@ -22,7 +22,7 @@ export default function CoLearningRoomsPage() {
   const [showJoin, setShowJoin] = useState(false);
   const [showExplore, setShowExplore] = useState(false);
   const [exploreRoomId, setExploreRoomId] = useState<string | null>(null);
-  const { data: previewRoom, isLoading: previewLoading } = useRoomPreview(exploreRoomId ?? "");
+  const { data: previewRoom, isLoading: previewLoading, error: previewError } = useRoomPreview(exploreRoomId ?? "");
   const [name, setName] = useState("");
   const [topic, setTopic] = useState("");
   const [description, setDescription] = useState("");
@@ -359,7 +359,9 @@ export default function CoLearningRoomsPage() {
             </Button>
           </div>
         ) : (
-          <p className="text-sm text-[var(--text-secondary)] text-center py-8">Room not found.</p>
+          <p className="text-sm text-[var(--text-secondary)] text-center py-8">
+            {previewError ? "Could not load room preview." : "Room not found."}
+          </p>
         )}
       </Modal>
     </div>
