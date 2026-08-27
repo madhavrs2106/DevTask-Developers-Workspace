@@ -99,7 +99,6 @@ function getReply(text: string): string {
 }
 
 export function NoupeChatbot() {
-  const [noupeLoaded, setNoupeLoaded] = useState(false);
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([
     { role: "bot", text: "Hi! I'm the DevTask assistant. Ask me about rooms, coding problems, quizzes, or study tips." },
@@ -110,18 +109,13 @@ export function NoupeChatbot() {
   const snippet = SNIPPET || setting?.value || "";
   const CONFIGURED = Boolean(snippet || (SCRIPT_SRC && !SNIPPET));
 
+  // When Noupe is configured, inject its widget and let it own the chat entirely.
   useEffect(() => {
     if (!CONFIGURED) return;
     injectNoupe(snippet, SCRIPT_SRC && !SNIPPET ? SCRIPT_SRC : undefined, BOT_ID);
-    const t = setInterval(() => {
-      const found = document.querySelector('[id*="noupe" i], [class*="noupe" i]');
-      if (found) setNoupeLoaded(true);
-    }, 600);
-    return () => clearInterval(t);
   }, [snippet, CONFIGURED]);
 
-  // Noupe is live and rendered its own widget — hide ours.
-  if (CONFIGURED && noupeLoaded) return null;
+  if (CONFIGURED) return null;
 
   const send = () => {
     const text = input.trim();
