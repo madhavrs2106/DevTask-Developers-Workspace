@@ -674,11 +674,13 @@ export function useDeleteProblem(roomId: string) {
 export function useSubmitSolution(roomId: string, problemId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (input: { code: string; language: ProblemLanguage }) =>
+    mutationFn: async (input: { code: string; language: ProblemLanguage; runMode?: "run" | "submit" }) =>
       (await api.post(`/rooms/${roomId}/problems/${problemId}/submit`, input)).data,
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["problems", roomId] });
-      void queryClient.invalidateQueries({ queryKey: ["problem", roomId, problemId] });
+    onSuccess: (data: { run?: boolean }) => {
+      if (!data.run) {
+        void queryClient.invalidateQueries({ queryKey: ["problems", roomId] });
+        void queryClient.invalidateQueries({ queryKey: ["problem", roomId, problemId] });
+      }
     },
   });
 }

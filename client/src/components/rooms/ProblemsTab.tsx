@@ -279,7 +279,7 @@ function SolveView({ roomId, problemId, isAdmin, onBack }: { roomId: string; pro
   const submit = useSubmitSolution(roomId, problemId);
   const [lang, setLang] = useState<ProblemLanguage>("javascript");
   const [code, setCode] = useState("");
-  const [result, setResult] = useState<{ status: string; passed: number; total: number; results: SubmissionResult[] } | null>(null);
+  const [result, setResult] = useState<{ status: string; passed: number; total: number; results: SubmissionResult[]; run?: boolean } | null>(null);
 
   if (isLoading || !problem) {
     return <div className="flex justify-center py-10"><Loader2 className="animate-spin text-[var(--accent)]" /></div>;
@@ -288,15 +288,18 @@ function SolveView({ roomId, problemId, isAdmin, onBack }: { roomId: string; pro
   const activeLangs = problem.languages;
   const effectiveLang = activeLangs.includes(lang) ? lang : activeLangs[0];
   const editorValue = code || problem.starterCode[effectiveLang] || "";
+  const langLabel = (l: ProblemLanguage) => LANG_OPTIONS.find((o) => o.id === l)?.label || l;
 
-  const handleSubmit = () => {
+  const runWith = (mode: "run" | "submit") =>
     submit.mutate(
-      { code: editorValue, language: effectiveLang },
-      {
-        onSuccess: (res) => setResult({ status: res.status, passed: res.passed, total: res.total, results: res.results }),
-      }
+      { code: editorValue, language: effectiveLang, runMode: mode },
+      { onSuccess: (res) => setResult(res as { status: string; passed: number; total: number; results: SubmissionResult[]; run?: boolean }) }
     );
-  };
+
+  const sampleCases = problem.testCases.filter((t) => !t.hidden);
+  const rightItems =
+    result?.results ??
+    sampleCases.map((t) => ({ hidden: false, input: t.input, expected: t.expected, actual: "", passed: false, error: null }));
 
   return (
     <div className="space-y-4">
@@ -304,9 +307,42 @@ function SolveView({ roomId, problemId, isAdmin, onBack }: { roomId: string; pro
         <ArrowLeft size={16} /> Back to problems
       </button>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Problem statement */}
-        <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-4 space-y-3">
+      {/* Top bar: language selector + Run / Submit */}
+      <div className="flex items-center justify-between bg-[var(--bg-card)] border border-[var(--border)] rounded-xl px-3 py-2">
+        <div className="flex items-center gap-3">
+          <select
+            value={effectiveLang}
+            onChange={(e) => {
+              setLang(e.target.value as ProblemLanguage);
+              setCode("");
+            }}
+            className="bg-[var(--bg)] border border-[var(--border)] rounded-lg px-3 py-1.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
+          >
+            {activeLangs.map((l) => (
+              <option key={l} value={l}>{langLabel(l)}</option>
+            ))}
+          </select>
+          {effectiveLang === "python" && (
+            <span className="hidden md:inline text-[11px] text-[var(--text-secondary)]">
+              numpy · pandas · scipy · sympy · matplotlib
+            </span>
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" onClick={() => runWith("run")} disabled={submit.isPending} className="flex items-center gap-1">
+            <Play size={14} /> Run
+          </Button>
+          <Button variant="primary" onClick={() => runWith("submit")} disabled={submit.isPending} className="flex items-center gap-1">
+            {submit.isPending ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+            {submit.isPending ? "Running..." : "Submit"}
+          </Button>
+        </div>
+      </div>
+
+      {/* Three-column workspace */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
+        {/* Left: problem statement */}
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-4 space-y-4 lg:h-[72vh] overflow-y-auto">
           <div className="flex items-center gap-3">
             <h3 className="text-lg font-bold text-[var(--text-primary)]">{problem.title}</h3>
             {difficultyBadge(problem.difficulty)}
@@ -316,83 +352,81 @@ function SolveView({ roomId, problemId, isAdmin, onBack }: { roomId: string; pro
               <span key={l} className="text-[10px] px-2 py-0.5 rounded-full bg-[var(--bg)] text-[var(--text-secondary)] border border-[var(--border)]">{l}</span>
             ))}
           </div>
-          <p className="text-sm text-[var(--text-secondary)] whitespace-pre-wrap">{problem.description}</p>
 
-          {problem.testCases.some((t) => !t.hidden) && (
-            <div>
-              <h4 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-2 mb-2">
+          <div>
+            <h4 className="text-sm font-semibold text-[var(--text-primary)] mb-1">Problem Description</h4>
+            <p className="text-sm text-[var(--text-secondary)] whitespace-pre-wrap leading-relaxed">{problem.description}</p>
+          </div>
+
+          {sampleCases.length > 0 && (
+            <div className="space-y-3">
+              <h4 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-2">
                 <ListChecks size={14} /> Sample Test Cases
               </h4>
-              <div className="space-y-2">
-                {problem.testCases.filter((t) => !t.hidden).map((tc, i) => (
-                  <div key={i} className="bg-[var(--bg)] border border-[var(--border)] rounded-lg p-2 text-xs font-mono">
-                    <div className="text-[var(--text-secondary)]">Input:</div>
-                    <pre className="whitespace-pre-wrap text-[var(--text-primary)]">{tc.input}</pre>
-                    <div className="text-[var(--text-secondary)] mt-1">Expected:</div>
-                    <pre className="whitespace-pre-wrap text-[var(--text-primary)]">{tc.expected}</pre>
+              {sampleCases.map((tc, i) => (
+                <div key={i} className="space-y-2">
+                  <div className="text-xs font-semibold text-[var(--text-primary)]">Sample {i + 1}</div>
+                  <div>
+                    <div className="text-[11px] uppercase tracking-wide text-[var(--text-secondary)]">Input</div>
+                    <pre className="mt-0.5 bg-[var(--bg)] border border-[var(--border)] rounded-lg p-2 text-xs font-mono text-[var(--text-primary)] whitespace-pre-wrap">{tc.input}</pre>
                   </div>
-                ))}
-              </div>
+                  <div>
+                    <div className="text-[11px] uppercase tracking-wide text-[var(--text-secondary)]">Output</div>
+                    <pre className="mt-0.5 bg-[var(--bg)] border border-[var(--border)] rounded-lg p-2 text-xs font-mono text-[var(--text-primary)] whitespace-pre-wrap">{tc.expected}</pre>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
 
-        {/* Editor */}
-        <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-4 space-y-3">
+        {/* Middle: editor */}
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-0 overflow-hidden lg:h-[72vh] flex flex-col">
+          <CodeEditor value={editorValue} onChange={setCode} language={effectiveLang} />
+        </div>
+
+        {/* Right: test results console */}
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl p-4 space-y-3 lg:h-[72vh] overflow-y-auto">
           <div className="flex items-center justify-between">
-            <div className="flex gap-1">
-              {activeLangs.map((l) => (
-                <button
-                  key={l}
-                  onClick={() => {
-                    setLang(l);
-                    setCode("");
-                  }}
-                  className={`px-3 py-1 text-xs rounded-lg ${effectiveLang === l ? "bg-[var(--accent)] text-white" : "bg-[var(--bg)] text-[var(--text-secondary)] border border-[var(--border)]"}`}
-                >
-                  {l}
-                </button>
-              ))}
-            </div>
-            <Button variant="primary" onClick={handleSubmit} disabled={submit.isPending} className="flex items-center gap-1">
-              {submit.isPending ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
-              {submit.isPending ? "Running..." : "Submit"}
-            </Button>
+            <h4 className="text-sm font-semibold text-[var(--text-primary)] flex items-center gap-2">
+              <Terminal size={14} /> Test Results
+            </h4>
+            {result && (
+              <div className="flex items-center gap-2">
+                <StatusBadge status={result.status} />
+                <span className="text-xs text-[var(--text-secondary)]">{result.passed}/{result.total}</span>
+              </div>
+            )}
           </div>
 
-          {effectiveLang === "python" && (
-            <p className="text-[11px] text-[var(--text-secondary)]">
-              Available libraries: <span className="font-mono">numpy, pandas, scipy, sympy, matplotlib</span> — just <span className="font-mono">import</span> them.
-            </p>
-          )}
-
-          <CodeEditor value={editorValue} onChange={setCode} language={effectiveLang} />
-
-          {result && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between border-t border-[var(--border)] pt-3">
-                <StatusBadge status={result.status} />
-                <span className="text-xs text-[var(--text-secondary)]">
-                  {result.passed}/{result.total} passed
-                </span>
-              </div>
-              <div className="space-y-1 max-h-48 overflow-y-auto">
-                {result.results.map((r, i) => (
-                  <div key={i} className="flex items-start gap-2 text-xs bg-[var(--bg)] border border-[var(--border)] rounded-lg p-2">
-                    {r.passed ? <CheckCircle2 size={14} className="text-green-400 mt-0.5 shrink-0" /> : <XCircle size={14} className="text-red-400 mt-0.5 shrink-0" />}
-                    <div className="font-mono flex-1">
-                      <div className="text-[var(--text-secondary)]">{r.hidden ? "Hidden test case" : `Test case ${i + 1}`}{r.error ? ` — ${r.error}` : ""}</div>
-                      {!r.hidden && (
-                        <>
-                          <div className="text-[var(--text-primary)]">in: {r.input}</div>
-                          <div className="text-[var(--text-primary)]">exp: {r.expected}</div>
-                          <div className="text-[var(--text-primary)]">got: {r.actual}</div>
-                        </>
-                      )}
-                    </div>
+          {rightItems.length === 0 ? (
+            <p className="text-xs text-[var(--text-secondary)]">This problem has no visible sample cases. Use Submit to run the hidden tests.</p>
+          ) : (
+            <div className="space-y-3">
+              {rightItems.map((r, i) => (
+                <div key={i} className="border border-[var(--border)] rounded-lg p-2 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-semibold text-[var(--text-primary)]">
+                      {r.hidden ? "Hidden Test Case" : `Sample ${i + 1}`}
+                    </span>
+                    {result && (r.passed ? <CheckCircle2 size={14} className="text-green-400" /> : <XCircle size={14} className="text-red-400" />)}
                   </div>
-                ))}
-              </div>
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wide text-[var(--text-secondary)]">Input</div>
+                    <pre className="mt-0.5 text-xs font-mono text-[var(--text-primary)] whitespace-pre-wrap">{r.hidden ? "••••••" : r.input}</pre>
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wide text-[var(--text-secondary)]">Expected Output</div>
+                    <pre className="mt-0.5 text-xs font-mono text-[var(--text-primary)] whitespace-pre-wrap">{r.hidden ? "••••••" : r.expected}</pre>
+                  </div>
+                  <div>
+                    <div className="text-[10px] uppercase tracking-wide text-[var(--text-secondary)]">Your Output</div>
+                    <pre className={`mt-0.5 text-xs font-mono whitespace-pre-wrap ${result && !r.passed ? "text-red-400" : "text-[var(--text-primary)]"}`}>
+                      {r.error ? `Error: ${r.error}` : r.actual || (result ? "(no output)" : "—")}
+                    </pre>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
           {submit.isError && <p className="text-xs text-red-400">Submission failed. Try again.</p>}

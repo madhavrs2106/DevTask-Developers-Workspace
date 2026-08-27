@@ -137,6 +137,7 @@ export const deleteProblem = asyncHandler(async (req, res) => {
 const submitSchema = z.object({
   code: z.string().min(1),
   language: z.enum(["javascript", "python", "c", "cpp", "java", "go", "ruby"]),
+  runMode: z.enum(["run", "submit"]).optional().default("submit"),
 });
 
 export const submitSolution = asyncHandler(async (req, res) => {
@@ -153,11 +154,32 @@ export const submitSolution = asyncHandler(async (req, res) => {
   }
 
   const testCases = JSON.parse(problem.testCases);
+  const runSamplesOnly = body.runMode === "run";
+  const judgedCases = runSamplesOnly ? testCases.filter((t) => !t.hidden) : testCases;
   const result = await judgeSubmission({
     code: body.code,
     language: body.language,
-    testCases,
+    testCases: judgedCases,
   });
+
+  const mapResults = (rs) =>
+    rs.map((r) =>
+      r.hidden
+        ? { hidden: true, passed: r.passed, error: r.error || null }
+        : { hidden: false, input: r.input, expected: r.expected, actual: r.actual, passed: r.passed, error: r.error || null }
+    );
+
+  // "Run" only executes the visible sample cases and does NOT persist a submission.
+  if (runSamplesOnly) {
+    res.json({
+      run: true,
+      passed: result.passed,
+      total: result.total,
+      status: result.status,
+      results: mapResults(result.results),
+    });
+    return;
+  }
 
   const submission = await prisma.roomProblemSubmission.create({
     data: {
@@ -178,11 +200,7 @@ export const submitSolution = asyncHandler(async (req, res) => {
     passed: result.passed,
     total: result.total,
     status: result.status,
-    results: result.results.map((r) =>
-      r.hidden
-        ? { hidden: true, passed: r.passed, error: r.error || null }
-        : { hidden: false, input: r.input, expected: r.expected, actual: r.actual, passed: r.passed, error: r.error || null }
-    ),
+    results: mapResults(result.results),
     createdAt: submission.createdAt,
   });
 });
