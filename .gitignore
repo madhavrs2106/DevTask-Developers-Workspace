@@ -31,3 +31,6 @@ DevTask.zip
 
 # Prisma generated engines cache
 prisma/*.db
+
+server.log
+server.err
