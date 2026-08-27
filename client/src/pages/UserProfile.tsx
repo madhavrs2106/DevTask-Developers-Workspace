@@ -330,7 +330,7 @@ export function UserProfile() {
             {profile.coLearningRooms.map((room) => (
               <div
                 key={room.id}
-                className="text-left p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border)] hover:border-[var(--accent)] transition-colors"
+                className="p-4 rounded-xl bg-[var(--bg-card)] border border-[var(--border)] hover:border-[var(--accent)] transition-colors"
               >
                 <button
                   onClick={() => handleRoomClick(room)}
@@ -348,23 +348,25 @@ export function UserProfile() {
                     )}
                   </div>
                   <p className="text-xs text-[var(--accent)] mb-2">{room.topic}</p>
-                  <div className="flex items-center gap-3 text-xs text-[var(--text-secondary)]">
-                    <span>{room._count.members} member{room._count.members !== 1 ? "s" : ""}</span>
-                    {room.streakCount > 0 && <span className="text-orange-400">🔥 {room.streakCount}d</span>}
-                  </div>
                 </button>
-                {!room.isMember && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setExploreRoomId(room.id);
-                    }}
-                    className="mt-2 flex items-center gap-1 text-[11px] font-medium text-[var(--accent)] hover:underline"
-                  >
-                    <Eye size={12} />
-                    Explore
-                  </button>
-                )}
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-xs text-[var(--text-secondary)]">
+                    {room._count.members} member{room._count.members !== 1 ? "s" : ""}
+                    {room.streakCount > 0 && <span className="text-orange-400 ml-2">🔥 {room.streakCount}d</span>}
+                  </span>
+                  {!room.isMember && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setExploreRoomId(room.id);
+                      }}
+                      className="flex items-center gap-1 text-[11px] font-medium text-[var(--accent)] hover:underline"
+                    >
+                      <Eye size={12} />
+                      Explore
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>

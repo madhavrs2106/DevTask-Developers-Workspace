@@ -153,8 +153,8 @@ export const getRoom = asyncHandler(async (req, res) => {
 export const getRoomPreview = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const room = await prisma.coLearningRoom.findUnique({
-    where: { id },
+  const room = await prisma.coLearningRoom.findFirst({
+    where: { id, visibility: "PUBLIC" },
     select: {
       id: true,
       name: true,
@@ -178,8 +178,7 @@ export const getRoomPreview = asyncHandler(async (req, res) => {
     },
   });
 
-  if (!room) throw new HttpError(404, "Room not found");
-  if (room.visibility !== "PUBLIC") throw new HttpError(403, "This room is private");
+  if (!room) throw new HttpError(404, "Room not found or is private");
 
   res.json({
     ...room,
