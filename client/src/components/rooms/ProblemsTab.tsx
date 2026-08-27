@@ -33,6 +33,11 @@ import type {
   ProblemLanguage,
 } from "../../types";
 
+const LANG_OPTIONS: { id: ProblemLanguage; label: string; note: string }[] = [
+  { id: "javascript", label: "JavaScript", note: "Node.js" },
+  { id: "python", label: "Python", note: "Python 3" },
+];
+
 const DIFFICULTY_COLOR: Record<string, string> = {
   EASY: "text-green-400",
   MEDIUM: "text-yellow-400",
@@ -152,15 +157,37 @@ function CreateProblemForm({ roomId, onDone }: { roomId: string; onDone: () => v
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">Languages</label>
-          <div className="flex gap-3 mt-2">
-            {(["javascript", "python"] as ProblemLanguage[]).map((l) => (
-              <label key={l} className="flex items-center gap-1 text-sm text-[var(--text-primary)] cursor-pointer">
-                <input type="checkbox" checked={languages.includes(l)} onChange={() => toggleLang(l)} />
-                {l}
-              </label>
-            ))}
+          <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">
+            Languages members can solve in
+          </label>
+          <p className="text-xs text-[var(--text-secondary)] mb-2">
+            Select the programming language(s) this problem accepts. Members will only be able to submit in the chosen languages.
+          </p>
+          <div className="flex gap-2 mt-1 flex-wrap">
+            {LANG_OPTIONS.map((opt) => {
+              const active = languages.includes(opt.id);
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => toggleLang(opt.id)}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-colors ${
+                    active
+                      ? "border-[var(--accent)] bg-[var(--accent)]/10 text-[var(--text-primary)]"
+                      : "border-[var(--border)] bg-[var(--bg)] text-[var(--text-secondary)] hover:border-[var(--accent)]"
+                  }`}
+                >
+                  <Code2 size={14} className={active ? "text-[var(--accent)]" : ""} />
+                  <span className="font-medium">{opt.label}</span>
+                  <span className="text-[10px] opacity-70">{opt.note}</span>
+                  {active && <CheckCircle2 size={14} className="text-[var(--accent)]" />}
+                </button>
+              );
+            })}
           </div>
+          {languages.length === 0 && (
+            <p className="text-xs text-red-400 mt-1">Choose at least one language.</p>
+          )}
         </div>
       </div>
 
@@ -455,9 +482,14 @@ export default function ProblemsTab({ roomId, isAdmin }: { roomId: string; isAdm
                     <span className="font-semibold text-[var(--text-primary)]">{p.title}</span>
                     {p.solved && <CheckCircle2 size={14} className="text-green-400" />}
                   </div>
-                  <div className="flex items-center gap-2 mt-0.5">
+                  <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                     {difficultyBadge(p.difficulty)}
-                    <span className="text-[10px] text-[var(--text-secondary)]">{p.languages.join(", ")}</span>
+                    <span className="text-[10px] text-[var(--text-secondary)]">Solve in:</span>
+                    {p.languages.map((l) => (
+                      <span key={l} className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--bg)] border border-[var(--border)] text-[var(--text-secondary)]">
+                        {l}
+                      </span>
+                    ))}
                     <span className="text-[10px] text-[var(--text-secondary)]">· {p.submissionsCount} submissions</span>
                   </div>
                 </div>
