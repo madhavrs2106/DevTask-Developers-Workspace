@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
+import { NoupeChatbot } from "./NoupeChatbot";
 import { useFullScreen } from "../../context/FullScreenContext";
 
 export function Layout() {
@@ -21,6 +22,7 @@ export function Layout() {
         >
           <Outlet />
         </main>
+        <NoupeChatbot />
       </div>
     </div>
   );
