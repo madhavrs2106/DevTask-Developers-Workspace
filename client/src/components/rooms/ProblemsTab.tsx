@@ -322,11 +322,6 @@ function SolveView({ roomId, problemId, isAdmin, onBack }: { roomId: string; pro
               <option key={l} value={l}>{langLabel(l)}</option>
             ))}
           </select>
-          {effectiveLang === "python" && (
-            <span className="hidden md:inline text-[11px] text-[var(--text-secondary)]">
-              numpy · pandas · scipy · sympy · matplotlib
-            </span>
-          )}
         </div>
         <div className="flex items-center gap-2">
           <Button variant="ghost" onClick={() => runWith("run")} disabled={submit.isPending} className="flex items-center gap-1">
