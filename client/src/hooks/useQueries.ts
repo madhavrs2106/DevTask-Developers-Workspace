@@ -342,6 +342,8 @@ export function useRoomPreview(id: string) {
     queryKey: ["roomPreview", id],
     queryFn: async () => (await api.get(`/rooms/${id}/preview`)).data,
     enabled: !!id,
+    retry: false,
+    staleTime: 0,
   });
 }
 

@@ -153,8 +153,8 @@ export const getRoom = asyncHandler(async (req, res) => {
 export const getRoomPreview = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const room = await prisma.coLearningRoom.findFirst({
-    where: { id, visibility: "PUBLIC" },
+  const room = await prisma.coLearningRoom.findUnique({
+    where: { id },
     select: {
       id: true,
       name: true,
@@ -164,25 +164,42 @@ export const getRoomPreview = asyncHandler(async (req, res) => {
       inviteCode: true,
       maxMembers: true,
       createdAt: true,
-      creator: { select: { id: true, name: true, username: true, avatarColor: true } },
-      _count: { select: { members: true } },
-      syllabusItems: {
-        orderBy: { order: "asc" },
-        select: {
-          id: true,
-          title: true,
-          description: true,
-          order: true,
-        },
-      },
+      creatorId: true,
     },
   });
 
-  if (!room) throw new HttpError(404, "Room not found or is private");
+  if (!room) {
+    return res.status(404).json({ error: "Room not found" });
+  }
+
+  if (room.visibility !== "PUBLIC") {
+    return res.status(403).json({ error: "This room is private" });
+  }
+
+  const syllabusItems = await prisma.roomSyllabusItem.findMany({
+    where: { roomId: id },
+    orderBy: { order: "asc" },
+    select: {
+      id: true,
+      title: true,
+      description: true,
+      order: true,
+    },
+  });
+
+  const memberCount = await prisma.roomMember.count({ where: { roomId: id } });
 
   res.json({
-    ...room,
-    memberCount: room._count.members,
+    id: room.id,
+    name: room.name,
+    topic: room.topic,
+    description: room.description,
+    visibility: room.visibility,
+    inviteCode: room.inviteCode,
+    maxMembers: room.maxMembers,
+    createdAt: room.createdAt,
+    memberCount,
+    syllabusItems,
   });
 });
 
