@@ -432,3 +432,9 @@ model RoomProblemSubmission {
   @@index([userId])
   @@index([problemId, userId])
 }
+
+model AppSetting {
+  key       String   @id
+  value     String   @default("")
+  updatedAt DateTime @updatedAt
+}

@@ -13,6 +13,7 @@ import taskRoutes from "./routes/task.routes.js";
 import analyticsRoutes from "./routes/analytics.routes.js";
 import coLearningRoutes from "./routes/coLearning.routes.js";
 import notesRoutes from "./routes/notes.routes.js";
+import settingRoutes from "./routes/setting.routes.js";
 import { notFoundHandler, errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
@@ -47,6 +48,7 @@ app.use("/api/tasks", taskRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/rooms", coLearningRoutes);
 app.use("/api/rooms", notesRoutes);
+app.use("/api/settings", settingRoutes);
 
 /* ── Production: serve the built React app from client/dist (single origin) ── */
 const clientDist = join(__dirname, "../../client/dist");

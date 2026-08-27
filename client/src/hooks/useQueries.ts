@@ -726,3 +726,19 @@ export function useUploadQuizImage(roomId: string) {
     },
   });
 }
+
+export function useSetting(key: string) {
+  return useQuery<{ key: string; value: string }>({
+    queryKey: ["setting", key],
+    queryFn: async () => (await api.get<{ key: string; value: string }>(`/settings/${key}`)).data,
+    staleTime: 60_000,
+  });
+}
+
+export function useUpdateSetting(key: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (value: string) => (await api.put(`/settings/${key}`, { value })).data,
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ["setting", key] }),
+  });
+}

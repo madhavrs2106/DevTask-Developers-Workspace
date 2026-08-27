@@ -11,6 +11,8 @@ import {
   useUpdateProfile,
   useUploadAvatar,
   useDeleteAccount,
+  useSetting,
+  useUpdateSetting,
 } from "../hooks/useQueries";
 import type { Role, SkillProgress } from "../types";
 import { Button } from "../components/ui/Button";
@@ -39,6 +41,13 @@ export function Settings() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [deleteConfirm, setDeleteConfirm] = useState("");
+
+  const [noupeSnippet, setNoupeSnippet] = useState("");
+  const noupeSetting = useSetting("noupe-embed");
+  const updateNoupe = useUpdateSetting("noupe-embed");
+  useEffect(() => {
+    if (noupeSetting.data) setNoupeSnippet(noupeSetting.data.value);
+  }, [noupeSetting.data]);
 
   // Re-sync local state when the user object changes (e.g. after login)
   useEffect(() => {
@@ -485,6 +494,32 @@ export function Settings() {
         <Button variant="danger" onClick={logout}>
           <LogOut size={15} /> Sign out
         </Button>
+      </section>
+
+      {/* ── Noupe AI Chatbot ───────────────────────────────────── */}
+      <section className="card p-6">
+        <h2 className="text-sm font-semibold text-white">Noupe AI Chatbot</h2>
+        <p className="mt-1 text-xs text-ink-faint">
+          Paste your Noupe embed snippet (the <code className="text-slate-300">{"<script …></script>"}</code> line from the Noupe
+          dashboard). The widget appears inside the app and can answer questions about DevTask and study help — no rebuild required.
+        </p>
+        <textarea
+          className="input-dark mt-3 h-28 w-full font-mono text-xs"
+          placeholder={'<script src="https://…" data-bot="…" async></script>'}
+          value={noupeSnippet}
+          onChange={(e) => setNoupeSnippet(e.target.value)}
+        />
+        <div className="mt-3 flex items-center gap-3">
+          <Button variant="primary" onClick={() => updateNoupe.mutate(noupeSnippet)} disabled={updateNoupe.isPending}>
+            <Save size={14} /> {updateNoupe.isPending ? "Saving…" : "Save snippet"}
+          </Button>
+          {updateNoupe.isSuccess && (
+            <span className="text-xs text-teal-400 flex items-center gap-1">
+              <CheckCircle2 size={14} /> Saved
+            </span>
+          )}
+          {updateNoupe.isError && <span className="text-xs text-rose-400">Failed to save.</span>}
+        </div>
       </section>
 
       {/* ── Danger zone ─────────────────────────────────────────── */}

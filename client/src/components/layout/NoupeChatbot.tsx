@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { MessageCircle, X } from "lucide-react";
+import { useSetting } from "../../hooks/useQueries";
 
 // Noupe AI is a no-code, embeddable conversational chatbot.
-// The widget is config-driven via environment variables so the embed snippet is never hardcoded.
-//   VITE_NOUPE_EMBED_SNIPPET — the exact <script ...></script> line from your Noupe dashboard (preferred)
-//   VITE_NOUPE_SCRIPT_SRC + VITE_NOUPE_BOT_ID — build the script tag from these
+// Configuration precedence:
+//   1. VITE_NOUPE_EMBED_SNIPPET (build-time env) — preferred
+//   2. VITE_NOUPE_SCRIPT_SRC + VITE_NOUPE_BOT_ID (build-time env)
+//   3. Runtime app setting "noupe-embed" (set by an admin in Settings, no rebuild needed)
 // When configured, we inject Noupe's script and let it render its own bubble.
 // We also render a fallback launcher so the button is always visible/positioned; it auto-hides
 // once Noupe's own widget is detected in the DOM.
@@ -12,9 +14,8 @@ import { MessageCircle, X } from "lucide-react";
 const SNIPPET = import.meta.env.VITE_NOUPE_EMBED_SNIPPET as string | undefined;
 const SCRIPT_SRC = import.meta.env.VITE_NOUPE_SCRIPT_SRC as string | undefined;
 const BOT_ID = import.meta.env.VITE_NOUPE_BOT_ID as string | undefined;
-const CONFIGURED = Boolean(SNIPPET || SCRIPT_SRC);
 
-function injectNoupe() {
+function injectNoupe(snippet: string, scriptSrc?: string, botId?: string) {
   if (document.getElementById("noupe-script")) return;
   const make = () => {
     const s = document.createElement("script");
@@ -22,8 +23,8 @@ function injectNoupe() {
     s.async = true;
     return s;
   };
-  if (SNIPPET) {
-    const parsed = new DOMParser().parseFromString(SNIPPET, "text/html");
+  if (snippet) {
+    const parsed = new DOMParser().parseFromString(snippet, "text/html");
     const src = parsed.querySelector("script");
     if (!src) return;
     const s = make();
@@ -32,10 +33,10 @@ function injectNoupe() {
     document.body.appendChild(s);
     return;
   }
-  if (SCRIPT_SRC) {
+  if (scriptSrc) {
     const s = make();
-    s.src = SCRIPT_SRC;
-    if (BOT_ID) s.setAttribute("data-bot-id", BOT_ID);
+    s.src = scriptSrc;
+    if (botId) s.setAttribute("data-bot-id", botId);
     document.body.appendChild(s);
   }
 }
@@ -43,16 +44,22 @@ function injectNoupe() {
 export function NoupeChatbot() {
   const [noupeLoaded, setNoupeLoaded] = useState(false);
   const [open, setOpen] = useState(false);
+  const { data: setting } = useSetting("noupe-embed");
+
+  // Effective snippet: env takes precedence, then the runtime app setting.
+  const snippet = SNIPPET || setting?.value || "";
+  const scriptSrc = SNIPPET ? undefined : SCRIPT_SRC;
+  const CONFIGURED = Boolean(snippet || (SCRIPT_SRC && !SNIPPET));
 
   useEffect(() => {
-    if (!CONFIGURED) return;
-    injectNoupe();
+    if (!snippet && !(SCRIPT_SRC && !SNIPPET)) return;
+    injectNoupe(snippet, SCRIPT_SRC && !SNIPPET ? SCRIPT_SRC : undefined, BOT_ID);
     const t = setInterval(() => {
       const found = document.querySelector('[id*="noupe" i], [class*="noupe" i]');
       if (found) setNoupeLoaded(true);
     }, 600);
     return () => clearInterval(t);
-  }, []);
+  }, [snippet, scriptSrc]);
 
   const handleClick = () => {
     const w = window as unknown as { Noupe?: { open?: () => void }; noupe?: { open?: () => void } };
@@ -74,10 +81,11 @@ export function NoupeChatbot() {
       </button>
       {open && !CONFIGURED && (
         <div className="fixed bottom-20 right-5 z-[60] w-72 rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-3 text-xs text-[var(--text-secondary)] shadow-xl leading-relaxed">
-          Noupe AI isn't configured yet. Set <code className="text-[var(--text-primary)]">VITE_NOUPE_EMBED_SNIPPET</code> in your
-          client <code className="text-[var(--text-primary)]">.env</code> (then rebuild) to load the real chat widget.
+          Noupe AI isn't configured yet. Paste your Noupe embed snippet in <strong>Settings → Noupe AI</strong> (or set{" "}
+          <code className="text-[var(--text-primary)]">VITE_NOUPE_EMBED_SNIPPET</code> in <code className="text-[var(--text-primary)]">.env</code>) to load the chat.
         </div>
       )}
     </>
   );
 }
+
