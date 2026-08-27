@@ -82,6 +82,23 @@ export default function CoLearningRoomPage() {
 
   return (
     <div className="p-4 sm:p-6 max-w-6xl mx-auto">
+      {/* Tabs */}
+      <div className="flex gap-1 border-b border-[var(--border)] mb-6 overflow-x-auto">
+        {visibleTabs.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => handleTabClick(tab.key)}
+            className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
+              activeTab === tab.key
+                ? "text-[var(--accent)] border-b-2 border-[var(--accent)]"
+                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       {/* Header */}
       {activeTab === "syllabus" && (
       <section className="card relative overflow-hidden p-6 mb-6">
@@ -164,23 +181,6 @@ export default function CoLearningRoomPage() {
         </div>
       </section>
       )}
-
-      {/* Tabs */}
-      <div className="flex gap-1 border-b border-[var(--border)] mb-6 overflow-x-auto">
-        {visibleTabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => handleTabClick(tab.key)}
-            className={`px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors ${
-              activeTab === tab.key
-                ? "text-[var(--accent)] border-b-2 border-[var(--accent)]"
-                : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
 
       {/* Tab Content */}
       {activeTab === "syllabus" && <SyllabusTab room={room} />}
