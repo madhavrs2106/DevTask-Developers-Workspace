@@ -8,20 +8,20 @@ function contactLine(data: ResumeData): string[] {
 export function ResumePreview({ data }: { data: ResumeData }) {
   const isClassic = data.template === "classic";
   const headingClass = isClassic
-    ? "text-[11px] font-bold uppercase tracking-[0.12em] text-black border-b border-black pb-1 mb-2"
-    : "text-[11px] font-bold uppercase tracking-[0.12em] text-slate-700 border-b-2 border-slate-800 pb-1 mb-2";
+    ? "text-[11px] font-bold uppercase tracking-[0.14em] text-blue-800 border-b border-blue-700 pb-1 mb-2"
+    : "text-[11px] font-bold uppercase tracking-[0.14em] text-blue-800 border-b-2 border-blue-700 pb-1 mb-2";
 
   return (
     <div
       id="resume-sheet"
-      className="resume-print mx-auto w-full max-w-[820px] bg-white px-10 py-9 text-black shadow-xl"
-      style={{ fontFamily: "Inter, Helvetica, Arial, sans-serif", fontSize: "12px", lineHeight: 1.45 }}
+      className="resume-print mx-auto w-full max-w-[820px] bg-white px-10 py-9 text-slate-800 shadow-xl"
+      style={{ fontFamily: "Inter, Helvetica, Arial, sans-serif", fontSize: "11px", lineHeight: 1.45 }}
     >
       {/* Header */}
-      <header className="mb-4 border-b border-slate-300 pb-3 text-center">
-        <h1 className="text-2xl font-extrabold tracking-tight text-black">{data.fullName}</h1>
-        {data.headline && <p className="mt-0.5 text-[13px] font-medium text-slate-700">{data.headline}</p>}
-        <p className="mt-1 text-[10.5px] text-slate-600">{contactLine(data).join("  •  ")}</p>
+      <header className="mb-4 border-b-2 border-blue-700 pb-3 text-center">
+        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">{data.fullName}</h1>
+        {data.headline && <p className="mt-1 text-sm font-semibold text-blue-700">{data.headline}</p>}
+        <p className="mt-1 text-[10px] text-slate-500">{contactLine(data).join("   •   ")}</p>
       </header>
 
       {data.summary && (
@@ -41,9 +41,11 @@ export function ResumePreview({ data }: { data: ResumeData }) {
                   {e.degree}
                   {e.institution ? <span className="font-normal text-slate-700"> — {e.institution}</span> : null}
                 </span>
-                <span className="whitespace-nowrap text-[10.5px] text-slate-600">{[e.duration, e.cgpa].filter(Boolean).join("  ")}</span>
+                <span className="whitespace-nowrap text-[10px] 
+text-slate-500">{[e.duration, e.cgpa].filter(Boolean).join("  ")}</span>
               </div>
-              {e.highlight && <p className="text-[10.5px] text-slate-600">{e.highlight}</p>}
+              {e.highlight && <p className="text-[10px] 
+text-slate-500">{e.highlight}</p>}
             </div>
           ))}
         </section>
@@ -59,7 +61,8 @@ export function ResumePreview({ data }: { data: ResumeData }) {
                   {x.role}
                   {x.company ? <span className="font-normal text-slate-700"> — {x.company}</span> : null}
                 </span>
-                <span className="whitespace-nowrap text-[10.5px] text-slate-600">{[x.duration, x.location].filter(Boolean).join("  ")}</span>
+                <span className="whitespace-nowrap text-[10px] 
+text-slate-500">{[x.duration, x.location].filter(Boolean).join("  ")}</span>
               </div>
               {x.bullets.length > 0 && (
                 <ul className="ml-4 list-disc text-slate-800">
@@ -94,11 +97,13 @@ export function ResumePreview({ data }: { data: ResumeData }) {
             <div key={i} className="mb-2">
               <div className="flex items-baseline justify-between gap-3">
                 <span className="font-semibold text-black">{p.title}</span>
-                {p.repoUrl && <span className="whitespace-nowrap text-[10.5px] text-slate-600">{p.repoUrl}</span>}
+                {p.repoUrl && <span className="whitespace-nowrap text-[10px] 
+text-slate-500">{p.repoUrl}</span>}
               </div>
               {p.description && <p className="text-slate-800">{p.description}</p>}
               {p.techStack.length > 0 && (
-                <p className="text-[10.5px] text-slate-600">
+                <p className="text-[10px] 
+text-slate-500">
                   <span className="font-semibold">Stack:</span> {p.techStack.join(", ")}
                 </p>
               )}
