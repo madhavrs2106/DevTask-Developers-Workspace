@@ -5,7 +5,7 @@ const BROWN_DARK = "#3d261a";
 
 function LeftHead({ children }: { children: string }) {
   return (
-    <h2 className="mb-2 mt-5 text-[18px] font-bold uppercase tracking-[0.12em] text-white first:mt-0">
+    <h2 className="mb-2 mt-6 text-[18px] font-bold uppercase tracking-[0.12em] text-white first:mt-0">
       {children}
     </h2>
   );
@@ -52,9 +52,9 @@ export function ResumePreviewProfessional({ data }: { data: ResumeData }) {
             />
           )}
           <h1 className="mt-4 text-2xl font-bold uppercase tracking-wide text-white">{data.fullName}</h1>
-          {data.headline && <p className="mt-1 text-[13px] font-normal text-white/80">{data.headline}</p>}
+          {data.headline && <p className="mt-3 text-[13px] font-normal text-white/80">{data.headline}</p>}
 
-          <div className="mt-3 space-y-0.5 text-[11px] text-white/90">
+          <div className="mt-5 space-y-0.5 text-[11px] text-white/90">
             {c.email && <div className="break-all">{c.email}</div>}
             {c.phone && <div>{c.phone}</div>}
             {c.location && <div>{c.location}</div>}
@@ -73,7 +73,7 @@ export function ResumePreviewProfessional({ data }: { data: ResumeData }) {
           {data.education.length > 0 && (
             <section>
               <LeftHead>Education</LeftHead>
-              <div className="space-y-2">
+              <div className="space-y-4">
                 {data.education.map((e, i) => (
                   <div key={i}>
                     <div className="font-bold text-white">{e.degree}</div>
