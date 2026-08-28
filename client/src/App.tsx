@@ -16,6 +16,7 @@ import { Profile } from "./pages/Profile";
 import { Settings } from "./pages/Settings";
 import CoLearningRoomsPage from "./pages/CoLearningRoomsPage";
 import CoLearningRoomPage from "./pages/CoLearningRoomPage";
+import { Onboarding } from "./pages/Onboarding";
 import { useAuth } from "./context/AuthContext";
 import { applyAccent } from "./lib/accent";
 
@@ -26,6 +27,20 @@ export default function App() {
   useEffect(() => {
     applyAccent(user?.avatarColor);
   }, [user?.avatarColor]);
+
+  // New users are sent through a multi-step profile/onboarding wizard before the app.
+  const showOnboarding = !!user && sessionStorage.getItem("devtask.onboarding") === "pending";
+
+  if (showOnboarding) {
+    return (
+      <Routes>
+        <Route element={<RequireAuth />}>
+          <Route path="onboarding" element={<Onboarding />} />
+          <Route path="*" element={<Navigate to="/onboarding" replace />} />
+        </Route>
+      </Routes>
+    );
+  }
 
   return (
     <Routes>
@@ -62,6 +77,7 @@ export default function App() {
           <Route path="u/:username/:type" element={<FollowList />} />
           <Route path="profile" element={<Profile />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="onboarding" element={<Onboarding />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Route>
