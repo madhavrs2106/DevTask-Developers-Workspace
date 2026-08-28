@@ -42,7 +42,7 @@ export function ResumePreviewProfessional({ data }: { data: ResumeData }) {
       {data.summary && (
         <section className="mt-4">
           <h2 className="text-[14px] font-bold uppercase tracking-[0.14em] text-indigo-800">Professional Summary</h2>
-          <hr className="mb-1 mt-0.5 border-indigo-800" />
+          <hr className="mb-2 mt-1 border-indigo-800" />
           <p className="text-slate-800">{data.summary}</p>
         </section>
       )}
@@ -51,7 +51,7 @@ export function ResumePreviewProfessional({ data }: { data: ResumeData }) {
       {data.skills.length > 0 && (
         <section className="mt-4">
           <h2 className="text-[14px] font-bold uppercase tracking-[0.14em] text-indigo-800">Technical Skills</h2>
-          <hr className="mb-1 mt-0.5 border-indigo-800" />
+          <hr className="mb-2 mt-1 border-indigo-800" />
           <ul className="space-y-0.5 text-slate-800">
             {skillBullets(data).map((b, i) => (
               <li key={i}>{b}</li>
@@ -64,7 +64,7 @@ export function ResumePreviewProfessional({ data }: { data: ResumeData }) {
       {data.projects.length > 0 && (
         <section className="mt-4">
           <h2 className="text-[14px] font-bold uppercase tracking-[0.14em] text-indigo-800">Projects</h2>
-          <hr className="mb-1 mt-0.5 border-indigo-800" />
+          <hr className="mb-2 mt-1 border-indigo-800" />
           {data.projects.map((p, i) => (
             <div key={i} className="mb-2">
               <div className="font-semibold text-slate-900">
@@ -81,7 +81,7 @@ export function ResumePreviewProfessional({ data }: { data: ResumeData }) {
       {data.education.length > 0 && (
         <section className="mt-4">
           <h2 className="text-[14px] font-bold uppercase tracking-[0.14em] text-indigo-800">Education</h2>
-          <hr className="mb-1 mt-0.5 border-indigo-800" />
+          <hr className="mb-2 mt-1 border-indigo-800" />
           {data.education.map((e, i) => (
             <div key={i} className="mb-2">
               <div className="font-semibold text-slate-900">{e.degree}</div>
@@ -104,7 +104,7 @@ export function ResumePreviewProfessional({ data }: { data: ResumeData }) {
       {data.hobbies && data.hobbies.length > 0 && (
         <section className="mt-4">
           <h2 className="text-[14px] font-bold uppercase tracking-[0.14em] text-indigo-800">Hobbies &amp; Interests</h2>
-          <hr className="mb-1 mt-0.5 border-indigo-800" />
+          <hr className="mb-2 mt-1 border-indigo-800" />
           <ul className="space-y-0.5 text-slate-800">
             {data.hobbies.map((h, i) => (
               <li key={i}>* {h}</li>
@@ -117,7 +117,7 @@ export function ResumePreviewProfessional({ data }: { data: ResumeData }) {
       {data.achievements && data.achievements.length > 0 && (
         <section className="mt-4">
           <h2 className="text-[14px] font-bold uppercase tracking-[0.14em] text-indigo-800">Achievements</h2>
-          <hr className="mb-1 mt-0.5 border-indigo-800" />
+          <hr className="mb-2 mt-1 border-indigo-800" />
           <ul className="space-y-0.5 text-slate-800">
             {data.achievements.map((a, i) => (
               <li key={i}>* {a}</li>

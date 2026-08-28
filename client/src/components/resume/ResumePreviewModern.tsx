@@ -57,7 +57,7 @@ export function ResumePreviewModern({ data }: { data: ResumeData }) {
         <div className="w-1/3 space-y-5 border-r border-slate-200 bg-white p-6">
           {data.summary && (
             <section>
-              <h2 className="mb-1.5 flex items-center gap-1.5 text-[13px] font-bold uppercase tracking-[0.12em] text-blue-800">
+              <h2 className="mb-2.5 flex items-center gap-1.5 text-[13px] font-bold uppercase tracking-[0.12em] text-blue-800">
                 <User size={13} /> About Me
               </h2>
               <p className="text-slate-700">{data.summary}</p>
@@ -66,7 +66,7 @@ export function ResumePreviewModern({ data }: { data: ResumeData }) {
 
           {contactItems.length > 0 && (
             <section>
-              <h2 className="mb-1.5 flex items-center gap-1.5 text-[13px] font-bold uppercase tracking-[0.12em] text-blue-800">
+              <h2 className="mb-2.5 flex items-center gap-1.5 text-[13px] font-bold uppercase tracking-[0.12em] text-blue-800">
                 <Phone size={13} /> Contact
               </h2>
               <div className="space-y-1">
@@ -81,7 +81,7 @@ export function ResumePreviewModern({ data }: { data: ResumeData }) {
 
           {data.skills.length > 0 && (
             <section>
-              <h2 className="mb-1.5 flex items-center gap-1.5 text-[13px] font-bold uppercase tracking-[0.12em] text-blue-800">
+              <h2 className="mb-2.5 flex items-center gap-1.5 text-[13px] font-bold uppercase tracking-[0.12em] text-blue-800">
                 <Code2 size={13} /> Skills
               </h2>
               <ul className="space-y-0.5 text-slate-700">
@@ -94,7 +94,7 @@ export function ResumePreviewModern({ data }: { data: ResumeData }) {
 
           {data.languages && data.languages.length > 0 && (
             <section>
-              <h2 className="mb-1.5 flex items-center gap-1.5 text-[13px] font-bold uppercase tracking-[0.12em] text-blue-800">
+              <h2 className="mb-2.5 flex items-center gap-1.5 text-[13px] font-bold uppercase tracking-[0.12em] text-blue-800">
                 <LanguagesIcon size={13} /> Language
               </h2>
               <ul className="space-y-0.5 text-slate-700">
@@ -110,7 +110,7 @@ export function ResumePreviewModern({ data }: { data: ResumeData }) {
         <div className="w-2/3 space-y-5 p-6">
           {data.education.length > 0 && (
             <section>
-              <h2 className="mb-2 text-[14px] font-bold uppercase tracking-[0.12em] text-blue-800">Education</h2>
+              <h2 className="mb-3 text-[14px] font-bold uppercase tracking-[0.12em] text-blue-800">Education</h2>
               <div className="relative space-y-3 border-l border-slate-300 pl-4">
                 {data.education.map((e, i) => (
                   <div key={i} className="relative">
@@ -128,7 +128,7 @@ export function ResumePreviewModern({ data }: { data: ResumeData }) {
 
           {data.experience.length > 0 && (
             <section>
-              <h2 className="mb-2 text-[14px] font-bold uppercase tracking-[0.12em] text-blue-800">Experience</h2>
+              <h2 className="mb-3 text-[14px] font-bold uppercase tracking-[0.12em] text-blue-800">Experience</h2>
               <div className="relative space-y-3 border-l border-slate-300 pl-4">
                 {data.experience.map((x, i) => (
                   <div key={i} className="relative">
@@ -148,7 +148,7 @@ export function ResumePreviewModern({ data }: { data: ResumeData }) {
 
           {data.projects.length > 0 && (
             <section>
-              <h2 className="mb-2 text-[14px] font-bold uppercase tracking-[0.12em] text-blue-800">Projects</h2>
+              <h2 className="mb-3 text-[14px] font-bold uppercase tracking-[0.12em] text-blue-800">Projects</h2>
               {data.projects.map((p, i) => (
                 <div key={i} className="mb-2">
                   <div className="font-bold text-slate-800">
