@@ -22,7 +22,7 @@ export function ResumePreviewMinimalTech({ data }: { data: ResumeData }) {
   const linkRows: [string, string][] = [];
   if (c.github) linkRows.push(["GitHub", c.github]);
   if (c.linkedin) linkRows.push(["LinkedIn", c.linkedin]);
-  if (devtaskUrl) linkRows.push(["DevTask", `${devtaskUrl} (${data.username})`]);
+  if (devtaskUrl) linkRows.push(["DevTask", devtaskUrl]);
 
   const leftCol = [c.phone, emailToShow].filter(Boolean) as string[];
   const rightCol = [locRest, country].filter(Boolean) as string[];
