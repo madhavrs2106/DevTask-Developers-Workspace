@@ -117,4 +117,5 @@
     print-color-adjust: exact;
   }
   .no-print { display: none !important; }
+  .resume-zoom-wrap { zoom: 1 !important; }
 }

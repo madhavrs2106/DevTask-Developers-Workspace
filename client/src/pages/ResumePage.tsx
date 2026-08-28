@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { FileDown, LayoutTemplate, SlidersHorizontal } from "lucide-react";
+import { FileDown, LayoutTemplate, SlidersHorizontal, ZoomIn, ZoomOut } from "lucide-react";
 import { useMe, useProjects, useCourses } from "../hooks/useQueries";
 import { buildResumeData } from "../lib/buildResume";
 import { ResumePreview } from "../components/resume/ResumePreview";
@@ -15,6 +15,9 @@ export function ResumePage() {
   const [options, setOptions] = useState<ResumeOptions>({ template: "minimal" });
   const [modalOpen, setModalOpen] = useState(false);
   const [templateModalOpen, setTemplateModalOpen] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const zoomIn = () => setZoom((z) => Math.min(1.5, Math.round((z + 0.1) * 100) / 100));
+  const zoomOut = () => setZoom((z) => Math.max(0.5, Math.round((z - 0.1) * 100) / 100));
 
   const resume = useMemo(() => {
     if (!user) return null;
@@ -42,13 +45,36 @@ export function ResumePage() {
           <Button onClick={() => window.print()}>
             <FileDown size={14} /> Download PDF
           </Button>
+          <div className="no-print flex items-center gap-1 rounded-md border border-slate-700 p-0.5">
+            <button
+              type="button"
+              onClick={zoomOut}
+              disabled={zoom <= 0.5}
+              className="rounded p-1 text-ink-muted hover:bg-surface-raised hover:text-white disabled:opacity-40"
+              title="Zoom out"
+            >
+              <ZoomOut size={14} />
+            </button>
+            <span className="w-12 text-center text-xs text-ink-faint">{Math.round(zoom * 100)}%</span>
+            <button
+              type="button"
+              onClick={zoomIn}
+              disabled={zoom >= 1.5}
+              className="rounded p-1 text-ink-muted hover:bg-surface-raised hover:text-white disabled:opacity-40"
+              title="Zoom in"
+            >
+              <ZoomIn size={14} />
+            </button>
+          </div>
         </div>
       </div>
 
       {!resume ? (
         <p className="text-sm text-ink-faint">Loading…</p>
       ) : (
-        <ResumePreview data={resume} />
+        <div className="resume-zoom-wrap flex justify-center" style={{ zoom }}>
+          <ResumePreview data={resume} />
+        </div>
       )}
 
       {modalOpen && user && (
