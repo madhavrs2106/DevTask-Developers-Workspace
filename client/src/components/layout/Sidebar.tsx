@@ -1,5 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
+  FileText,
   FolderGit2,
   GraduationCap,
   LayoutDashboard,
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
   { to: "/projects", label: "Projects", icon: FolderGit2 },
   { to: "/courses", label: "Courses", icon: GraduationCap },
   { to: "/rooms", label: "Co-Learning", icon: Users },
+  { to: "/resume", label: "Resume", icon: FileText },
   { to: "/search", label: "Find Devs", icon: Search },
 ] as const;
 

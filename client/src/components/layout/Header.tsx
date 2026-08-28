@@ -10,6 +10,7 @@ const TITLES: { match: RegExp; title: string; subtitle: string }[] = [
   { match: /^\/tasks/, title: "All Tasks", subtitle: "Everything on your plate" },
   { match: /^\/projects/, title: "Projects", subtitle: "What you're building" },
   { match: /^\/courses/, title: "Courses & Roadmaps", subtitle: "Level up, one lesson at a time" },
+  { match: /^\/resume/, title: "Resume Generator", subtitle: "Auto-build an ATS-friendly resume" },
   { match: /^\/settings/, title: "Profile Settings", subtitle: "Tune your workspace" },
 ];
 

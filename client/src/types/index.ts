@@ -96,6 +96,68 @@ export interface ResumeExtras {
   hobbies?: string[];
 }
 
+/* ── Auto resume generator ─────────────────────────────────────── */
+
+export type ResumeTemplate = "minimal" | "classic";
+
+export interface ResumeContact {
+  email: string;
+  phone?: string;
+  location?: string;
+  github?: string;
+  linkedin?: string;
+  portfolio?: string;
+}
+
+export interface ResumeEducation {
+  degree: string;
+  institution: string;
+  duration?: string;
+  cgpa?: string;
+  highlight?: string; // e.g. board/percentage for school level
+}
+
+export interface ResumeExperienceItem {
+  role: string;
+  company: string;
+  duration?: string;
+  location?: string;
+  bullets: string[];
+}
+
+export interface ResumeProjectItem {
+  title: string;
+  description?: string;
+  repoUrl?: string;
+  techStack: string[];
+}
+
+export interface ResumeSkillGroup {
+  category: string;
+  skills: string[];
+}
+
+export interface ResumeData {
+  fullName: string;
+  headline?: string;
+  contact: ResumeContact;
+  summary?: string;
+  education: ResumeEducation[];
+  experience: ResumeExperienceItem[];
+  skills: ResumeSkillGroup[];
+  projects: ResumeProjectItem[];
+  coursework: string[];
+  template: ResumeTemplate;
+}
+
+export interface ResumeOptions {
+  headline?: string;
+  location?: string;
+  selectedProjectIds?: string[];
+  selectedSkillNames?: string[];
+  template: ResumeTemplate;
+}
+
 export interface AuthResponse {
   user: User;
   token: string;

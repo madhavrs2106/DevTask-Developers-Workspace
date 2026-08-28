@@ -1,0 +1,78 @@
+import { useMemo, useState } from "react";
+import { FileDown, SlidersHorizontal } from "lucide-react";
+import { useMe, useProjects, useCourses } from "../hooks/useQueries";
+import { buildResumeData } from "../lib/buildResume";
+import { ResumePreview } from "../components/resume/ResumePreview";
+import { ResumeCustomizeModal } from "../components/resume/ResumeCustomizeModal";
+import { Button } from "../components/ui/Button";
+import { cn } from "../lib/utils";
+import type { ResumeOptions, ResumeTemplate } from "../types";
+
+export function ResumePage() {
+  const { data: user } = useMe();
+  const { data: projects = [] } = useProjects();
+  const { data: courses = [] } = useCourses();
+  const [options, setOptions] = useState<ResumeOptions>({ template: "minimal" });
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const resume = useMemo(() => {
+    if (!user) return null;
+    return buildResumeData(user, projects, courses, options);
+  }, [user, projects, courses, options]);
+
+  return (
+    <div className="mx-auto max-w-5xl px-4 py-6">
+      {/* Toolbar (hidden in print) */}
+      <div className="no-print mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-xl font-semibold text-white">Resume Generator</h1>
+          <p className="text-xs text-ink-faint">
+            Auto-built from your DevTask activity. Education &amp; contact are edited in{" "}
+            <span className="text-accent-bright">Settings</span>.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex rounded-xl border border-slate-800 bg-surface-raised p-1">
+            {(["minimal", "classic"] as ResumeTemplate[]).map((t) => (
+              <button
+                key={t}
+                onClick={() => setOptions((o) => ({ ...o, template: t }))}
+                className={cn(
+                  "rounded-lg px-3 py-1.5 text-xs capitalize transition-colors",
+                  options.template === t ? "bg-accent text-white" : "text-ink-muted hover:text-white"
+                )}
+              >
+                {t === "minimal" ? "Minimal" : "Classic"}
+              </button>
+            ))}
+          </div>
+          <Button variant="outline" onClick={() => setModalOpen(true)}>
+            <SlidersHorizontal size={14} /> Customize
+          </Button>
+          <Button onClick={() => window.print()}>
+            <FileDown size={14} /> Download PDF
+          </Button>
+        </div>
+      </div>
+
+      {!resume ? (
+        <p className="text-sm text-ink-faint">Loading…</p>
+      ) : (
+        <ResumePreview data={resume} />
+      )}
+
+      {modalOpen && user && (
+        <ResumeCustomizeModal
+          projects={projects}
+          skills={user.skills ?? []}
+          initial={options}
+          onSave={(o) => {
+            setOptions(o);
+            setModalOpen(false);
+          }}
+          onClose={() => setModalOpen(false)}
+        />
+      )}
+    </div>
+  );
+}

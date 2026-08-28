@@ -17,6 +17,7 @@ import { Settings } from "./pages/Settings";
 import CoLearningRoomsPage from "./pages/CoLearningRoomsPage";
 import CoLearningRoomPage from "./pages/CoLearningRoomPage";
 import { Onboarding } from "./pages/Onboarding";
+import { ResumePage } from "./pages/ResumePage";
 import { useAuth } from "./context/AuthContext";
 import { applyAccent } from "./lib/accent";
 
@@ -77,6 +78,7 @@ export default function App() {
           <Route path="u/:username/:type" element={<FollowList />} />
           <Route path="profile" element={<Profile />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="resume" element={<ResumePage />} />
           <Route path="onboarding" element={<Onboarding />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
