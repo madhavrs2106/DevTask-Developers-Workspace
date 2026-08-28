@@ -4,10 +4,9 @@ import type { ResumeTemplate } from "../../types";
 
 const TEMPLATES: { id: ResumeTemplate; name: string; blurb: string; swatch: string }[] = [
   { id: "minimal", name: "Minimal Tech", blurb: "Clean single column with a blue accent and bold section rules.", swatch: "bg-blue-700" },
-  { id: "classic", name: "Classic", blurb: "Traditional layout with dark underlined section headings.", swatch: "bg-slate-800" },
-  { id: "modern", name: "Modern", blurb: "Fresh teal accent with bold section rules.", swatch: "bg-teal-700" },
-  { id: "compact", name: "Compact", blurb: "Tighter spacing and smaller type to fit more on one page.", swatch: "bg-blue-600" },
-  { id: "professional", name: "Professional", blurb: "Refined indigo accent for a corporate feel.", swatch: "bg-indigo-800" },
+  { id: "classic", name: "Classic", blurb: "Navy banner with a light-gray sidebar and white content column.", swatch: "bg-slate-800" },
+  { id: "modern", name: "Modern", blurb: "Two-column layout with a blue top band and a vertical timeline.", swatch: "bg-teal-700" },
+  { id: "professional", name: "Professional", blurb: "Warm earth-tone two-column with a chocolate sidebar.", swatch: "bg-indigo-800" },
 ];
 
 interface Props {
