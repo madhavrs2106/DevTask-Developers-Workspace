@@ -154,7 +154,8 @@ export interface ResumeData {
   experience: ResumeExperienceItem[];
   skills: ResumeSkillGroup[];
   projects: ResumeProjectItem[];
-  coursework: string[];
+  coursesCompleted: string[];
+  certifications: string[];
   hobbies?: string[];
   achievements?: string[];
   languages?: string[];

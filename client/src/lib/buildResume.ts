@@ -121,11 +121,9 @@ export function buildResumeData(
     techStack: [],
   }));
 
-  // Coursework & certifications
-  const coursework = [
-    ...courses.filter((c) => c.status === "COMPLETED").map((c) => c.title),
-    ...(extras.certifications ?? []).map((c) => (c.issuer ? `${c.name} (${c.issuer})` : c.name)),
-  ];
+  // DevTask-completed courses vs. externally added certifications
+  const coursesCompleted = courses.filter((c) => c.status === "COMPLETED").map((c) => c.title);
+  const certifications = (extras.certifications ?? []).map((c) => (c.issuer ? `${c.name} (${c.issuer})` : c.name));
 
   return {
     fullName: user.name,
@@ -136,7 +134,8 @@ export function buildResumeData(
     experience,
     skills,
     projects: projectItems,
-    coursework,
+    coursesCompleted,
+    certifications,
     hobbies: extras.hobbies,
     achievements: extras.achievements,
     languages: extras.languagesKnown,

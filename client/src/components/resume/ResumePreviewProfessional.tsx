@@ -148,11 +148,22 @@ export function ResumePreviewProfessional({ data }: { data: ResumeData }) {
             </section>
           )}
 
-          {data.coursework.length > 0 && (
+          {data.coursesCompleted.length > 0 && (
+            <section>
+              <RightHead>Courses Completed</RightHead>
+              <ul className="ml-4 list-disc text-slate-800">
+                {data.coursesCompleted.map((cw, i) => (
+                  <li key={i}>{cw}</li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {data.certifications.length > 0 && (
             <section>
               <RightHead>Certifications</RightHead>
               <ul className="ml-4 list-disc text-slate-800">
-                {data.coursework.map((cw, i) => (
+                {data.certifications.map((cw, i) => (
                   <li key={i}>{cw}</li>
                 ))}
               </ul>

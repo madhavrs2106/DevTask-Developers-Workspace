@@ -159,6 +159,28 @@ export function ResumePreviewModern({ data }: { data: ResumeData }) {
               ))}
             </section>
           )}
+
+          {data.coursesCompleted.length > 0 && (
+            <section>
+              <h2 className="mb-3 text-[14px] font-bold uppercase tracking-[0.12em] text-blue-800">Courses Completed</h2>
+              <ul className="ml-4 list-disc text-slate-800">
+                {data.coursesCompleted.map((cw, i) => (
+                  <li key={i}>{cw}</li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {data.certifications.length > 0 && (
+            <section>
+              <h2 className="mb-3 text-[14px] font-bold uppercase tracking-[0.12em] text-blue-800">Certifications</h2>
+              <ul className="ml-4 list-disc text-slate-800">
+                {data.certifications.map((cw, i) => (
+                  <li key={i}>{cw}</li>
+                ))}
+              </ul>
+            </section>
+          )}
         </div>
       </div>
 

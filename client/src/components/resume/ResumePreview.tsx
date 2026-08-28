@@ -139,11 +139,22 @@ text-slate-500">
         </section>
       )}
 
-      {data.coursework.length > 0 && (
-        <section>
-          <h2 className={headingClass}>Coursework &amp; Certifications</h2>
+      {data.coursesCompleted.length > 0 && (
+        <section className="mb-4">
+          <h2 className={headingClass}>Courses Completed</h2>
           <ul className="ml-4 list-disc text-slate-800">
-            {data.coursework.map((c, i) => (
+            {data.coursesCompleted.map((c, i) => (
+              <li key={i}>{c}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {data.certifications.length > 0 && (
+        <section>
+          <h2 className={headingClass}>Certifications</h2>
+          <ul className="ml-4 list-disc text-slate-800">
+            {data.certifications.map((c, i) => (
               <li key={i}>{c}</li>
             ))}
           </ul>

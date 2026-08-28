@@ -154,11 +154,22 @@ export function ResumePreviewMinimalTech({ data }: { data: ResumeData }) {
         </section>
       )}
 
-      {data.coursework.length > 0 && (
-        <section>
-          <h2 className={headingClass}>Coursework &amp; Certifications</h2>
+      {data.coursesCompleted.length > 0 && (
+        <section className="mb-4">
+          <h2 className={headingClass}>Courses Completed</h2>
           <ul className="ml-4 list-disc text-slate-800">
-            {data.coursework.map((cw, i) => (
+            {data.coursesCompleted.map((cw, i) => (
+              <li key={i}>{cw}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {data.certifications.length > 0 && (
+        <section>
+          <h2 className={headingClass}>Certifications</h2>
+          <ul className="ml-4 list-disc text-slate-800">
+            {data.certifications.map((cw, i) => (
               <li key={i}>{cw}</li>
             ))}
           </ul>
