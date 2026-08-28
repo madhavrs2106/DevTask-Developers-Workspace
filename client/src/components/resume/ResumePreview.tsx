@@ -1,4 +1,5 @@
 import type { ResumeData, ResumeTemplate } from "../../types";
+import { ResumePreviewProfessional } from "./ResumePreviewProfessional";
 
 function contactLine(data: ResumeData): string[] {
   const c = data.contact;
@@ -18,6 +19,7 @@ const THEMES: Record<
 };
 
 export function ResumePreview({ data }: { data: ResumeData }) {
+  if (data.template === "professional") return <ResumePreviewProfessional data={data} />;
   const theme = THEMES[data.template] ?? THEMES.minimal;
   const headingClass = `text-[11px] font-bold uppercase tracking-[0.14em] ${theme.accent} ${theme.rule2} pb-1 mb-2`;
 

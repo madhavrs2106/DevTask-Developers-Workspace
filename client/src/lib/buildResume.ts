@@ -137,6 +137,8 @@ export function buildResumeData(
     skills,
     projects: projectItems,
     coursework,
+    hobbies: extras.hobbies,
+    achievements: extras.achievements,
     template: options.template,
   };
 }

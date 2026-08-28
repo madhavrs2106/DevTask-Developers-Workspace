@@ -148,6 +148,8 @@ export interface ResumeData {
   skills: ResumeSkillGroup[];
   projects: ResumeProjectItem[];
   coursework: string[];
+  hobbies?: string[];
+  achievements?: string[];
   template: ResumeTemplate;
 }
 
