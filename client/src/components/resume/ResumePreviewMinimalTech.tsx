@@ -34,12 +34,14 @@ export function ResumePreviewMinimalTech({ data }: { data: ResumeData }) {
       style={{ fontFamily: "Inter, Helvetica, Arial, sans-serif", fontSize: "11px", lineHeight: 1.5 }}
     >
       {/* Header */}
-      <header className="mb-4 border-b-2 border-blue-700 pb-3 text-center">
+      <header className="mb-4 flex items-center gap-4 border-b-2 border-blue-700 pb-3 text-left">
         {data.photoUrl && (
-          <img src={data.photoUrl} alt={data.fullName} className="mx-auto mb-3 h-24 w-24 rounded-full border-2 border-slate-300 object-cover" />
+          <img src={data.photoUrl} alt={data.fullName} className="h-20 w-20 shrink-0 rounded-full border-2 border-slate-300 object-cover" />
         )}
-        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">{data.fullName}</h1>
-        {data.headline && <p className="mt-1 text-sm font-semibold text-blue-700">{data.headline}</p>}
+        <div>
+          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">{data.fullName}</h1>
+          {data.headline && <p className="mt-1 text-sm font-semibold text-blue-700">{data.headline}</p>}
+        </div>
       </header>
 
       {/* Contact */}
