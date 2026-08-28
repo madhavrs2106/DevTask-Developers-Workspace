@@ -41,7 +41,7 @@ export function ResumePreviewProfessional({ data }: { data: ResumeData }) {
       {/* Professional Summary */}
       {data.summary && (
         <section className="mt-4">
-          <h2 className="text-[12px] font-bold uppercase tracking-[0.14em] text-indigo-800">Professional Summary</h2>
+          <h2 className="text-[14px] font-bold uppercase tracking-[0.14em] text-indigo-800">Professional Summary</h2>
           <hr className="mb-1 mt-0.5 border-indigo-800" />
           <p className="text-slate-800">{data.summary}</p>
         </section>
@@ -50,7 +50,7 @@ export function ResumePreviewProfessional({ data }: { data: ResumeData }) {
       {/* Technical Skills */}
       {data.skills.length > 0 && (
         <section className="mt-4">
-          <h2 className="text-[12px] font-bold uppercase tracking-[0.14em] text-indigo-800">Technical Skills</h2>
+          <h2 className="text-[14px] font-bold uppercase tracking-[0.14em] text-indigo-800">Technical Skills</h2>
           <hr className="mb-1 mt-0.5 border-indigo-800" />
           <ul className="space-y-0.5 text-slate-800">
             {skillBullets(data).map((b, i) => (
@@ -63,7 +63,7 @@ export function ResumePreviewProfessional({ data }: { data: ResumeData }) {
       {/* Projects */}
       {data.projects.length > 0 && (
         <section className="mt-4">
-          <h2 className="text-[12px] font-bold uppercase tracking-[0.14em] text-indigo-800">Projects</h2>
+          <h2 className="text-[14px] font-bold uppercase tracking-[0.14em] text-indigo-800">Projects</h2>
           <hr className="mb-1 mt-0.5 border-indigo-800" />
           {data.projects.map((p, i) => (
             <div key={i} className="mb-2">
@@ -80,7 +80,7 @@ export function ResumePreviewProfessional({ data }: { data: ResumeData }) {
       {/* Education */}
       {data.education.length > 0 && (
         <section className="mt-4">
-          <h2 className="text-[12px] font-bold uppercase tracking-[0.14em] text-indigo-800">Education</h2>
+          <h2 className="text-[14px] font-bold uppercase tracking-[0.14em] text-indigo-800">Education</h2>
           <hr className="mb-1 mt-0.5 border-indigo-800" />
           {data.education.map((e, i) => (
             <div key={i} className="mb-2">
@@ -103,7 +103,7 @@ export function ResumePreviewProfessional({ data }: { data: ResumeData }) {
       {/* Hobbies & Interests */}
       {data.hobbies && data.hobbies.length > 0 && (
         <section className="mt-4">
-          <h2 className="text-[12px] font-bold uppercase tracking-[0.14em] text-indigo-800">Hobbies &amp; Interests</h2>
+          <h2 className="text-[14px] font-bold uppercase tracking-[0.14em] text-indigo-800">Hobbies &amp; Interests</h2>
           <hr className="mb-1 mt-0.5 border-indigo-800" />
           <ul className="space-y-0.5 text-slate-800">
             {data.hobbies.map((h, i) => (
@@ -116,7 +116,7 @@ export function ResumePreviewProfessional({ data }: { data: ResumeData }) {
       {/* Achievements */}
       {data.achievements && data.achievements.length > 0 && (
         <section className="mt-4">
-          <h2 className="text-[12px] font-bold uppercase tracking-[0.14em] text-indigo-800">Achievements</h2>
+          <h2 className="text-[14px] font-bold uppercase tracking-[0.14em] text-indigo-800">Achievements</h2>
           <hr className="mb-1 mt-0.5 border-indigo-800" />
           <ul className="space-y-0.5 text-slate-800">
             {data.achievements.map((a, i) => (
