@@ -152,6 +152,7 @@ export interface ResumeData {
   achievements?: string[];
   languages?: string[];
   photoUrl?: string;
+  username?: string;
   template: ResumeTemplate;
 }
 

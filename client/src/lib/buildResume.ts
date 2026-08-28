@@ -141,6 +141,7 @@ export function buildResumeData(
     achievements: extras.achievements,
     languages: extras.languagesKnown,
     photoUrl: user.avatarUrl ?? undefined,
+    username: user.username ?? undefined,
     template: options.template,
   };
 }
