@@ -1,26 +1,36 @@
-import type { ResumeData } from "../../types";
+import type { ResumeData, ResumeTemplate } from "../../types";
 
 function contactLine(data: ResumeData): string[] {
   const c = data.contact;
   return [c.location, c.phone, c.email, c.github, c.linkedin, c.portfolio].filter(Boolean) as string[];
 }
 
+// Per-template theme: accent color, heading rule, name color, and base font size.
+const THEMES: Record<
+  ResumeTemplate,
+  { accent: string; rule: string; rule2: string; name: string; fontSize: string; py: string }
+> = {
+  minimal: { accent: "text-blue-700", rule: "border-blue-700", rule2: "border-b-2 border-blue-700", name: "text-slate-900", fontSize: "11px", py: "py-9" },
+  classic: { accent: "text-slate-800", rule: "border-slate-800", rule2: "border-b border-slate-800", name: "text-black", fontSize: "11px", py: "py-9" },
+  modern: { accent: "text-teal-700", rule: "border-teal-700", rule2: "border-b-2 border-teal-700", name: "text-slate-900", fontSize: "11px", py: "py-9" },
+  compact: { accent: "text-blue-600", rule: "border-blue-600", rule2: "border-b border-blue-600", name: "text-slate-900", fontSize: "10px", py: "py-7" },
+  professional: { accent: "text-indigo-800", rule: "border-indigo-800", rule2: "border-b-2 border-indigo-800", name: "text-slate-900", fontSize: "11px", py: "py-9" },
+};
+
 export function ResumePreview({ data }: { data: ResumeData }) {
-  const isClassic = data.template === "classic";
-  const headingClass = isClassic
-    ? "text-[11px] font-bold uppercase tracking-[0.14em] text-blue-800 border-b border-blue-700 pb-1 mb-2"
-    : "text-[11px] font-bold uppercase tracking-[0.14em] text-blue-800 border-b-2 border-blue-700 pb-1 mb-2";
+  const theme = THEMES[data.template] ?? THEMES.minimal;
+  const headingClass = `text-[11px] font-bold uppercase tracking-[0.14em] ${theme.accent} ${theme.rule2} pb-1 mb-2`;
 
   return (
     <div
       id="resume-sheet"
-      className="resume-print mx-auto w-full max-w-[820px] bg-white px-10 py-9 text-slate-800 shadow-xl"
-      style={{ fontFamily: "Inter, Helvetica, Arial, sans-serif", fontSize: "11px", lineHeight: 1.45 }}
+      className={`resume-print mx-auto w-full max-w-[820px] bg-white px-10 ${theme.py} text-slate-800 shadow-xl`}
+      style={{ fontFamily: "Inter, Helvetica, Arial, sans-serif", fontSize: theme.fontSize, lineHeight: 1.45 }}
     >
       {/* Header */}
-      <header className="mb-4 border-b-2 border-blue-700 pb-3 text-center">
-        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">{data.fullName}</h1>
-        {data.headline && <p className="mt-1 text-sm font-semibold text-blue-700">{data.headline}</p>}
+      <header className={`mb-4 border-b-2 ${theme.rule} pb-3 text-center`}>
+        <h1 className={`text-3xl font-extrabold tracking-tight ${theme.name}`}>{data.fullName}</h1>
+        {data.headline && <p className={`mt-1 text-sm font-semibold ${theme.accent}`}>{data.headline}</p>}
         <p className="mt-1 text-[10px] text-slate-500">{contactLine(data).join("   •   ")}</p>
       </header>
 

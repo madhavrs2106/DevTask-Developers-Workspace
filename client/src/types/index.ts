@@ -99,7 +99,7 @@ export interface ResumeExtras {
 
 /* ── Auto resume generator ─────────────────────────────────────── */
 
-export type ResumeTemplate = "minimal" | "classic";
+export type ResumeTemplate = "minimal" | "classic" | "modern" | "compact" | "professional";
 
 export interface ResumeContact {
   email: string;

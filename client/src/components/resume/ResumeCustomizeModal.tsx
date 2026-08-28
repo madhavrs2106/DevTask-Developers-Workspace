@@ -2,7 +2,7 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { Button } from "../ui/Button";
 import { cn } from "../../lib/utils";
-import type { Project, SkillProgress, ResumeOptions, ResumeTemplate } from "../../types";
+import type { Project, SkillProgress, ResumeOptions } from "../../types";
 
 interface Props {
   projects: Project[];
@@ -15,7 +15,6 @@ interface Props {
 export function ResumeCustomizeModal({ projects, skills, initial, onSave, onClose }: Props) {
   const [headline, setHeadline] = useState(initial.headline ?? "");
   const [location, setLocation] = useState(initial.location ?? "");
-  const [template, setTemplate] = useState<ResumeTemplate>(initial.template);
   const [selProjects, setSelProjects] = useState<Set<string>>(
     new Set(initial.selectedProjectIds?.length ? initial.selectedProjectIds : projects.map((p) => p.id))
   );
@@ -51,25 +50,6 @@ export function ResumeCustomizeModal({ projects, skills, initial, onSave, onClos
             <div>
               <label className="label-dark">Location</label>
               <input className="input-dark" value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Bengaluru, India" />
-            </div>
-          </div>
-
-          <div>
-            <span className="label-dark">Template</span>
-            <div className="grid grid-cols-2 gap-2">
-              {(["minimal", "classic"] as ResumeTemplate[]).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => setTemplate(t)}
-                  className={cn(
-                    "rounded-xl border px-3 py-2 text-left text-sm capitalize transition-all",
-                    template === t ? "border-accent/60 bg-accent/[.07] text-white" : "border-slate-800 bg-surface text-slate-300"
-                  )}
-                >
-                  {t === "minimal" ? "Minimal Tech" : "Classic Single-Column"}
-                </button>
-              ))}
             </div>
           </div>
 
@@ -115,13 +95,13 @@ export function ResumeCustomizeModal({ projects, skills, initial, onSave, onClos
           </Button>
           <Button
             onClick={() =>
-              onSave({
-                headline: headline.trim() || undefined,
-                location: location.trim() || undefined,
-                template,
-                selectedProjectIds: [...selProjects],
-                selectedSkillNames: [...selSkills],
-              })
+            onSave({
+              headline: headline.trim() || undefined,
+              location: location.trim() || undefined,
+              template: initial.template,
+              selectedProjectIds: [...selProjects],
+              selectedSkillNames: [...selSkills],
+            })
             }
           >
             Apply

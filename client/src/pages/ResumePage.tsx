@@ -6,7 +6,6 @@ import { ResumePreview } from "../components/resume/ResumePreview";
 import { ResumeCustomizeModal } from "../components/resume/ResumeCustomizeModal";
 import { ResumeTemplateModal } from "../components/resume/ResumeTemplateModal";
 import { Button } from "../components/ui/Button";
-import { cn } from "../lib/utils";
 import type { ResumeOptions, ResumeTemplate } from "../types";
 
 export function ResumePage() {
@@ -34,20 +33,6 @@ export function ResumePage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex rounded-xl border border-slate-800 bg-surface-raised p-1">
-            {(["minimal", "classic"] as ResumeTemplate[]).map((t) => (
-              <button
-                key={t}
-                onClick={() => setOptions((o) => ({ ...o, template: t }))}
-                className={cn(
-                  "rounded-lg px-3 py-1.5 text-xs capitalize transition-colors",
-                  options.template === t ? "bg-accent text-white" : "text-ink-muted hover:text-white"
-                )}
-              >
-                {t === "minimal" ? "Minimal" : "Classic"}
-              </button>
-            ))}
-          </div>
           <Button variant="outline" onClick={() => setTemplateModalOpen(true)}>
             <LayoutTemplate size={14} /> Templates
           </Button>

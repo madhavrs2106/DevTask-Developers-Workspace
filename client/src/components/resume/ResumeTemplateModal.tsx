@@ -2,9 +2,12 @@ import { X } from "lucide-react";
 import { cn } from "../../lib/utils";
 import type { ResumeTemplate } from "../../types";
 
-const TEMPLATES: { id: ResumeTemplate; name: string; blurb: string }[] = [
-  { id: "minimal", name: "Minimal Tech", blurb: "Clean single column with a blue accent and bold section rules." },
-  { id: "classic", name: "Classic Single-Column", blurb: "Traditional layout with underlined section headings." },
+const TEMPLATES: { id: ResumeTemplate; name: string; blurb: string; swatch: string }[] = [
+  { id: "minimal", name: "Minimal Tech", blurb: "Clean single column with a blue accent and bold section rules.", swatch: "bg-blue-700" },
+  { id: "classic", name: "Classic", blurb: "Traditional layout with dark underlined section headings.", swatch: "bg-slate-800" },
+  { id: "modern", name: "Modern", blurb: "Fresh teal accent with bold section rules.", swatch: "bg-teal-700" },
+  { id: "compact", name: "Compact", blurb: "Tighter spacing and smaller type to fit more on one page.", swatch: "bg-blue-600" },
+  { id: "professional", name: "Professional", blurb: "Refined indigo accent for a corporate feel.", swatch: "bg-indigo-800" },
 ];
 
 interface Props {
@@ -43,7 +46,7 @@ export function ResumeTemplateModal({ current, onSelect, onClose }: Props) {
               <div className="mb-2 flex h-20 flex-col gap-1 rounded-lg bg-white p-2">
                 <div className="h-2 w-1/2 rounded bg-slate-800" />
                 <div className="h-1 w-2/3 rounded bg-slate-300" />
-                <div className={cn("mt-1 h-1 w-full rounded", t.id === "minimal" ? "bg-blue-700" : "border-b border-slate-800")} />
+                <div className={cn("mt-1 h-1 w-full rounded", t.swatch)} />
                 <div className="h-1 w-full rounded bg-slate-200" />
                 <div className="h-1 w-5/6 rounded bg-slate-200" />
               </div>
