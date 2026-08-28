@@ -104,6 +104,13 @@ export async function buildResumeDocx(data: ResumeData): Promise<Blob> {
     }
   }
 
+  if (data.customSections && data.customSections.length) {
+    for (const cs of data.customSections) {
+      children.push(heading(cs.title || "Section"));
+      if (cs.body) children.push(textParagraph(cs.body));
+    }
+  }
+
   const doc = new Document({ sections: [{ children }] });
   return Packer.toBlob(doc);
 }

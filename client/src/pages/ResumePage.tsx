@@ -1,28 +1,40 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FileDown, LayoutTemplate, SlidersHorizontal, ZoomIn, ZoomOut } from "lucide-react";
-import { useMe, useProjects, useCourses } from "../hooks/useQueries";
+import { useMe, useProjects, useCourses, useUpdateProfile } from "../hooks/useQueries";
 import { buildResumeData } from "../lib/buildResume";
 import { downloadResumeDocx } from "../lib/buildResumeDocx";
 import { ResumePreview } from "../components/resume/ResumePreview";
 import { ResumeCustomizeModal } from "../components/resume/ResumeCustomizeModal";
 import { ResumeTemplateModal } from "../components/resume/ResumeTemplateModal";
 import { Button } from "../components/ui/Button";
-import type { ResumeOptions, ResumeTemplate } from "../types";
+import type { ResumeOptions, ResumeTemplate, ResumeCustomSection } from "../types";
 
 export function ResumePage() {
   const { data: user } = useMe();
   const { data: projects = [] } = useProjects();
   const { data: courses = [] } = useCourses();
+  const updateProfile = useUpdateProfile();
   const [options, setOptions] = useState<ResumeOptions>({ template: "minimal" });
+  const [customSections, setCustomSections] = useState<ResumeCustomSection[]>(
+    user?.resumeExtras?.customSections ?? []
+  );
   const [modalOpen, setModalOpen] = useState(false);
   const [templateModalOpen, setTemplateModalOpen] = useState(false);
   const [zoom, setZoom] = useState(1);
   const zoomIn = () => setZoom((z) => Math.min(1.5, Math.round((z + 0.1) * 100) / 100));
   const zoomOut = () => setZoom((z) => Math.max(0.5, Math.round((z - 0.1) * 100) / 100));
 
+  useEffect(() => {
+    if (user?.resumeExtras?.customSections) setCustomSections(user.resumeExtras.customSections);
+  }, [user]);
+
   const resume = useMemo(() => {
     if (!user) return null;
-    return buildResumeData(user, projects, courses, options);
+    const mergedUser = {
+      ...user,
+      resumeExtras: { ...user.resumeExtras, customSections },
+    };
+    return buildResumeData(mergedUser, projects, courses, options);
   }, [user, projects, courses, options]);
 
   return (
@@ -86,8 +98,15 @@ export function ResumePage() {
           projects={projects}
           skills={user.skills ?? []}
           initial={options}
-          onSave={(o) => {
+          initialCustomSections={customSections}
+          onSave={(o, cs) => {
             setOptions(o);
+            setCustomSections(cs);
+            if (user) {
+              updateProfile.mutate({
+                resumeExtras: { ...user.resumeExtras, customSections: cs },
+              });
+            }
             setModalOpen(false);
           }}
           onClose={() => setModalOpen(false)}

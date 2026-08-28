@@ -2,19 +2,23 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { Button } from "../ui/Button";
 import { cn } from "../../lib/utils";
-import type { Project, SkillProgress, ResumeOptions, ResumeSection } from "../../types";
+import type { Project, SkillProgress, ResumeOptions, ResumeSection, ResumeCustomSection } from "../../types";
 
 interface Props {
   projects: Project[];
   skills: SkillProgress[];
   initial: ResumeOptions;
-  onSave: (opts: ResumeOptions) => void;
+  initialCustomSections: ResumeCustomSection[];
+  onSave: (opts: ResumeOptions, customSections: ResumeCustomSection[]) => void;
   onClose: () => void;
 }
 
-export function ResumeCustomizeModal({ projects, skills, initial, onSave, onClose }: Props) {
+export function ResumeCustomizeModal({ projects, skills, initial, initialCustomSections, onSave, onClose }: Props) {
   const [headline, setHeadline] = useState(initial.headline ?? "");
   const [location, setLocation] = useState(initial.location ?? "");
+  const [customSections, setCustomSections] = useState<ResumeCustomSection[]>(
+    initialCustomSections.map((c) => ({ ...c }))
+  );
   const [selProjects, setSelProjects] = useState<Set<string>>(
     new Set(initial.selectedProjectIds?.length ? initial.selectedProjectIds : projects.map((p) => p.id))
   );
@@ -48,6 +52,11 @@ export function ResumeCustomizeModal({ projects, skills, initial, onSave, onClos
       n.has(key) ? n.delete(key) : n.add(key);
       return n;
     });
+
+  const updateCustom = (i: number, val: ResumeCustomSection) =>
+    setCustomSections((list) => list.map((c, j) => (j === i ? val : c)));
+  const addCustom = () => setCustomSections((list) => [...list, { title: "", body: "" }]);
+  const removeCustom = (i: number) => setCustomSections((list) => list.filter((_, j) => j !== i));
 
   const toggle = (set: Set<string>, id: string, setter: (s: Set<string>) => void) => {
     const next = new Set(set);
@@ -135,22 +144,55 @@ export function ResumeCustomizeModal({ projects, skills, initial, onSave, onClos
               ))}
             </div>
           </div>
-        </div>
 
+          <div>
+            <span className="label-dark">Custom sections</span>
+            <p className="mb-2 text-[11px] text-ink-faint">Add any extra sections you want on the resume (e.g. Projects, Awards, Volunteering).</p>
+            <div className="space-y-2">
+              {customSections.map((cs, i) => (
+                <div key={i} className="space-y-2 rounded-lg border border-slate-800 bg-surface p-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      className="input-dark flex-1"
+                      placeholder="Section title"
+                      value={cs.title}
+                      onChange={(e) => updateCustom(i, { ...cs, title: e.target.value })}
+                    />
+                    <button type="button" onClick={() => removeCustom(i)} className="shrink-0 text-rose-400 hover:text-rose-300" title="Remove">
+                      <span className="text-sm">✕</span>
+                    </button>
+                  </div>
+                  <textarea
+                    className="input-dark h-20 w-full resize-y"
+                    placeholder="Section content"
+                    value={cs.body}
+                    onChange={(e) => updateCustom(i, { ...cs, body: e.target.value })}
+                  />
+                </div>
+              ))}
+              <Button variant="outline" onClick={addCustom}>+ Add custom section</Button>
+            </div>
+          </div>
+        </div>
         <div className="mt-6 flex justify-end gap-2">
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
           <Button
             onClick={() =>
-            onSave({
-              headline: headline.trim() || undefined,
-              location: location.trim() || undefined,
-              template: initial.template,
-              selectedProjectIds: [...selProjects],
-              selectedSkillNames: [...selSkills],
-              sections: Object.fromEntries(SECTION_LIST.map((s) => [s.key, secOn.has(s.key)])) as Record<ResumeSection, boolean>,
-            })
+            onSave(
+              {
+                headline: headline.trim() || undefined,
+                location: location.trim() || undefined,
+                template: initial.template,
+                selectedProjectIds: [...selProjects],
+                selectedSkillNames: [...selSkills],
+                sections: Object.fromEntries(SECTION_LIST.map((s) => [s.key, secOn.has(s.key)])) as Record<ResumeSection, boolean>,
+              },
+              customSections
+                .map((c) => ({ title: c.title.trim(), body: c.body.trim() }))
+                .filter((c) => c.title || c.body)
+            )
             }
           >
             Apply

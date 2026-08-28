@@ -180,6 +180,17 @@ export function ResumePreviewProfessional({ data }: { data: ResumeData }) {
               </ul>
             </section>
           )}
+
+          {data.customSections && data.customSections.length > 0 && (
+            <>
+              {data.customSections.map((cs, i) => (
+                <section key={i}>
+                  <RightHead>{cs.title || "Section"}</RightHead>
+                  <p className="whitespace-pre-line text-slate-800">{cs.body}</p>
+                </section>
+              ))}
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -97,6 +97,12 @@ export interface ResumeExtras {
   languagesKnown?: string[];
   hobbies?: string[];
   references?: ResumeReference[];
+  customSections?: ResumeCustomSection[];
+}
+
+export interface ResumeCustomSection {
+  title: string;
+  body: string;
 }
 
 /* ── Auto resume generator ─────────────────────────────────────── */
@@ -161,6 +167,7 @@ export interface ResumeData {
   achievements?: string[];
   languages?: string[];
   references?: ResumeReference[];
+  customSections?: ResumeCustomSection[];
   photoUrl?: string;
   username?: string;
   template: ResumeTemplate;

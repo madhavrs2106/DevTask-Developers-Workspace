@@ -158,6 +158,17 @@ export function ResumePreviewClassic({ data }: { data: ResumeData }) {
               </div>
             </section>
           )}
+
+          {data.customSections && data.customSections.length > 0 && (
+            <>
+              {data.customSections.map((cs, i) => (
+                <section key={i}>
+                  <SectionHead>{cs.title || "Section"}</SectionHead>
+                  <p className="whitespace-pre-line text-slate-800">{cs.body}</p>
+                </section>
+              ))}
+            </>
+          )}
         </div>
       </div>
     </div>

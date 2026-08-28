@@ -181,6 +181,17 @@ export function ResumePreviewModern({ data }: { data: ResumeData }) {
               </ul>
             </section>
           )}
+
+          {data.customSections && data.customSections.length > 0 && (
+            <>
+              {data.customSections.map((cs, i) => (
+                <section key={i}>
+                  <h2 className="mb-3 text-[14px] font-bold uppercase tracking-[0.12em] text-blue-800">{cs.title || "Section"}</h2>
+                  <p className="whitespace-pre-line text-slate-800">{cs.body}</p>
+                </section>
+              ))}
+            </>
+          )}
         </div>
       </div>
 

@@ -177,6 +177,17 @@ export function ResumePreviewMinimalTech({ data }: { data: ResumeData }) {
           </ul>
         </section>
       )}
+
+      {data.customSections && data.customSections.length > 0 && (
+        <>
+          {data.customSections.map((cs, i) => (
+            <section key={i} className="mb-4">
+              <h2 className={headingClass}>{cs.title || "Section"}</h2>
+              <p className="whitespace-pre-line text-slate-800">{cs.body}</p>
+            </section>
+          ))}
+        </>
+      )}
     </div>
   );
 }
