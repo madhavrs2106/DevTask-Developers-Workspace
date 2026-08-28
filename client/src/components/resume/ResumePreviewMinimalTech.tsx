@@ -34,7 +34,7 @@ export function ResumePreviewMinimalTech({ data }: { data: ResumeData }) {
       style={{ fontFamily: "Inter, Helvetica, Arial, sans-serif", fontSize: "11px", lineHeight: 1.5 }}
     >
       {/* Header */}
-      <header className="mb-4 flex items-center gap-4 border-b-2 border-blue-700 pb-3 text-left">
+      <header className="mb-4 flex items-center gap-4 pb-3 text-left">
         {data.photoUrl && (
           <img src={data.photoUrl} alt={data.fullName} className="h-20 w-20 shrink-0 rounded-full border-2 border-slate-300 object-cover" />
         )}
