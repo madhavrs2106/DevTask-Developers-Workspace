@@ -125,7 +125,7 @@ export function buildResumeData(
   const coursesCompleted = courses.filter((c) => c.status === "COMPLETED").map((c) => c.title);
   const certifications = (extras.certifications ?? []).map((c) => (c.issuer ? `${c.name} (${c.issuer})` : c.name));
 
-  return {
+  const result: ResumeData = {
     fullName: user.name,
     headline: options.headline || (user.role === "DEVELOPER" ? "Software Developer" : "Learner & Developer"),
     contact: resumeContact,
@@ -144,4 +144,20 @@ export function buildResumeData(
     username: user.username ?? undefined,
     template: options.template,
   };
+
+  // Honor per-section visibility toggles (default: all visible)
+  const hidden = options.sections ?? {};
+  if (hidden.summary === false) result.summary = undefined;
+  if (hidden.education === false) result.education = [];
+  if (hidden.experience === false) result.experience = [];
+  if (hidden.skills === false) result.skills = [];
+  if (hidden.projects === false) result.projects = [];
+  if (hidden.coursesCompleted === false) result.coursesCompleted = [];
+  if (hidden.certifications === false) result.certifications = [];
+  if (hidden.languages === false) result.languages = [];
+  if (hidden.achievements === false) result.achievements = [];
+  if (hidden.hobbies === false) result.hobbies = [];
+  if (hidden.references === false) result.references = [];
+
+  return result;
 }

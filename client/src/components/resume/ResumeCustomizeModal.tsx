@@ -2,7 +2,7 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { Button } from "../ui/Button";
 import { cn } from "../../lib/utils";
-import type { Project, SkillProgress, ResumeOptions } from "../../types";
+import type { Project, SkillProgress, ResumeOptions, ResumeSection } from "../../types";
 
 interface Props {
   projects: Project[];
@@ -21,6 +21,33 @@ export function ResumeCustomizeModal({ projects, skills, initial, onSave, onClos
   const [selSkills, setSelSkills] = useState<Set<string>>(
     new Set(initial.selectedSkillNames?.length ? initial.selectedSkillNames : skills.map((s) => s.name))
   );
+
+  const SECTION_LIST: { key: ResumeSection; label: string }[] = [
+    { key: "summary", label: "About / Summary" },
+    { key: "education", label: "Education" },
+    { key: "experience", label: "Experience" },
+    { key: "skills", label: "Skills" },
+    { key: "projects", label: "Projects" },
+    { key: "coursesCompleted", label: "Courses Completed" },
+    { key: "certifications", label: "Certifications" },
+    { key: "languages", label: "Languages" },
+    { key: "achievements", label: "Achievements" },
+    { key: "hobbies", label: "Hobbies" },
+    { key: "references", label: "References" },
+  ];
+  const [secOn, setSecOn] = useState<Set<string>>(() => {
+    const s = new Set<string>(SECTION_LIST.map((x) => x.key));
+    if (initial.sections) {
+      for (const [k, v] of Object.entries(initial.sections)) if (v === false) s.delete(k);
+    }
+    return s;
+  });
+  const toggleSec = (key: string) =>
+    setSecOn((prev) => {
+      const n = new Set(prev);
+      n.has(key) ? n.delete(key) : n.add(key);
+      return n;
+    });
 
   const toggle = (set: Set<string>, id: string, setter: (s: Set<string>) => void) => {
     const next = new Set(set);
@@ -87,6 +114,27 @@ export function ResumeCustomizeModal({ projects, skills, initial, onSave, onClos
               ))}
             </div>
           </div>
+
+          <div>
+            <span className="label-dark">Sections to include</span>
+            <div className="mt-2 flex max-h-44 flex-wrap gap-1.5 overflow-y-auto rounded-lg border border-slate-800 bg-surface p-2">
+              {SECTION_LIST.map((s) => (
+                <button
+                  key={s.key}
+                  type="button"
+                  onClick={() => toggleSec(s.key)}
+                  className={cn(
+                    "rounded-full border px-2.5 py-1 text-[11px] transition-colors",
+                    secOn.has(s.key)
+                      ? "border-accent/60 bg-accent/[.1] text-white"
+                      : "border-slate-700 text-ink-faint line-through"
+                  )}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="mt-6 flex justify-end gap-2">
@@ -101,6 +149,7 @@ export function ResumeCustomizeModal({ projects, skills, initial, onSave, onClos
               template: initial.template,
               selectedProjectIds: [...selProjects],
               selectedSkillNames: [...selSkills],
+              sections: Object.fromEntries(SECTION_LIST.map((s) => [s.key, secOn.has(s.key)])) as Record<ResumeSection, boolean>,
             })
             }
           >

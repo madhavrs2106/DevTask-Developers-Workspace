@@ -165,11 +165,25 @@ export interface ResumeData {
   template: ResumeTemplate;
 }
 
+export type ResumeSection =
+  | "summary"
+  | "education"
+  | "experience"
+  | "skills"
+  | "projects"
+  | "coursesCompleted"
+  | "certifications"
+  | "languages"
+  | "achievements"
+  | "hobbies"
+  | "references";
+
 export interface ResumeOptions {
   headline?: string;
   location?: string;
   selectedProjectIds?: string[];
   selectedSkillNames?: string[];
+  sections?: Partial<Record<ResumeSection, boolean>>;
   template: ResumeTemplate;
 }
 
