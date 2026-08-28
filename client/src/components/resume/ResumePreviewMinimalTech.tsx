@@ -44,44 +44,46 @@ export function ResumePreviewMinimalTech({ data }: { data: ResumeData }) {
         </div>
       </header>
 
-      {/* Contact */}
-      {(leftCol.length > 0 || rightCol.length > 0 || linkRows.length > 0) && (
-        <section className="mb-4">
-          <h2 className={headingClass}>Contact</h2>
-          {(leftCol.length > 0 || rightCol.length > 0) && (
-            <div className="flex justify-between gap-6">
-              <div className="space-y-0.5">
-                {leftCol.map((v, i) => (
-                  <div key={i}>{v}</div>
-                ))}
+      {/* Contact + Summary side by side */}
+      {(leftCol.length > 0 || rightCol.length > 0 || linkRows.length > 0 || data.summary) && (
+        <section className="mb-4 flex gap-6">
+          <div className="flex-1">
+            <h2 className={headingClass}>Contact</h2>
+            {(leftCol.length > 0 || rightCol.length > 0) && (
+              <div className="flex justify-between gap-6">
+                <div className="space-y-0.5">
+                  {leftCol.map((v, i) => (
+                    <div key={i}>{v}</div>
+                  ))}
+                </div>
+                <div className="space-y-0.5 text-right">
+                  {rightCol.map((v, i) => (
+                    <div key={i}>{v}</div>
+                  ))}
+                </div>
               </div>
-              <div className="space-y-0.5 text-right">
-                {rightCol.map((v, i) => (
-                  <div key={i}>{v}</div>
-                ))}
-              </div>
+            )}
+            {linkRows.length > 0 && (
+              <>
+                <div className="h-2" />
+                <ul className="space-y-0.5">
+                  {linkRows.map(([label, url]) => (
+                    <li key={label} className="grid grid-cols-[70px_1fr] gap-2">
+                      <span className="font-semibold text-black">{label}:</span>
+                      <span className="break-all text-slate-700">{url}</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+
+          {data.summary && (
+            <div className="flex-1 border-l border-slate-300 pl-6">
+              <h2 className={headingClass}>Summary</h2>
+              <p className="text-slate-800">{data.summary}</p>
             </div>
           )}
-          {linkRows.length > 0 && (
-            <>
-              <div className="h-2" />
-              <ul className="space-y-0.5">
-                {linkRows.map(([label, url]) => (
-                  <li key={label} className="grid grid-cols-[70px_1fr] gap-2">
-                    <span className="font-semibold text-black">{label}:</span>
-                    <span className="break-all text-slate-700">{url}</span>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-        </section>
-      )}
-
-      {data.summary && (
-        <section className="mb-4">
-          <h2 className={headingClass}>Summary</h2>
-          <p className="text-slate-800">{data.summary}</p>
         </section>
       )}
 
