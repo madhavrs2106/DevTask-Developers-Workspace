@@ -52,7 +52,7 @@ export function buildResumeData(
 
   // Contact
   const resumeContact = {
-    email: user.email,
+    email: contact.email || user.email,
     phone: contact.phone,
     location: options.location || joinLocation(contact) || undefined,
     github: contact.github,

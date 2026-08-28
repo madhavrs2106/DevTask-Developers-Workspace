@@ -60,6 +60,7 @@ export interface AcademicDetails {
 }
 
 export interface ContactDetails {
+  email?: string;
   phone?: string;
   address?: string;
   city?: string;

@@ -122,6 +122,7 @@ export function Settings() {
   const updateResumeDetails = useUpdateProfile();
 
   const contactFields: { key: keyof ContactDetails; label: string }[] = [
+    { key: "email", label: "Email" },
     { key: "phone", label: "Phone" },
     { key: "address", label: "Address" },
     { key: "city", label: "City" },
