@@ -26,7 +26,6 @@ const NAV_ITEMS = [
   { to: "/projects", label: "Projects", icon: FolderGit2 },
   { to: "/courses", label: "Courses", icon: GraduationCap },
   { to: "/rooms", label: "Co-Learning", icon: Users },
-  { to: "/resume", label: "Resume", icon: FileText },
   { to: "/search", label: "Find Devs", icon: Search },
 ] as const;
 
@@ -149,6 +148,38 @@ export function Sidebar({ open, onClose }: SidebarProps) {
                   )}
                 />
                 <span>Profile</span>
+              </>
+            )}
+          </NavLink>
+          <NavLink
+            to="/resume"
+            onClick={onClose}
+            className={({ isActive }) =>
+              cn(
+                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                isActive
+                  ? "bg-accent/10 text-white"
+                  : "text-ink-muted hover:bg-white/5 hover:text-slate-100"
+              )
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <span
+                  aria-hidden
+                  className={cn(
+                    "absolute -left-3 top-1/2 h-6 w-[3px] -translate-y-1/2 rounded-full bg-neon-gradient transition-all",
+                    isActive ? "shadow-glow opacity-100" : "opacity-0"
+                  )}
+                />
+                <FileText
+                  size={18}
+                  className={cn(
+                    "transition-colors",
+                    isActive ? "text-accent-bright drop-shadow-[0_0_6px_rgb(var(--accent-rgb)/0.8)]" : ""
+                  )}
+                />
+                <span>Resume</span>
               </>
             )}
           </NavLink>
