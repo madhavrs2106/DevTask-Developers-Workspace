@@ -140,6 +140,7 @@ export function buildResumeData(
     hobbies: extras.hobbies,
     achievements: extras.achievements,
     languages: extras.languagesKnown,
+    references: extras.references,
     photoUrl: user.avatarUrl ?? undefined,
     username: user.username ?? undefined,
     template: options.template,

@@ -26,6 +26,7 @@ import type {
   ResumeProject,
   ResumeCertification,
   ResumeExperience,
+  ResumeReference,
 } from "../types";
 import { Button } from "../components/ui/Button";
 import { ProgressRing } from "../components/ui/ProgressRing";
@@ -152,6 +153,11 @@ export function Settings() {
   const addExp = () => setResume((r) => ({ ...r, workExperience: [...(r.workExperience ?? []), { title: "" }] }));
   const removeExp = (i: number) =>
     setResume((r) => ({ ...r, workExperience: (r.workExperience ?? []).filter((_, j) => j !== i) }));
+  const updateRef = (i: number, val: ResumeReference) =>
+    setResume((r) => ({ ...r, references: (r.references ?? []).map((c, j) => (j === i ? val : c)) }));
+  const addRef = () => setResume((r) => ({ ...r, references: [...(r.references ?? []), { name: "" }] }));
+  const removeRef = (i: number) =>
+    setResume((r) => ({ ...r, references: (r.references ?? []).filter((_, j) => j !== i) }));
   const handleAddKnowledge = () => {
     if (!kbAnswer.trim()) return;
     addKnowledge.mutate(
@@ -882,6 +888,25 @@ export function Settings() {
           <StringListEditor label="Achievements" items={resume.achievements ?? []} placeholder="e.g. Winner, Hackathon 2024" onChange={(v) => setResume((r) => ({ ...r, achievements: v }))} />
           <StringListEditor label="Languages known" items={resume.languagesKnown ?? []} placeholder="e.g. English" onChange={(v) => setResume((r) => ({ ...r, languagesKnown: v }))} />
           <StringListEditor label="Hobbies" items={resume.hobbies ?? []} placeholder="e.g. Chess" onChange={(v) => setResume((r) => ({ ...r, hobbies: v }))} />
+
+          <div>
+            <span className="label-dark">References</span>
+            <div className="space-y-2">
+              {(resume.references ?? []).map((rf, i) => (
+                <div key={i} className="space-y-2 rounded-lg border border-slate-700 bg-surface p-2">
+                  <div className="flex items-center gap-2">
+                    <input className="input-dark flex-1" placeholder="Name" value={rf.name} onChange={(e) => updateRef(i, { ...rf, name: e.target.value })} />
+                    <input className="input-dark flex-1" placeholder="Role / Relation" value={rf.role ?? ""} onChange={(e) => updateRef(i, { ...rf, role: e.target.value })} />
+                    <button type="button" onClick={() => removeRef(i)} className="shrink-0 text-rose-400 hover:text-rose-300" title="Remove">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                  <input className="input-dark w-full" placeholder="Contact (email / phone)" value={rf.contact ?? ""} onChange={(e) => updateRef(i, { ...rf, contact: e.target.value })} />
+                </div>
+              ))}
+              <Button variant="outline" onClick={addRef}><Plus size={13} /> Add reference</Button>
+            </div>
+          </div>
         </div>
 
         <div className="mt-6 flex items-center gap-3">

@@ -95,6 +95,7 @@ export interface ResumeExtras {
   workExperience?: ResumeExperience[];
   languagesKnown?: string[];
   hobbies?: string[];
+  references?: ResumeReference[];
 }
 
 /* ── Auto resume generator ─────────────────────────────────────── */
@@ -138,6 +139,12 @@ export interface ResumeSkillGroup {
   skills: string[];
 }
 
+export interface ResumeReference {
+  name: string;
+  role?: string;
+  contact?: string;
+}
+
 export interface ResumeData {
   fullName: string;
   headline?: string;
@@ -151,6 +158,7 @@ export interface ResumeData {
   hobbies?: string[];
   achievements?: string[];
   languages?: string[];
+  references?: ResumeReference[];
   photoUrl?: string;
   username?: string;
   template: ResumeTemplate;
