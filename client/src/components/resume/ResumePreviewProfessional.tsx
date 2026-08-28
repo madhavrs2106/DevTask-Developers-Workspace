@@ -24,8 +24,19 @@ export function ResumePreviewProfessional({ data }: { data: ResumeData }) {
       style={{ fontFamily: "Inter, Helvetica, Arial, sans-serif", fontSize: "11px", lineHeight: 1.5 }}
     >
       {/* Header */}
-      <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">{data.fullName}</h1>
-      <p className="mt-1 text-[10.5px] text-slate-600">{contactLine(data)}</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">{data.fullName}</h1>
+          <p className="mt-1 text-[10.5px] text-slate-600">{contactLine(data)}</p>
+        </div>
+        {data.photoUrl && (
+          <img
+            src={data.photoUrl}
+            alt={data.fullName}
+            className="h-20 w-20 shrink-0 rounded-full border-2 border-indigo-800 object-cover"
+          />
+        )}
+      </div>
 
       {/* Professional Summary */}
       {data.summary && (

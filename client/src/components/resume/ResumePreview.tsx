@@ -31,6 +31,13 @@ export function ResumePreview({ data }: { data: ResumeData }) {
     >
       {/* Header */}
       <header className={`mb-4 border-b-2 ${theme.rule} pb-3 text-center`}>
+        {data.photoUrl && (
+          <img
+            src={data.photoUrl}
+            alt={data.fullName}
+            className="mx-auto mb-3 h-24 w-24 rounded-full border-2 border-slate-300 object-cover"
+          />
+        )}
         <h1 className={`text-3xl font-extrabold tracking-tight ${theme.name}`}>{data.fullName}</h1>
         {data.headline && <p className={`mt-1 text-sm font-semibold ${theme.accent}`}>{data.headline}</p>}
         <p className="mt-1 text-[10px] text-slate-500">{contactLine(data).join("   •   ")}</p>

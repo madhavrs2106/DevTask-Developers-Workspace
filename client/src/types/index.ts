@@ -150,6 +150,7 @@ export interface ResumeData {
   coursework: string[];
   hobbies?: string[];
   achievements?: string[];
+  photoUrl?: string;
   template: ResumeTemplate;
 }
 
