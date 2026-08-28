@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
-import { FileDown, SlidersHorizontal } from "lucide-react";
+import { FileDown, LayoutTemplate, SlidersHorizontal } from "lucide-react";
 import { useMe, useProjects, useCourses } from "../hooks/useQueries";
 import { buildResumeData } from "../lib/buildResume";
 import { ResumePreview } from "../components/resume/ResumePreview";
 import { ResumeCustomizeModal } from "../components/resume/ResumeCustomizeModal";
+import { ResumeTemplateModal } from "../components/resume/ResumeTemplateModal";
 import { Button } from "../components/ui/Button";
 import { cn } from "../lib/utils";
 import type { ResumeOptions, ResumeTemplate } from "../types";
@@ -14,6 +15,7 @@ export function ResumePage() {
   const { data: courses = [] } = useCourses();
   const [options, setOptions] = useState<ResumeOptions>({ template: "minimal" });
   const [modalOpen, setModalOpen] = useState(false);
+  const [templateModalOpen, setTemplateModalOpen] = useState(false);
 
   const resume = useMemo(() => {
     if (!user) return null;
@@ -46,6 +48,9 @@ export function ResumePage() {
               </button>
             ))}
           </div>
+          <Button variant="outline" onClick={() => setTemplateModalOpen(true)}>
+            <LayoutTemplate size={14} /> Templates
+          </Button>
           <Button variant="outline" onClick={() => setModalOpen(true)}>
             <SlidersHorizontal size={14} /> Customize
           </Button>
@@ -71,6 +76,17 @@ export function ResumePage() {
             setModalOpen(false);
           }}
           onClose={() => setModalOpen(false)}
+        />
+      )}
+
+      {templateModalOpen && (
+        <ResumeTemplateModal
+          current={options.template}
+          onSelect={(t: ResumeTemplate) => {
+            setOptions((o) => ({ ...o, template: t }));
+            setTemplateModalOpen(false);
+          }}
+          onClose={() => setTemplateModalOpen(false)}
         />
       )}
     </div>
