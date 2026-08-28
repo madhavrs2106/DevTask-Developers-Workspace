@@ -210,7 +210,7 @@ function ContactStep({
   setContact: (c: ContactDetails) => void;
 }) {
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       {contactKeys.map((f) => (
         <Field key={f.key} label={f.label}>
           <input
@@ -255,7 +255,7 @@ function AcademicStep({
   return (
     <div>
       <div className="mb-3 text-xs font-medium text-accent-bright">{label}</div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {fields.map((f) => (
           <Field key={f.k} label={f.l}>
             <input className="input-dark" value={g?.[f.k] ?? ""} onChange={(e) => patchAcademic(group, { [f.k]: e.target.value })} />

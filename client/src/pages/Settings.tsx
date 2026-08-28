@@ -738,7 +738,7 @@ export function Settings() {
 
         {/* Contact */}
         <h3 className="mt-5 text-[11px] font-semibold uppercase tracking-wider text-ink-muted">Contact details</h3>
-        <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2">
           {contactFields.map((f) => (
             <div key={f.key}>
               <label className="label-dark">{f.label}</label>
@@ -758,7 +758,7 @@ export function Settings() {
             <div className="mb-2 text-xs font-medium text-accent-bright">
               {group === "tenth" ? "10th" : group === "twelfth" ? "12th" : "Current college"}
             </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {group === "college" ? (
                 <>
                   <div>
