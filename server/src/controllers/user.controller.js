@@ -19,6 +19,7 @@ const updateMeSchema = z
     bio: z.string().trim().max(280).nullable().optional(),
     role: z.enum(["DEVELOPER", "LEARNER"]).optional(),
     avatarColor: hexColor.optional(),
+    onboarded: z.boolean().optional(),
     academicDetails: z.any().nullable().optional(),
     contactDetails: z.any().nullable().optional(),
     resumeExtras: z.any().nullable().optional(),

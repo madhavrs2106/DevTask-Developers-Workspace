@@ -27,6 +27,7 @@ model User {
   bio          String?
   avatarColor  String          @default("#06B6D4")
   avatarUrl    String?
+  onboarded    Boolean         @default(false) // true once the user finishes the first-time details wizard
 
   // Resume / academic profile (for the future resume generator) — stored as JSON text
   academicDetails String? // { tenth, twelfth, college }

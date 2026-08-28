@@ -16,7 +16,6 @@ import type {
   ResumeExperience,
 } from "../types";
 
-const ONBOARDING_KEY = "devtask.onboarding";
 const STEPS = ["Contact", "10th", "12th", "College", "More details"] as const;
 
 export function Onboarding() {
@@ -62,8 +61,8 @@ export function Onboarding() {
         academicDetails: academic,
         contactDetails: contact,
         resumeExtras: resume,
+        onboarded: true,
       });
-      sessionStorage.removeItem(ONBOARDING_KEY);
       setUser(updated);
       navigate("/", { replace: true });
     } catch (err) {
@@ -72,8 +71,12 @@ export function Onboarding() {
     }
   };
 
-  const skip = () => {
-    sessionStorage.removeItem(ONBOARDING_KEY);
+  const skip = async () => {
+    try {
+      await updateProfile.mutateAsync({ onboarded: true });
+    } catch {
+      /* still let them into the app */
+    }
     navigate("/", { replace: true });
   };
 

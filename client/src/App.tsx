@@ -29,8 +29,8 @@ export default function App() {
     applyAccent(user?.avatarColor);
   }, [user?.avatarColor]);
 
-  // New users are sent through a multi-step profile/onboarding wizard before the app.
-  const showOnboarding = !!user && sessionStorage.getItem("devtask.onboarding") === "pending";
+  // First-time users are sent through a one-time details wizard before the app.
+  const showOnboarding = !!user && !user.onboarded;
 
   if (showOnboarding) {
     return (

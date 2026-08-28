@@ -26,6 +26,7 @@ export interface User {
   academicDetails?: AcademicDetails | null;
   contactDetails?: ContactDetails | null;
   resumeExtras?: ResumeExtras | null;
+  onboarded?: boolean;
   createdAt: string;
   skills?: SkillProgress[];
   followersCount?: number;

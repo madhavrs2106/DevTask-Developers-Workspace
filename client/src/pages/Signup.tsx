@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Code2, GraduationCap, Loader2, UserPlus } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { LogoMark } from "../components/ui/LogoMark";
@@ -28,7 +28,6 @@ const ROLE_OPTIONS: {
 
 export function Signup() {
   const { register } = useAuth();
-  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -49,8 +48,6 @@ export function Signup() {
     setPending(true);
     try {
       await register({ name, username, email, password, role });
-      sessionStorage.setItem("devtask.onboarding", "pending");
-      navigate("/onboarding", { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to create account");
       setPending(false);
