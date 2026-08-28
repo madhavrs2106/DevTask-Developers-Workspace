@@ -139,6 +139,7 @@ export function buildResumeData(
     coursework,
     hobbies: extras.hobbies,
     achievements: extras.achievements,
+    languages: extras.languagesKnown,
     photoUrl: user.avatarUrl ?? undefined,
     template: options.template,
   };
