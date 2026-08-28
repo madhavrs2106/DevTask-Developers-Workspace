@@ -19,6 +19,9 @@ const updateMeSchema = z
     bio: z.string().trim().max(280).nullable().optional(),
     role: z.enum(["DEVELOPER", "LEARNER"]).optional(),
     avatarColor: hexColor.optional(),
+    academicDetails: z.any().nullable().optional(),
+    contactDetails: z.any().nullable().optional(),
+    resumeExtras: z.any().nullable().optional(),
   })
   .refine((data) => Object.keys(data).length > 0, { message: "No fields to update" });
 
@@ -61,9 +64,14 @@ export const updateMe = asyncHandler(async (req, res) => {
     }
   }
 
+  const patch = { ...data };
+  for (const key of ["academicDetails", "contactDetails", "resumeExtras"]) {
+    if (patch[key] != null) patch[key] = JSON.stringify(patch[key]);
+  }
+
   const user = await prisma.user.update({
     where: { id: req.user.id },
-    data,
+    data: patch,
   });
 
   res.json({ user: toPublicUser(user) });

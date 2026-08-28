@@ -23,10 +23,77 @@ export interface User {
   bio: string | null;
   avatarColor: string;
   avatarUrl?: string | null;
+  academicDetails?: AcademicDetails | null;
+  contactDetails?: ContactDetails | null;
+  resumeExtras?: ResumeExtras | null;
   createdAt: string;
   skills?: SkillProgress[];
   followersCount?: number;
   followingCount?: number;
+}
+
+export interface TenthDetails {
+  school?: string;
+  board?: string;
+  score?: string;
+  year?: string;
+}
+export interface TwelfthDetails {
+  school?: string;
+  board?: string;
+  score?: string;
+  year?: string;
+}
+export interface CollegeDetails {
+  name?: string;
+  degree?: string;
+  branch?: string;
+  year?: string;
+  cgpa?: string;
+  gradYear?: string;
+}
+export interface AcademicDetails {
+  tenth?: TenthDetails;
+  twelfth?: TwelfthDetails;
+  college?: CollegeDetails;
+}
+
+export interface ContactDetails {
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  pincode?: string;
+  linkedin?: string;
+  github?: string;
+  portfolio?: string;
+}
+
+export interface ResumeProject {
+  title: string;
+  link?: string;
+  description?: string;
+}
+export interface ResumeExperience {
+  title: string;
+  org?: string;
+  period?: string;
+  description?: string;
+}
+export interface ResumeCertification {
+  name: string;
+  issuer?: string;
+  year?: string;
+}
+export interface ResumeExtras {
+  summary?: string;
+  projects?: ResumeProject[];
+  certifications?: ResumeCertification[];
+  achievements?: string[];
+  workExperience?: ResumeExperience[];
+  languagesKnown?: string[];
+  hobbies?: string[];
 }
 
 export interface AuthResponse {

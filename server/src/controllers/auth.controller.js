@@ -98,5 +98,5 @@ export const me = asyncHandler(async (req, res) => {
     prisma.follow.count({ where: { followerId: req.user.id } }),
   ]);
 
-  res.json({ user: { ...req.user, skills, followersCount, followingCount } });
+  res.json({ user: { ...toPublicUser(req.user), skills, followersCount, followingCount } });
 });

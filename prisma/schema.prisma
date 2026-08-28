@@ -38,6 +38,12 @@ model User {
   bio          String?
   avatarColor  String          @default("#06B6D4")
   avatarUrl    String?
+
+  // Resume / academic profile (for the future resume generator) — stored as JSON text
+  academicDetails String? // { tenth, twelfth, college }
+  contactDetails  String? // { phone, address, city, state, country, pincode, linkedin, github, portfolio }
+  resumeExtras    String? // { summary, projects, certifications, achievements, workExperience, languagesKnown, hobbies }
+
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
 

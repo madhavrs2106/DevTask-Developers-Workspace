@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Camera, CheckCircle2, LogOut, Plus, Save, Trash2, UserCog } from "lucide-react";
+import { Camera, CheckCircle2, GraduationCap, LogOut, Plus, Save, Trash2, UserCog } from "lucide-react";
 import { apiErrorMessage } from "../lib/api";
 import { cn, formatDate } from "../lib/utils";
 import { fileToAvatarDataUri } from "../lib/image";
@@ -17,9 +17,63 @@ import {
   useAddKnowledge,
   useDeleteKnowledge,
 } from "../hooks/useQueries";
-import type { Role, SkillProgress } from "../types";
+import type {
+  Role,
+  SkillProgress,
+  AcademicDetails,
+  ContactDetails,
+  ResumeExtras,
+  ResumeProject,
+  ResumeCertification,
+  ResumeExperience,
+} from "../types";
 import { Button } from "../components/ui/Button";
 import { ProgressRing } from "../components/ui/ProgressRing";
+
+function StringListEditor({
+  label,
+  items,
+  onChange,
+  placeholder,
+}: {
+  label: string;
+  items: string[];
+  onChange: (v: string[]) => void;
+  placeholder?: string;
+}) {
+  return (
+    <div>
+      <span className="label-dark">{label}</span>
+      <div className="space-y-2">
+        {items.map((it, i) => (
+          <div key={i} className="flex gap-2">
+            <input
+              className="input-dark flex-1"
+              value={it}
+              placeholder={placeholder}
+              onChange={(e) => {
+                const n = [...items];
+                n[i] = e.target.value;
+                onChange(n);
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => onChange(items.filter((_, j) => j !== i))}
+              className="shrink-0 text-rose-400 hover:text-rose-300"
+              title="Remove"
+            >
+              <Trash2 size={14} />
+            </button>
+          </div>
+        ))}
+        <Button variant="outline" onClick={() => onChange([...items, ""])}>
+          <Plus size={13} /> Add
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 export function Settings() {
   const { user, logout, setUser } = useAuth();
@@ -59,6 +113,45 @@ export function Settings() {
   const knowledge = useKnowledge();
   const addKnowledge = useAddKnowledge();
   const deleteKnowledge = useDeleteKnowledge();
+
+  const [academic, setAcademic] = useState<AcademicDetails>(user?.academicDetails ?? {});
+  const [contact, setContact] = useState<ContactDetails>(user?.contactDetails ?? {});
+  const [resume, setResume] = useState<ResumeExtras>(user?.resumeExtras ?? {});
+  const [resumeMsg, setResumeMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const updateResumeDetails = useUpdateProfile();
+
+  const contactFields: { key: keyof ContactDetails; label: string }[] = [
+    { key: "phone", label: "Phone" },
+    { key: "address", label: "Address" },
+    { key: "city", label: "City" },
+    { key: "state", label: "State" },
+    { key: "country", label: "Country" },
+    { key: "pincode", label: "Pincode" },
+    { key: "linkedin", label: "LinkedIn URL" },
+    { key: "github", label: "GitHub URL" },
+    { key: "portfolio", label: "Portfolio URL" },
+  ];
+
+  const patchAcademic = (group: "tenth" | "twelfth" | "college", patch: Record<string, string>) =>
+    setAcademic((a) => ({ ...a, [group]: { ...(a?.[group] as object), ...patch } } as AcademicDetails));
+
+  const updateProject = (i: number, val: ResumeProject) =>
+    setResume((r) => ({ ...r, projects: (r.projects ?? []).map((p, j) => (j === i ? val : p)) }));
+  const addProject = () => setResume((r) => ({ ...r, projects: [...(r.projects ?? []), { title: "" }] }));
+  const removeProject = (i: number) =>
+    setResume((r) => ({ ...r, projects: (r.projects ?? []).filter((_, j) => j !== i) }));
+
+  const updateCert = (i: number, val: ResumeCertification) =>
+    setResume((r) => ({ ...r, certifications: (r.certifications ?? []).map((c, j) => (j === i ? val : c)) }));
+  const addCert = () => setResume((r) => ({ ...r, certifications: [...(r.certifications ?? []), { name: "" }] }));
+  const removeCert = (i: number) =>
+    setResume((r) => ({ ...r, certifications: (r.certifications ?? []).filter((_, j) => j !== i) }));
+
+  const updateExp = (i: number, val: ResumeExperience) =>
+    setResume((r) => ({ ...r, workExperience: (r.workExperience ?? []).map((x, j) => (j === i ? val : x)) }));
+  const addExp = () => setResume((r) => ({ ...r, workExperience: [...(r.workExperience ?? []), { title: "" }] }));
+  const removeExp = (i: number) =>
+    setResume((r) => ({ ...r, workExperience: (r.workExperience ?? []).filter((_, j) => j !== i) }));
   const handleAddKnowledge = () => {
     if (!kbAnswer.trim()) return;
     addKnowledge.mutate(
@@ -76,6 +169,9 @@ export function Settings() {
     setRole(user.role);
     setAvatarColor(user.avatarColor || AVATAR_COLORS[0]);
     if (user.skills) setSkills(user.skills);
+    setAcademic(user.academicDetails ?? {});
+    setContact(user.contactDetails ?? {});
+    setResume(user.resumeExtras ?? {});
   }, [user]);
 
   // Live accent preview — the whole app re-themes as a swatch is clicked
@@ -97,6 +193,21 @@ export function Settings() {
       setProfileMsg({ ok: true, text: "Profile updated" });
     } catch (err) {
       setProfileMsg({ ok: false, text: apiErrorMessage(err, "Could not update profile") });
+    }
+  }
+
+  async function handleResumeSave() {
+    setResumeMsg(null);
+    try {
+      const updated = await updateResumeDetails.mutateAsync({
+        academicDetails: academic,
+        contactDetails: contact,
+        resumeExtras: resume,
+      });
+      setUser(updated);
+      setResumeMsg({ ok: true, text: "Academic & contact details saved" });
+    } catch (err) {
+      setResumeMsg({ ok: false, text: apiErrorMessage(err, "Could not save details") });
     }
   }
 
@@ -611,6 +722,182 @@ export function Settings() {
                 </button>
               </div>
             ))
+          )}
+        </div>
+      </section>
+
+      {/* ── Academic & Resume details ─────────────────────────── */}
+      <section className="card p-6">
+        <header className="flex items-center gap-2">
+          <GraduationCap size={17} className="text-accent-bright" />
+          <h2 className="text-sm font-semibold text-white">Academic &amp; Resume details</h2>
+        </header>
+        <p className="mt-1 text-xs text-ink-faint">
+          Stored now so the upcoming auto resume generator can build your resume from this data.
+        </p>
+
+        {/* Contact */}
+        <h3 className="mt-5 text-[11px] font-semibold uppercase tracking-wider text-ink-muted">Contact details</h3>
+        <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {contactFields.map((f) => (
+            <div key={f.key}>
+              <label className="label-dark">{f.label}</label>
+              <input
+                className="input-dark"
+                value={(contact as Record<string, string | undefined>)[f.key] ?? ""}
+                onChange={(e) => setContact((c) => ({ ...c, [f.key]: e.target.value }))}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Academic */}
+        <h3 className="mt-6 text-[11px] font-semibold uppercase tracking-wider text-ink-muted">Academic details</h3>
+        {(["tenth", "twelfth", "college"] as const).map((group) => (
+          <div key={group} className="mt-3">
+            <div className="mb-2 text-xs font-medium text-accent-bright">
+              {group === "tenth" ? "10th" : group === "twelfth" ? "12th" : "Current college"}
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {group === "college" ? (
+                <>
+                  <div>
+                    <label className="label-dark">College name</label>
+                    <input className="input-dark" value={academic?.college?.name ?? ""} onChange={(e) => patchAcademic("college", { name: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="label-dark">Degree</label>
+                    <input className="input-dark" value={academic?.college?.degree ?? ""} onChange={(e) => patchAcademic("college", { degree: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="label-dark">Branch / Major</label>
+                    <input className="input-dark" value={academic?.college?.branch ?? ""} onChange={(e) => patchAcademic("college", { branch: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="label-dark">Current year</label>
+                    <input className="input-dark" value={academic?.college?.year ?? ""} onChange={(e) => patchAcademic("college", { year: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="label-dark">CGPA</label>
+                    <input className="input-dark" value={academic?.college?.cgpa ?? ""} onChange={(e) => patchAcademic("college", { cgpa: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="label-dark">Grad year</label>
+                    <input className="input-dark" value={academic?.college?.gradYear ?? ""} onChange={(e) => patchAcademic("college", { gradYear: e.target.value })} />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <label className="label-dark">School</label>
+                    <input className="input-dark" value={(academic?.[group] as { school?: string } | undefined)?.school ?? ""} onChange={(e) => patchAcademic(group, { school: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="label-dark">Board</label>
+                    <input className="input-dark" value={(academic?.[group] as { board?: string } | undefined)?.board ?? ""} onChange={(e) => patchAcademic(group, { board: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="label-dark">Score / %</label>
+                    <input className="input-dark" value={(academic?.[group] as { score?: string } | undefined)?.score ?? ""} onChange={(e) => patchAcademic(group, { score: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="label-dark">Year</label>
+                    <input className="input-dark" value={(academic?.[group] as { year?: string } | undefined)?.year ?? ""} onChange={(e) => patchAcademic(group, { year: e.target.value })} />
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        ))}
+
+        {/* Resume extras */}
+        <h3 className="mt-6 text-[11px] font-semibold uppercase tracking-wider text-ink-muted">More details (for resume)</h3>
+        <div className="mt-3 space-y-5">
+          <div>
+            <label className="label-dark">Career summary / objective</label>
+            <textarea
+              className="input-dark h-20 w-full resize-y"
+              value={resume.summary ?? ""}
+              onChange={(e) => setResume((r) => ({ ...r, summary: e.target.value }))}
+              placeholder="Brief intro for your resume…"
+            />
+          </div>
+
+          <div>
+            <span className="label-dark">Projects</span>
+            <div className="space-y-2">
+              {(resume.projects ?? []).map((p, i) => (
+                <div key={i} className="space-y-2 rounded-lg border border-slate-700 bg-surface p-2">
+                  <div className="flex items-center gap-2">
+                    <input className="input-dark flex-1" placeholder="Title" value={p.title} onChange={(e) => updateProject(i, { ...p, title: e.target.value })} />
+                    <button type="button" onClick={() => removeProject(i)} className="shrink-0 text-rose-400 hover:text-rose-300" title="Remove">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                  <input className="input-dark w-full" placeholder="Link (optional)" value={p.link ?? ""} onChange={(e) => updateProject(i, { ...p, link: e.target.value })} />
+                  <textarea className="input-dark h-16 w-full resize-y" placeholder="Description" value={p.description ?? ""} onChange={(e) => updateProject(i, { ...p, description: e.target.value })} />
+                </div>
+              ))}
+              <Button variant="outline" onClick={addProject}><Plus size={13} /> Add project</Button>
+            </div>
+          </div>
+
+          <div>
+            <span className="label-dark">Certifications</span>
+            <div className="space-y-2">
+              {(resume.certifications ?? []).map((c, i) => (
+                <div key={i} className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-700 bg-surface p-2">
+                  <input className="input-dark flex-1" placeholder="Name" value={c.name} onChange={(e) => updateCert(i, { ...c, name: e.target.value })} />
+                  <input className="input-dark flex-1" placeholder="Issuer" value={c.issuer ?? ""} onChange={(e) => updateCert(i, { ...c, issuer: e.target.value })} />
+                  <input className="input-dark w-24" placeholder="Year" value={c.year ?? ""} onChange={(e) => updateCert(i, { ...c, year: e.target.value })} />
+                  <button type="button" onClick={() => removeCert(i)} className="shrink-0 text-rose-400 hover:text-rose-300" title="Remove">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))}
+              <Button variant="outline" onClick={addCert}><Plus size={13} /> Add certification</Button>
+            </div>
+          </div>
+
+          <div>
+            <span className="label-dark">Work experience</span>
+            <div className="space-y-2">
+              {(resume.workExperience ?? []).map((x, i) => (
+                <div key={i} className="space-y-2 rounded-lg border border-slate-700 bg-surface p-2">
+                  <div className="flex items-center gap-2">
+                    <input className="input-dark flex-1" placeholder="Title" value={x.title} onChange={(e) => updateExp(i, { ...x, title: e.target.value })} />
+                    <input className="input-dark flex-1" placeholder="Organization" value={x.org ?? ""} onChange={(e) => updateExp(i, { ...x, org: e.target.value })} />
+                    <button type="button" onClick={() => removeExp(i)} className="shrink-0 text-rose-400 hover:text-rose-300" title="Remove">
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                  <input className="input-dark w-full" placeholder="Period (e.g. Jun 2024 – Aug 2024)" value={x.period ?? ""} onChange={(e) => updateExp(i, { ...x, period: e.target.value })} />
+                  <textarea className="input-dark h-16 w-full resize-y" placeholder="Description" value={x.description ?? ""} onChange={(e) => updateExp(i, { ...x, description: e.target.value })} />
+                </div>
+              ))}
+              <Button variant="outline" onClick={addExp}><Plus size={13} /> Add experience</Button>
+            </div>
+          </div>
+
+          <StringListEditor label="Achievements" items={resume.achievements ?? []} placeholder="e.g. Winner, Hackathon 2024" onChange={(v) => setResume((r) => ({ ...r, achievements: v }))} />
+          <StringListEditor label="Languages known" items={resume.languagesKnown ?? []} placeholder="e.g. English" onChange={(v) => setResume((r) => ({ ...r, languagesKnown: v }))} />
+          <StringListEditor label="Hobbies" items={resume.hobbies ?? []} placeholder="e.g. Chess" onChange={(v) => setResume((r) => ({ ...r, hobbies: v }))} />
+        </div>
+
+        <div className="mt-6 flex items-center gap-3">
+          <Button onClick={() => void handleResumeSave()} disabled={updateResumeDetails.isPending}>
+            {updateResumeDetails.isPending ? (
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-800 border-t-slate-950" />
+            ) : (
+              <Save size={15} />
+            )}
+            Save details
+          </Button>
+          {resumeMsg && (
+            <span className={cn("inline-flex items-center gap-1 text-xs", resumeMsg.ok ? "text-teal-300" : "text-rose-400")} role="status">
+              {resumeMsg.ok && <CheckCircle2 size={13} />}
+              {resumeMsg.text}
+            </span>
           )}
         </div>
       </section>
