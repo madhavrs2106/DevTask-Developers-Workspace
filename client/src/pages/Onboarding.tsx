@@ -16,7 +16,7 @@ import type {
   ResumeExperience,
 } from "../types";
 
-const STEPS = ["Contact", "10th", "12th", "College", "More details"] as const;
+const STEPS = ["Contact", "Schooling", "College", "More details"] as const;
 
 export function Onboarding() {
   const { user, setUser } = useAuth();
@@ -133,15 +133,15 @@ export function Onboarding() {
           <div className="mt-5 space-y-4">
             {step === 0 && <ContactStep contact={contact} setContact={setContact} />}
             {step === 1 && (
-              <AcademicStep group="tenth" label="10th" academic={academic} patchAcademic={patchAcademic} />
+              <>
+                <AcademicStep group="tenth" label="10th" academic={academic} patchAcademic={patchAcademic} />
+                <AcademicStep group="twelfth" label="12th" academic={academic} patchAcademic={patchAcademic} />
+              </>
             )}
             {step === 2 && (
-              <AcademicStep group="twelfth" label="12th" academic={academic} patchAcademic={patchAcademic} />
-            )}
-            {step === 3 && (
               <AcademicStep group="college" label="Current college" academic={academic} patchAcademic={patchAcademic} />
             )}
-            {step === 4 && (
+            {step === 3 && (
               <MoreStep
                 resume={resume}
                 setResume={setResume}
