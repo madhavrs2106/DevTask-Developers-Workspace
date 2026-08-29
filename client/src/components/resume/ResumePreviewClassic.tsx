@@ -130,7 +130,7 @@ export function ResumePreviewClassic({ data }: { data: ResumeData }) {
           {data.projects.length > 0 && (
             <section>
               <SectionHead>Projects</SectionHead>
-              <div className="space-y-2">
+              <div className="mt-2 space-y-3">
                 {data.projects.map((p, i) => (
                   <div key={i}>
                     <div className="text-[13px] font-bold text-slate-900">

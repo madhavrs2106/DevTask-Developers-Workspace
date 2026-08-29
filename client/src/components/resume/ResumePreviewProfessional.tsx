@@ -134,7 +134,7 @@ export function ResumePreviewProfessional({ data }: { data: ResumeData }) {
           {data.projects.length > 0 && (
             <section>
               <RightHead>Projects</RightHead>
-              <div className="space-y-2">
+              <div className="mt-1 space-y-3">
                 {data.projects.map((p, i) => (
                   <div key={i}>
                     <div className="text-[13px] font-semibold text-slate-700">

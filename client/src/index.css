@@ -132,3 +132,7 @@
   .no-print { display: none !important; }
   .resume-zoom-wrap { zoom: 1 !important; }
 }
+
+/* Consistent gap before each new section in the resume (screen + print) */
+.resume-print section { margin-top: 20px; }
+.resume-print section:first-of-type { margin-top: 0; }

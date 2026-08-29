@@ -46,7 +46,7 @@ export function ResumePreviewMinimalTech({ data }: { data: ResumeData }) {
 
       {/* Contact + Summary side by side */}
       {(leftCol.length > 0 || rightCol.length > 0 || linkRows.length > 0 || data.summary) && (
-        <section className="mb-4 flex gap-6">
+        <section className="flex gap-6">
           <div className="flex-1">
             <h2 className={headingClass}>Contact</h2>
             {(leftCol.length > 0 || rightCol.length > 0) && (
@@ -88,7 +88,7 @@ export function ResumePreviewMinimalTech({ data }: { data: ResumeData }) {
       )}
 
       {data.education.length > 0 && (
-        <section className="mb-4">
+        <section>
           <h2 className={headingClass}>Education</h2>
           <div className="space-y-1">
             {data.education.map((e, i) => (
@@ -104,10 +104,10 @@ export function ResumePreviewMinimalTech({ data }: { data: ResumeData }) {
       )}
 
       {data.experience.length > 0 && (
-        <section className="mb-4">
+        <section>
           <h2 className={headingClass}>Experience</h2>
           {data.experience.map((x, i) => (
-            <div key={i} className="mb-2">
+            <div key={i} className="mt-3">
               <div className="flex items-baseline justify-between gap-3">
                 <span className="font-semibold text-black">
                   {x.role}
@@ -128,7 +128,7 @@ export function ResumePreviewMinimalTech({ data }: { data: ResumeData }) {
       )}
 
       {data.skills.length > 0 && (
-        <section className="mb-4">
+        <section>
           <h2 className={headingClass}>Technical Skills</h2>
           <div className="space-y-0.5">
             {data.skills.map((g) => (
@@ -142,10 +142,10 @@ export function ResumePreviewMinimalTech({ data }: { data: ResumeData }) {
       )}
 
       {data.projects.length > 0 && (
-        <section className="mb-4">
+        <section>
           <h2 className={headingClass}>Projects</h2>
           {data.projects.map((p, i) => (
-            <div key={i} className="mb-2">
+            <div key={i} className="mt-3">
               <div className="flex items-baseline justify-between gap-3">
                 <span className="text-[13px] font-semibold text-black">{p.title}</span>
                 {p.repoUrl && <span className="whitespace-nowrap text-slate-500">{p.repoUrl}</span>}
@@ -169,7 +169,7 @@ export function ResumePreviewMinimalTech({ data }: { data: ResumeData }) {
       )}
 
       {data.coursesCompleted.length > 0 && (
-        <section className="mb-4">
+        <section>
           <h2 className={headingClass}>Courses Completed</h2>
           <ul className="ml-4 list-disc text-slate-800">
             {data.coursesCompleted.map((cw, i) => (
@@ -193,7 +193,7 @@ export function ResumePreviewMinimalTech({ data }: { data: ResumeData }) {
       {data.customSections && data.customSections.length > 0 && (
         <>
           {data.customSections.map((cs, i) => (
-            <section key={i} className="mb-4">
+            <section key={i}>
               <h2 className={headingClass}>{cs.title || "Section"}</h2>
               <p className="whitespace-pre-line text-slate-800">{cs.body}</p>
             </section>
