@@ -1,16 +1,25 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { NoupeChatbot } from "./NoupeChatbot";
 import { useFullScreen } from "../../context/FullScreenContext";
+import { useMe } from "../../hooks/useQueries";
 
 export function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { fullScreen } = useFullScreen();
+  const { data: me } = useMe();
+
+  // Apply the user's chosen app/page background via a CSS variable.
+  useEffect(() => {
+    const root = document.documentElement;
+    if (me?.backgroundColor) root.style.setProperty("--app-bg", me.backgroundColor);
+    else root.style.removeProperty("--app-bg");
+  }, [me?.backgroundColor]);
 
   return (
-    <div className="min-h-screen bg-midnight">
+    <div className="min-h-screen" style={{ backgroundColor: "var(--app-bg, #0F172A)" }}>
       {!fullScreen && <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />}
 
       <div className={`flex min-h-screen flex-col ${fullScreen ? "" : "lg:pl-64"}`}>

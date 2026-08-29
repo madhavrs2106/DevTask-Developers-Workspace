@@ -22,6 +22,7 @@ export interface User {
   role: Role;
   bio: string | null;
   avatarColor: string;
+  backgroundColor?: string | null;
   avatarUrl?: string | null;
   academicDetails?: AcademicDetails | null;
   contactDetails?: ContactDetails | null;

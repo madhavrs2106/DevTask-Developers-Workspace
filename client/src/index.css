@@ -37,7 +37,8 @@
   }
 
   body {
-    @apply bg-midnight font-sans text-slate-200;
+    @apply font-sans text-slate-200;
+    background-color: var(--app-bg, #0F172A);
   }
 
   ::selection {

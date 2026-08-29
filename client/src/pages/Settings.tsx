@@ -83,6 +83,7 @@ export function Settings() {
   const [bio, setBio] = useState(user?.bio ?? "");
   const [role, setRole] = useState<Role>(user?.role ?? "DEVELOPER");
   const [avatarColor, setAvatarColor] = useState(user?.avatarColor ?? AVATAR_COLORS[0]);
+  const [backgroundColor, setBackgroundColor] = useState<string | null>(user?.backgroundColor ?? null);
 
   const [skills, setSkills] = useState<SkillProgress[]>(user?.skills ?? []);
   const [newSkillName, setNewSkillName] = useState("");
@@ -168,6 +169,7 @@ export function Settings() {
     setBio(user.bio ?? "");
     setRole(user.role);
     setAvatarColor(user.avatarColor || AVATAR_COLORS[0]);
+    setBackgroundColor(user.backgroundColor ?? null);
     if (user.skills) setSkills(user.skills);
     setAcademic(user.academicDetails ?? {});
     setContact(user.contactDetails ?? {});
@@ -179,6 +181,13 @@ export function Settings() {
     applyAccent(avatarColor);
   }, [avatarColor]);
 
+  // Live background preview — the app/page background updates as a swatch is picked
+  useEffect(() => {
+    const root = document.documentElement;
+    if (backgroundColor) root.style.setProperty("--app-bg", backgroundColor);
+    else root.style.removeProperty("--app-bg");
+  }, [backgroundColor]);
+
   async function handleProfileSave() {
     setProfileMsg(null);
     try {
@@ -188,6 +197,7 @@ export function Settings() {
         bio: bio.trim() || null,
         role,
         avatarColor,
+        backgroundColor,
       });
       setUser(updated);
       setProfileMsg({ ok: true, text: "Profile updated" });
@@ -474,6 +484,60 @@ export function Settings() {
               </div>
               <p className="mt-1.5 text-[11px] text-ink-faint">
                 Themes buttons, highlights, charts & your avatar across DevTask.
+              </p>
+            </div>
+
+            <div>
+              <span className="label-dark">Background color</span>
+              <div className="flex flex-wrap items-center gap-2">
+                {AVATAR_COLORS.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    aria-label={`Use background ${color}`}
+                    onClick={() => setBackgroundColor(color)}
+                    className={cn(
+                      "h-7 w-7 rounded-full transition-all",
+                      backgroundColor === color
+                        ? "scale-110 ring-2 ring-white/80"
+                        : "opacity-60 hover:opacity-100"
+                    )}
+                    style={{
+                      background: color,
+                      boxShadow: backgroundColor === color ? `0 0 12px ${color}` : undefined,
+                    }}
+                  />
+                ))}
+                <label
+                  className="relative h-7 w-7 cursor-pointer overflow-hidden rounded-full border border-slate-600"
+                  title="Custom color"
+                >
+                  <input
+                    type="color"
+                    value={backgroundColor ?? "#0F172A"}
+                    onChange={(e) => setBackgroundColor(e.target.value)}
+                    className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                  />
+                  <span
+                    className="block h-full w-full"
+                    style={{
+                      background:
+                        "conic-gradient(red,orange,yellow,green,cyan,blue,violet,red)",
+                    }}
+                  />
+                </label>
+                {backgroundColor && (
+                  <button
+                    type="button"
+                    onClick={() => setBackgroundColor(null)}
+                    className="rounded-full border border-slate-700 px-2 py-1 text-[11px] text-ink-muted transition-colors hover:text-white"
+                  >
+                    Reset
+                  </button>
+                )}
+              </div>
+              <p className="mt-1.5 text-[11px] text-ink-faint">
+                Changes the app/page background everywhere in DevTask.
               </p>
             </div>
 

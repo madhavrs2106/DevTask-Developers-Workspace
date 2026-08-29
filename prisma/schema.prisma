@@ -37,6 +37,7 @@ model User {
   role         Role            @default(DEVELOPER)
   bio          String?
   avatarColor  String          @default("#06B6D4")
+  backgroundColor String?
   avatarUrl    String?
   onboarded    Boolean         @default(false) // true once the user finishes the first-time details wizard
 
