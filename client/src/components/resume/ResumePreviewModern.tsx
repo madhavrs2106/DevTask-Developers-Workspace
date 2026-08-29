@@ -35,7 +35,7 @@ export function ResumePreviewModern({ data }: { data: ResumeData }) {
   return (
     <div
       id="resume-sheet"
-      className="resume-print relative mx-auto w-[210mm] max-w-full min-h-[297mm] overflow-hidden bg-white text-slate-800 shadow-xl"
+      className="resume-print relative mx-auto w-[210mm] min-h-[297mm] overflow-hidden bg-white text-slate-800 shadow-xl"
       style={{ fontFamily: "Inter, Helvetica, Arial, sans-serif", fontSize: "11px", lineHeight: 1.5 }}
     >
       {/* Top band */}

@@ -20,9 +20,15 @@ export function ResumePage() {
   );
   const [modalOpen, setModalOpen] = useState(false);
   const [templateModalOpen, setTemplateModalOpen] = useState(false);
-  const [zoom, setZoom] = useState(1);
+  const computeFitZoom = () => {
+    if (typeof window === "undefined") return 1;
+    const sheetPx = (210 * 96) / 25.4; // 210mm → px at 96dpi
+    const avail = window.innerWidth - 32;
+    return Math.max(0.4, Math.min(1, avail / sheetPx));
+  };
+  const [zoom, setZoom] = useState(() => computeFitZoom());
   const zoomIn = () => setZoom((z) => Math.min(1.5, Math.round((z + 0.1) * 100) / 100));
-  const zoomOut = () => setZoom((z) => Math.max(0.5, Math.round((z - 0.1) * 100) / 100));
+  const zoomOut = () => setZoom((z) => Math.max(0.4, Math.round((z - 0.1) * 100) / 100));
 
   useEffect(() => {
     if (user?.resumeExtras?.customSections) setCustomSections(user.resumeExtras.customSections);

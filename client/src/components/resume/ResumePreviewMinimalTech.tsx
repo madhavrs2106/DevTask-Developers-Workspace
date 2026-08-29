@@ -30,7 +30,7 @@ export function ResumePreviewMinimalTech({ data }: { data: ResumeData }) {
   return (
     <div
       id="resume-sheet"
-      className="resume-print mx-auto w-[210mm] max-w-full min-h-[297mm] bg-white px-10 py-9 text-slate-800 shadow-xl"
+      className="resume-print mx-auto w-[210mm] min-h-[297mm] bg-white px-10 py-9 text-slate-800 shadow-xl"
       style={{ fontFamily: "Inter, Helvetica, Arial, sans-serif", fontSize: "11px", lineHeight: 1.5 }}
     >
       {/* Header */}
