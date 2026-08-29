@@ -19,7 +19,7 @@ export function ResumePreviewClassic({ data }: { data: ResumeData }) {
   return (
     <div
       id="resume-sheet"
-      className="resume-print mx-auto w-full max-w-[820px] overflow-hidden bg-white text-slate-800 shadow-xl"
+      className="resume-print mx-auto w-[210mm] max-w-full min-h-[297mm] overflow-hidden bg-white text-slate-800 shadow-xl"
       style={{ fontFamily: "Inter, Helvetica, Arial, sans-serif", fontSize: "11px", lineHeight: 1.5 }}
     >
       {/* Top navy banner */}

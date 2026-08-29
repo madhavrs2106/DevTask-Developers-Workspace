@@ -28,7 +28,7 @@ export function ResumePreviewProfessional({ data }: { data: ResumeData }) {
   return (
     <div
       id="resume-sheet"
-      className="resume-print relative mx-auto w-full max-w-[820px] overflow-hidden bg-[#faf8f5] text-slate-800 shadow-xl"
+      className="resume-print relative mx-auto w-[210mm] max-w-full min-h-[297mm] overflow-hidden bg-[#faf8f5] text-slate-800 shadow-xl"
       style={{ fontFamily: "Inter, Helvetica, Arial, sans-serif", fontSize: "11px", lineHeight: 1.55 }}
     >
       {/* Decorative halftone accents */}
