@@ -30,6 +30,7 @@ export function TaskBoard() {
   const [query, setQuery] = useState("");
   const [tagFilter, setTagFilter] = useState<string[]>([]);
   const [difficultyFilter, setDifficultyFilter] = useState<"" | Difficulty>("");
+  const [statusFilter, setStatusFilter] = useState<"" | TaskStatus>("");
   const [tagPopoverOpen, setTagPopoverOpen] = useState(false);
   const [tagDraft, setTagDraft] = useState<string[]>([]);
   const tagRef = useRef<HTMLDivElement>(null);
@@ -69,7 +70,8 @@ export function TaskBoard() {
           t.title.toLowerCase().includes(q) ||
           (t.description ?? "").toLowerCase().includes(q)) &&
         (tagFilter.length === 0 || tagFilter.every((tag) => t.tags.includes(tag))) &&
-        (!difficultyFilter || t.difficulty === difficultyFilter)
+        (!difficultyFilter || t.difficulty === difficultyFilter) &&
+        (!statusFilter || t.status === statusFilter)
     );
   }, [tasks, query, tagFilter, difficultyFilter]);
 
@@ -267,6 +269,21 @@ export function TaskBoard() {
               </option>
             ))}
           </select>
+
+          {/* Status filter */}
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as "" | TaskStatus)}
+            aria-label="Filter by status"
+            className="input-dark !w-auto min-w-[130px]"
+          >
+            <option value="">All status</option>
+            {TASK_STATUSES.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.label}
+              </option>
+            ))}
+          </select>
         </div>
 
         <Button onClick={() => openCreate()} className="shrink-0">
@@ -288,7 +305,7 @@ export function TaskBoard() {
           }
         />
       ) : (
-        <div className="grid min-h-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4 flex-1">
+        <div className="flex min-h-0 flex-1 gap-4 overflow-x-auto pb-2 snap-x snap-mandatory md:grid md:grid-cols-2 md:overflow-visible xl:grid-cols-4">
           {TASK_STATUSES.map((col) => {
             const columnTasks = columns.get(col.id) ?? [];
             return (
@@ -304,7 +321,7 @@ export function TaskBoard() {
                   if (dragId) moveTask(dragId, col.id);
                 }}
                 className={cn(
-                  "card flex min-h-0 flex-col p-3 transition-all duration-200",
+                  "card flex min-h-0 min-w-[82%] flex-col p-3 snap-start transition-all duration-200 sm:min-w-[280px] md:min-w-0",
                   dragOverCol === col.id && dragId
                     ? "border-accent/60 bg-accent/[.04] shadow-glow-sm"
                     : ""
