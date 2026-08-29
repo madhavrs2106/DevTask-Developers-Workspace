@@ -118,7 +118,9 @@ export function buildResumeData(
     title: p.name,
     description: p.description ?? undefined,
     repoUrl: p.repoUrl ?? undefined,
-    techStack: [],
+    techStack: p.techStack
+      ? p.techStack.split(",").map((t) => t.trim()).filter(Boolean)
+      : [],
   }));
 
   // DevTask-completed courses vs. externally added certifications

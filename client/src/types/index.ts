@@ -253,6 +253,7 @@ export interface Project {
   name: string;
   description: string | null;
   repoUrl: string | null;
+  techStack: string | null;
   color: string;
   userId: string;
   createdAt: string;
@@ -265,6 +266,7 @@ export interface ProjectInput {
   name: string;
   description?: string | null;
   repoUrl?: string | null;
+  techStack?: string | null;
   color: string;
 }
 

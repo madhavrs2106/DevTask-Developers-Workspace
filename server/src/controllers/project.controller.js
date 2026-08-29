@@ -15,6 +15,7 @@ const createSchema = z.object({
   name: z.string().trim().min(1, "Project name is required").max(80),
   description: z.string().trim().max(500).optional().nullable(),
   repoUrl: optionalUrl,
+  techStack: z.string().trim().max(300).optional().nullable(),
   color: hexColor.default("#06B6D4"),
 });
 

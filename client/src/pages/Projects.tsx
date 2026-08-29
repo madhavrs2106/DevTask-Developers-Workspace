@@ -22,6 +22,7 @@ interface FormState {
   name: string;
   description: string;
   repoUrl: string;
+  techStack: string;
   color: string;
 }
 
@@ -29,6 +30,7 @@ const emptyForm: FormState = {
   name: "",
   description: "",
   repoUrl: "",
+  techStack: "",
   color: AVATAR_COLORS[0],
 };
 
@@ -56,6 +58,7 @@ export function Projects() {
       name: project.name,
       description: project.description ?? "",
       repoUrl: project.repoUrl ?? "",
+      techStack: project.techStack ?? "",
       color: project.color || AVATAR_COLORS[0],
     });
     setError(null);
@@ -71,6 +74,7 @@ export function Projects() {
       name: form.name.trim(),
       description: form.description.trim() || null,
       repoUrl: form.repoUrl.trim() || null,
+      techStack: form.techStack.trim() || null,
       color: form.color,
     };
     try {
@@ -149,6 +153,23 @@ export function Projects() {
                   <p className="mt-2 line-clamp-2 min-h-[32px] text-xs leading-relaxed text-ink-muted">
                     {project.description}
                   </p>
+                )}
+
+                {project.techStack && (
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {project.techStack
+                      .split(",")
+                      .map((t) => t.trim())
+                      .filter(Boolean)
+                      .map((tech) => (
+                        <span
+                          key={tech}
+                          className="rounded-full border border-slate-700 bg-white/5 px-2 py-0.5 text-[10px] font-medium text-slate-300"
+                        >
+                          {tech}
+                        </span>
+                      ))}
+                  </div>
                 )}
 
                 {/* Progress */}
@@ -265,6 +286,20 @@ export function Projects() {
               placeholder="https://github.com/you/repo"
               value={form.repoUrl}
               onChange={(e) => setForm((f) => ({ ...f, repoUrl: e.target.value }))}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="proj-tech" className="label-dark">
+              Tech stack
+            </label>
+            <input
+              id="proj-tech"
+              className="input-dark"
+              placeholder="React, Node.js, PostgreSQL"
+              value={form.techStack}
+              onChange={(e) => setForm((f) => ({ ...f, techStack: e.target.value }))}
+              maxLength={300}
             />
           </div>
 

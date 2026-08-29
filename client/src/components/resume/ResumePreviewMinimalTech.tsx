@@ -151,6 +151,18 @@ export function ResumePreviewMinimalTech({ data }: { data: ResumeData }) {
                 {p.repoUrl && <span className="whitespace-nowrap text-slate-500">{p.repoUrl}</span>}
               </div>
               {p.description && <p className="whitespace-pre-line text-slate-800">{p.description}</p>}
+              {p.techStack.length > 0 && (
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {p.techStack.map((tech) => (
+                    <span
+                      key={tech}
+                      className="rounded border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-[10px] font-medium text-blue-700"
+                    >
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </section>

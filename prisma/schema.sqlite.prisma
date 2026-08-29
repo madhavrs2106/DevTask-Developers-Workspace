@@ -76,6 +76,7 @@ model Project {
   name        String
   description String?
   repoUrl     String?
+  techStack   String?   // comma-separated technologies
   color       String   @default("#06B6D4")
   userId      String
   createdAt   DateTime @default(now())

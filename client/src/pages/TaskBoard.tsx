@@ -30,7 +30,6 @@ export function TaskBoard() {
   const [query, setQuery] = useState("");
   const [tagFilter, setTagFilter] = useState<string[]>([]);
   const [difficultyFilter, setDifficultyFilter] = useState<"" | Difficulty>("");
-  const [statusFilter, setStatusFilter] = useState<"" | TaskStatus>("");
   const [tagPopoverOpen, setTagPopoverOpen] = useState(false);
   const [tagDraft, setTagDraft] = useState<string[]>([]);
   const tagRef = useRef<HTMLDivElement>(null);
@@ -70,8 +69,7 @@ export function TaskBoard() {
           t.title.toLowerCase().includes(q) ||
           (t.description ?? "").toLowerCase().includes(q)) &&
         (tagFilter.length === 0 || tagFilter.every((tag) => t.tags.includes(tag))) &&
-        (!difficultyFilter || t.difficulty === difficultyFilter) &&
-        (!statusFilter || t.status === statusFilter)
+        (!difficultyFilter || t.difficulty === difficultyFilter)
     );
   }, [tasks, query, tagFilter, difficultyFilter]);
 
@@ -200,7 +198,7 @@ export function TaskBoard() {
             </button>
 
             {tagPopoverOpen && (
-              <div className="absolute right-0 top-full z-50 mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-700 bg-surface-raised p-3 shadow-xl">
+              <div className="absolute right-0 top-full z-50 mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-700 bg-surface-raised p-3 shadow-xl max-sm:left-0 max-sm:right-auto">
                 <p className="mb-2 text-[11px] font-medium uppercase tracking-wide text-ink-faint">
                   Filter by tags
                 </p>
@@ -275,21 +273,6 @@ export function TaskBoard() {
               </option>
             ))}
           </select>
-
-          {/* Status filter */}
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as "" | TaskStatus)}
-            aria-label="Filter by status"
-            className="input-dark !w-auto min-w-[130px]"
-          >
-            <option value="">All status</option>
-            {TASK_STATUSES.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.label}
-              </option>
-            ))}
-           </select>
         </div>
       </div>
 
