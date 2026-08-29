@@ -150,7 +150,7 @@ export function ResumePreviewMinimalTech({ data }: { data: ResumeData }) {
                 <span className="font-semibold text-black">{p.title}</span>
                 {p.repoUrl && <span className="whitespace-nowrap text-slate-500">{p.repoUrl}</span>}
               </div>
-              {p.description && <p className="text-slate-800">{p.description}</p>}
+              {p.description && <p className="whitespace-pre-line text-slate-800">{p.description}</p>}
             </div>
           ))}
         </section>

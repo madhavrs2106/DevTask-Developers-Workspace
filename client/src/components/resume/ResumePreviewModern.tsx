@@ -154,7 +154,7 @@ export function ResumePreviewModern({ data }: { data: ResumeData }) {
                   <div className="font-bold text-slate-800">
                     {p.title}{p.techStack.length > 0 ? ` | ${p.techStack.join(", ")}` : ""}
                   </div>
-                  {p.description && <p className="text-slate-700">{p.description}</p>}
+                  {p.description && <p className="whitespace-pre-line text-slate-700">{p.description}</p>}
                 </div>
               ))}
             </section>

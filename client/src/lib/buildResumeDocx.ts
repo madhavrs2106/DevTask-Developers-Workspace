@@ -77,7 +77,14 @@ export async function buildResumeDocx(data: ResumeData): Promise<Blob> {
           ],
         })
       );
-      if (p.description) children.push(textParagraph(p.description));
+      if (p.description) {
+        const lines = p.description.split("\n");
+        children.push(
+          new Paragraph({
+            children: lines.map((ln, idx) => (idx === 0 ? new TextRun(ln) : new TextRun({ text: ln, break: 1 }))),
+          })
+        );
+      }
     }
   }
 

@@ -141,7 +141,7 @@ export function ResumePreviewProfessional({ data }: { data: ResumeData }) {
                       {p.title}
                       {p.techStack.length > 0 && <span className="font-normal text-slate-500"> | {p.techStack.join(", ")}</span>}
                     </div>
-                    {p.description && <p className="text-slate-800">{p.description}</p>}
+                    {p.description && <p className="whitespace-pre-line text-slate-800">{p.description}</p>}
                   </div>
                 ))}
               </div>
