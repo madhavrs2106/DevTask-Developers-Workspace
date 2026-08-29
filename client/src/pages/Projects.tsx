@@ -271,7 +271,7 @@ export function Projects() {
                 placeholder="What are you building?"
                 value={form.description}
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                maxLength={500}
+                maxLength={1000}
               />
           </div>
 

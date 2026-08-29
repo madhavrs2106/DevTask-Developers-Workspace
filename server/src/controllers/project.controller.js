@@ -13,7 +13,7 @@ const hexColor = z.string().regex(/^#([0-9a-fA-F]{6})$/, "Must be a hex color");
 
 const createSchema = z.object({
   name: z.string().trim().min(1, "Project name is required").max(80),
-  description: z.string().trim().max(500).optional().nullable(),
+  description: z.string().trim().max(1000).optional().nullable(),
   repoUrl: optionalUrl,
   techStack: z.string().trim().max(300).optional().nullable(),
   color: hexColor.default("#06B6D4"),
