@@ -110,7 +110,7 @@
 }
 
 /* ── Resume print: export only the white sheet as PDF ─────────── */
-@page { size: A4; margin: 0; }
+@page { size: A4; margin: 18mm 0; }
 @media print {
   body * { visibility: hidden !important; }
   .resume-print,
@@ -121,9 +121,9 @@
     top: 0;
     width: 210mm !important;
     max-width: none !important;
-    min-height: 297mm !important;
+    min-height: calc(297mm - 36mm) !important;
     margin: 0 !important;
-    padding: 18mm 16mm !important;
+    padding: 0 16mm !important;
     box-shadow: none !important;
     background: #fff !important;
     -webkit-print-color-adjust: exact;
