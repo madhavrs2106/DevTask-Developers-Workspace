@@ -34,3 +34,7 @@ prisma/*.db
 
 server.log
 server.err
+
+# Local DB backups (may contain production data)
+scripts/devtask-backup-*.json
+*.backup.json
