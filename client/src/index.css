@@ -12,6 +12,16 @@
   --accent-bright-rgb: 103 232 249; /* cyan-300-ish */
   --accent-soft-rgb: 165 243 252;   /* cyan-200-ish */
   --accent-2-rgb: 20 184 166;       /* gradient partner #14B8A6 */
+
+  /* Semantic surface/ink tokens referenced by arbitrary-value utilities
+     (bg-[var(--bg)], border-[var(--border)], text-[var(--text-primary)], …).
+     Values mirror the Midnight Neon Tailwind theme so components resolve. */
+  --bg: #0F172A;                 /* midnight — page background */
+  --bg-card: #181818;            /* surface.raised — cards / inputs */
+  --border: #1e293b;             /* slate-800 */
+  --text-primary: #e2e8f0;       /* slate-200 */
+  --text-secondary: #94a3b8;     /* ink.muted */
+  --accent: #06B6D4;             /* neon.cyan */
 }
 
 @layer base {
