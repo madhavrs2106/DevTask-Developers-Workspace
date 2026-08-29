@@ -33,11 +33,18 @@ export default async function handler(req, res) {
     if (raw) {
       try {
         const parsed = JSON.parse(raw);
-        Object.defineProperty(req, "body", {
-          value: parsed,
-          writable: true,
-          configurable: true,
-        });
+        try {
+          req.body = parsed;
+        } catch {
+          Object.defineProperty(req, "body", {
+            value: parsed,
+            writable: true,
+            configurable: true,
+          });
+        }
+        // Tell body-parser the body is already parsed so it won't try to
+        // read the (now consumed) stream again.
+        req._body = true;
       } catch {
         // leave undefined; express.json will surface the parse error
       }
