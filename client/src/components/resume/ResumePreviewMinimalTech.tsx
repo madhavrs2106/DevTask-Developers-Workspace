@@ -147,7 +147,7 @@ export function ResumePreviewMinimalTech({ data }: { data: ResumeData }) {
           {data.projects.map((p, i) => (
             <div key={i} className="mb-2">
               <div className="flex items-baseline justify-between gap-3">
-                <span className="font-semibold text-black">{p.title}</span>
+                <span className="text-[13px] font-semibold text-black">{p.title}</span>
                 {p.repoUrl && <span className="whitespace-nowrap text-slate-500">{p.repoUrl}</span>}
               </div>
               {p.description && <p className="whitespace-pre-line text-slate-800">{p.description}</p>}

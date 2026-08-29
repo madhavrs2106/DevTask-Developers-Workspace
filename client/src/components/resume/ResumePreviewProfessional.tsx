@@ -137,7 +137,7 @@ export function ResumePreviewProfessional({ data }: { data: ResumeData }) {
               <div className="space-y-2">
                 {data.projects.map((p, i) => (
                   <div key={i}>
-                    <div className="font-semibold text-slate-700">
+                    <div className="text-[13px] font-semibold text-slate-700">
                       {p.title}
                       {p.techStack.length > 0 && <span className="font-normal text-slate-500"> | {p.techStack.join(", ")}</span>}
                     </div>

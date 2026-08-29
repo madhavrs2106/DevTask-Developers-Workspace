@@ -151,7 +151,7 @@ export function ResumePreviewModern({ data }: { data: ResumeData }) {
               <h2 className="mb-3 text-[14px] font-bold uppercase tracking-[0.12em] text-blue-800">Projects</h2>
               {data.projects.map((p, i) => (
                 <div key={i} className="mb-2">
-                  <div className="font-bold text-slate-800">
+                  <div className="text-[14px] font-bold text-slate-800">
                     {p.title}{p.techStack.length > 0 ? ` | ${p.techStack.join(", ")}` : ""}
                   </div>
                   {p.description && <p className="whitespace-pre-line text-slate-700">{p.description}</p>}
