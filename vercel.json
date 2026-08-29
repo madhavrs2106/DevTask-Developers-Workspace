@@ -1,5 +1,5 @@
 {
-  "buildCommand": "prisma generate --schema=prisma/schema.prisma && npm run build",
+  "buildCommand": "npm run db:generate && npm run build",
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api" },
