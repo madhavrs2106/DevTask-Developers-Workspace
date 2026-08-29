@@ -87,9 +87,9 @@ export const ROLE_META: Record<Role, { label: string; blurb: string }> = {
 
 /* ── Avatar palette ─────────────────────────────────────────────── */
 
+// Accent / avatar colors — bright so they pop on the dark theme
 export const AVATAR_COLORS = [
   "#06B6D4", // cyan
-  "#14B8A6", // teal
   "#0EA5E9", // sky
   "#3B82F6", // blue
   "#6366F1", // indigo
@@ -97,10 +97,27 @@ export const AVATAR_COLORS = [
   "#A78BFA", // purple
   "#F472B6", // pink
   "#F43F5E", // rose
+  "#FB7185", // light red
   "#FB923C", // orange
-  "#F59E0B", // amber
-  "#EAB308", // yellow
+  "#FBBF24", // amber
+  "#FDE047", // yellow
   "#34D399", // emerald
-  "#10B981", // green
-  "#EF4444", // red
+  "#2DD4BF", // teal
+  "#A3E635", // lime
+];
+
+// App / page background colors — dark, easy on the eyes behind the dark UI
+export const BACKGROUND_COLORS = [
+  "#0F172A", // midnight (default)
+  "#111827", // gray-900
+  "#0B1120", // near-black blue
+  "#1E1B4B", // deep indigo
+  "#14213D", // navy
+  "#1A1423", // dark plum
+  "#0B132B", // dark blue
+  "#102A2A", // dark teal
+  "#18181B", // zinc-900
+  "#1F2937", // gray-800
+  "#312E81", // indigo-900
+  "#0A0A0A", // black
 ];

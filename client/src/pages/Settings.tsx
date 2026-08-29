@@ -3,7 +3,7 @@ import { Camera, CheckCircle2, GraduationCap, LogOut, Plus, Save, Trash2, UserCo
 import { apiErrorMessage } from "../lib/api";
 import { cn, formatDate } from "../lib/utils";
 import { fileToAvatarDataUri } from "../lib/image";
-import { AVATAR_COLORS, ROLE_META } from "../lib/constants";
+import { AVATAR_COLORS, BACKGROUND_COLORS, ROLE_META } from "../lib/constants";
 import { useAuth } from "../context/AuthContext";
 import { applyAccent } from "../lib/accent";
 import {
@@ -490,7 +490,7 @@ export function Settings() {
             <div>
               <span className="label-dark">Background color</span>
               <div className="flex flex-wrap items-center gap-2">
-                {AVATAR_COLORS.map((color) => (
+                {BACKGROUND_COLORS.map((color) => (
                   <button
                     key={color}
                     type="button"
@@ -508,24 +508,6 @@ export function Settings() {
                     }}
                   />
                 ))}
-                <label
-                  className="relative h-7 w-7 cursor-pointer overflow-hidden rounded-full border border-slate-600"
-                  title="Custom color"
-                >
-                  <input
-                    type="color"
-                    value={backgroundColor ?? "#0F172A"}
-                    onChange={(e) => setBackgroundColor(e.target.value)}
-                    className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                  />
-                  <span
-                    className="block h-full w-full"
-                    style={{
-                      background:
-                        "conic-gradient(red,orange,yellow,green,cyan,blue,violet,red)",
-                    }}
-                  />
-                </label>
                 {backgroundColor && (
                   <button
                     type="button"
