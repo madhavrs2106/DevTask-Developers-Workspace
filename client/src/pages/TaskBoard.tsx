@@ -144,9 +144,9 @@ export function TaskBoard() {
   return (
     <div className="flex h-[calc(100vh-8rem)] flex-col space-y-4 overflow-hidden">
       {/* ── Toolbar ─────────────────────────────────────────────── */}
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-wrap items-center gap-2">
-          {/* View toggle */}
+      <div className="flex flex-col gap-3">
+        {/* Row 1: Board | List (left) + New Task (right) */}
+        <div className="flex items-center justify-between gap-3">
           <div className="flex rounded-xl border border-slate-800 bg-surface-raised p-1">
             <span className="flex items-center gap-1.5 rounded-lg bg-accent/10 px-3 py-1.5 text-xs font-medium text-accent-bright shadow-glow-sm">
               <KanbanSquare size={14} /> Board
@@ -158,7 +158,13 @@ export function TaskBoard() {
               <LayoutList size={14} /> List
             </Link>
           </div>
+          <Button onClick={() => openCreate()} className="shrink-0">
+            <Plus size={16} strokeWidth={2.5} /> New Task
+          </Button>
+        </div>
 
+        {/* Row 2: search + filters */}
+        <div className="flex flex-wrap items-center gap-2">
           {/* Search */}
           <div className="relative">
             <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
@@ -283,12 +289,8 @@ export function TaskBoard() {
                 {s.label}
               </option>
             ))}
-          </select>
+           </select>
         </div>
-
-        <Button onClick={() => openCreate()} className="shrink-0">
-          <Plus size={16} strokeWidth={2.5} /> New Task
-        </Button>
       </div>
 
       {/* ── Kanban board ────────────────────────────────────────── */}
