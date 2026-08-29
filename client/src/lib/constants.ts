@@ -87,4 +87,20 @@ export const ROLE_META: Record<Role, { label: string; blurb: string }> = {
 
 /* ── Avatar palette ─────────────────────────────────────────────── */
 
-export const AVATAR_COLORS = ["#06B6D4", "#14B8A6", "#8B5CF6", "#F472B6", "#F59E0B", "#34D399"];
+export const AVATAR_COLORS = [
+  "#06B6D4", // cyan
+  "#14B8A6", // teal
+  "#0EA5E9", // sky
+  "#3B82F6", // blue
+  "#6366F1", // indigo
+  "#8B5CF6", // violet
+  "#A78BFA", // purple
+  "#F472B6", // pink
+  "#F43F5E", // rose
+  "#FB923C", // orange
+  "#F59E0B", // amber
+  "#EAB308", // yellow
+  "#34D399", // emerald
+  "#10B981", // green
+  "#EF4444", // red
+];
