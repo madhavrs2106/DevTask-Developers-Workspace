@@ -15,7 +15,7 @@ const ROLE_OPTIONS: {
   {
     id: "DEVELOPER",
     label: "Developer",
-    blurb: "Track projects, sprints & shipping velocity",
+    blurb: "Track sprints & shipping velocity",
     icon: Code2,
   },
   {

@@ -23,7 +23,6 @@ import type {
   AcademicDetails,
   ContactDetails,
   ResumeExtras,
-  ResumeProject,
   ResumeCertification,
   ResumeExperience,
   ResumeReference,
@@ -136,12 +135,6 @@ export function Settings() {
 
   const patchAcademic = (group: "tenth" | "twelfth" | "college", patch: Record<string, string>) =>
     setAcademic((a) => ({ ...a, [group]: { ...(a?.[group] as object), ...patch } } as AcademicDetails));
-
-  const updateProject = (i: number, val: ResumeProject) =>
-    setResume((r) => ({ ...r, projects: (r.projects ?? []).map((p, j) => (j === i ? val : p)) }));
-  const addProject = () => setResume((r) => ({ ...r, projects: [...(r.projects ?? []), { title: "" }] }));
-  const removeProject = (i: number) =>
-    setResume((r) => ({ ...r, projects: (r.projects ?? []).filter((_, j) => j !== i) }));
 
   const updateCert = (i: number, val: ResumeCertification) =>
     setResume((r) => ({ ...r, certifications: (r.certifications ?? []).map((c, j) => (j === i ? val : c)) }));
@@ -828,25 +821,6 @@ export function Settings() {
               onChange={(e) => setResume((r) => ({ ...r, summary: e.target.value }))}
               placeholder="Brief intro for your resume…"
             />
-          </div>
-
-          <div>
-            <span className="label-dark">Projects</span>
-            <div className="space-y-2">
-              {(resume.projects ?? []).map((p, i) => (
-                <div key={i} className="space-y-2 rounded-lg border border-slate-700 bg-surface p-2">
-                  <div className="flex items-center gap-2">
-                    <input className="input-dark flex-1" placeholder="Title" value={p.title} onChange={(e) => updateProject(i, { ...p, title: e.target.value })} />
-                    <button type="button" onClick={() => removeProject(i)} className="shrink-0 text-rose-400 hover:text-rose-300" title="Remove">
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                  <input className="input-dark w-full" placeholder="Link (optional)" value={p.link ?? ""} onChange={(e) => updateProject(i, { ...p, link: e.target.value })} />
-                  <textarea className="input-dark h-16 w-full resize-y" placeholder="Description" value={p.description ?? ""} onChange={(e) => updateProject(i, { ...p, description: e.target.value })} />
-                </div>
-              ))}
-              <Button variant="outline" onClick={addProject}><Plus size={13} /> Add project</Button>
-            </div>
           </div>
 
           <div>
