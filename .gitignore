@@ -38,3 +38,6 @@ server.err
 # Local DB backups (may contain production data)
 scripts/devtask-backup-*.json
 *.backup.json
+
+# Vercel build output (repo-root dist)
+/dist/

@@ -31,10 +31,14 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // Serve uploaded files
 const uploadsDir = join(__dirname, "../uploads");
-if (!existsSync(uploadsDir)) {
-  mkdirSync(uploadsDir, { recursive: true });
+try {
+  if (!existsSync(uploadsDir)) {
+    mkdirSync(uploadsDir, { recursive: true });
+  }
+  app.use("/uploads", express.static(uploadsDir));
+} catch {
+  // Read-only filesystem (e.g., Vercel serverless) — uploads unavailable, skip static serving.
 }
-app.use("/uploads", express.static(uploadsDir));
 
 app.get("/api/health", (_req, res) =>
   res.json({ status: "ok", service: "devtask-api", time: new Date().toISOString() })

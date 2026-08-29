@@ -42,7 +42,7 @@ async function main() {
       username: "satoshi_demo",
       passwordHash,
       name: "Satoshi Demo",
-      role: "STUDENT",
+      role: "LEARNER",
       bio: "CS student learning programming languages and data science. Exploring DevTask!",
       avatarColor: "#8B5CF6",
       skills: {
