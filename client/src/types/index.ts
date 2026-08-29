@@ -98,6 +98,7 @@ export interface ResumeExtras {
   hobbies?: string[];
   references?: ResumeReference[];
   customSections?: ResumeCustomSection[];
+  resumeOptions?: ResumeOptions;
 }
 
 export interface ResumeCustomSection {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { FileDown, LayoutTemplate, SlidersHorizontal, ZoomIn, ZoomOut } from "lucide-react";
 import { useMe, useProjects, useCourses, useUpdateProfile } from "../hooks/useQueries";
 import { buildResumeData } from "../lib/buildResume";
@@ -18,6 +18,7 @@ export function ResumePage() {
   const [customSections, setCustomSections] = useState<ResumeCustomSection[]>(
     user?.resumeExtras?.customSections ?? []
   );
+  const optionsLoadedRef = useRef(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [templateModalOpen, setTemplateModalOpen] = useState(false);
   const computeFitZoom = () => {
@@ -32,6 +33,15 @@ export function ResumePage() {
 
   useEffect(() => {
     if (user?.resumeExtras?.customSections) setCustomSections(user.resumeExtras.customSections);
+  }, [user]);
+
+  // Load persisted Customize options (template, headline, filters, section
+  // visibility) once, so the user doesn't re-pick them on every visit.
+  useEffect(() => {
+    if (user && !optionsLoadedRef.current) {
+      setOptions(user.resumeExtras?.resumeOptions ?? { template: "minimal" });
+      optionsLoadedRef.current = true;
+    }
   }, [user]);
 
   const resume = useMemo(() => {
@@ -110,7 +120,7 @@ export function ResumePage() {
             setCustomSections(cs);
             if (user) {
               updateProfile.mutate({
-                resumeExtras: { ...user.resumeExtras, customSections: cs },
+                resumeExtras: { ...user.resumeExtras, customSections: cs, resumeOptions: o },
               });
             }
             setModalOpen(false);
@@ -123,7 +133,16 @@ export function ResumePage() {
         <ResumeTemplateModal
           current={options.template}
           onSelect={(t: ResumeTemplate) => {
-            setOptions((o) => ({ ...o, template: t }));
+            const next = { ...options, template: t };
+            setOptions(next);
+            if (user) {
+              updateProfile.mutate({
+                resumeExtras: {
+                  ...user.resumeExtras,
+                  resumeOptions: { ...(user.resumeExtras?.resumeOptions ?? {}), template: t },
+                },
+              });
+            }
             setTemplateModalOpen(false);
           }}
           onClose={() => setTemplateModalOpen(false)}
