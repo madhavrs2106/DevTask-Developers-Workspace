@@ -150,7 +150,7 @@ export function Projects() {
                 </div>
 
                 {project.description && (
-                  <p className="mt-2 line-clamp-2 min-h-[32px] text-xs leading-relaxed text-ink-muted">
+                  <p className="mt-2 whitespace-pre-line text-xs leading-relaxed text-ink-muted">
                     {project.description}
                   </p>
                 )}
@@ -264,15 +264,15 @@ export function Projects() {
             <label htmlFor="proj-desc" className="label-dark">
               Description
             </label>
-            <textarea
-              id="proj-desc"
-              rows={2}
-              className="input-dark resize-y"
-              placeholder="What are you building?"
-              value={form.description}
-              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-              maxLength={500}
-            />
+              <textarea
+                id="proj-desc"
+                rows={3}
+                className="input-dark resize-y"
+                placeholder="What are you building?"
+                value={form.description}
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                maxLength={500}
+              />
           </div>
 
           <div>
