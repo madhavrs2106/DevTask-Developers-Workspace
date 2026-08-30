@@ -115,7 +115,7 @@ export function PodometerPage() {
                   .filter((t) => t.status === "IN_PROGRESS")
                   .map((t) => (
                     <option key={t.id} value={t.id}>
-                      {t.title} ({t.actualHours.toFixed(2)}h tracked)
+                      {t.title}
                     </option>
                   ))}
               </optgroup>
@@ -124,7 +124,7 @@ export function PodometerPage() {
                   .filter((t) => t.status === "REVIEW")
                   .map((t) => (
                     <option key={t.id} value={t.id}>
-                      {t.title} ({t.actualHours.toFixed(2)}h tracked)
+                      {t.title}
                     </option>
                   ))}
               </optgroup>
