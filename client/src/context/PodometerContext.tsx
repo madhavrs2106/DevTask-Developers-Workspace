@@ -64,6 +64,43 @@ export function PodometerProvider({ children }: { children: ReactNode }) {
     };
   }, [running, startTime, baseElapsed]);
 
+  // Android background: recalculate immediately when tab becomes visible / window regains focus
+  useEffect(() => {
+    if (!running || startTime === null) return;
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        setElapsed(baseElapsed + Math.floor((Date.now() - startTime) / 1000));
+      }
+    };
+    const onFocus = () => {
+      setElapsed(baseElapsed + Math.floor((Date.now() - startTime) / 1000));
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onFocus);
+    window.addEventListener("pageshow", onFocus);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onFocus);
+      window.removeEventListener("pageshow", onFocus);
+    };
+  }, [running, startTime, baseElapsed]);
+
+  // Keep screen awake on Android while running (Wake Lock API)
+  useEffect(() => {
+    let wakeLock: { release: () => Promise<void> } | null = null;
+    if (running && "wakeLock" in navigator) {
+      (navigator as unknown as { wakeLock: { request: (t: string) => Promise<{ release: () => Promise<void> }> } }).wakeLock
+        .request("screen")
+        .then((wl) => {
+          wakeLock = wl;
+        })
+        .catch(() => {});
+    }
+    return () => {
+      if (wakeLock) wakeLock.release().catch(() => {});
+    };
+  }, [running]);
+
   const start = useCallback(() => {
     if (running) return;
     setStartTime(Date.now());
