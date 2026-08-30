@@ -19,8 +19,10 @@ services:
       # Pin the Node runtime for reproducible builds
       - key: NODE_VERSION
         value: 22
-      # DATABASE_URL is set manually in the dashboard to your external Postgres
-      # (e.g., Supabase) connection string. No Render-managed database is used.
+      - key: DATABASE_URL
+        fromDatabase:
+          name: devtask-db
+          property: connectionString
       - key: JWT_SECRET
         generateValue: true
       - key: NODE_ENV
@@ -31,3 +33,8 @@ services:
       # Set to "true" once to reset demo account, then back to "false"
       - key: FORCE_SEED
         value: "false"
+
+databases:
+  - name: devtask-db
+    plan: free
+    region: oregon
