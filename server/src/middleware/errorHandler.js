@@ -48,7 +48,7 @@ export function errorHandler(err, req, res, _next) {
 
   if (status >= 500) {
     console.error("[error]", err);
-    message = `${err.message}${err.code ? " (" + err.code + ")" : ""}`;
+    message = env.nodeEnv === "production" ? "Internal server error" : message;
   }
 
   res.status(status).json({ message });
