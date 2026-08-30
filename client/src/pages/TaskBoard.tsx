@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Clock, Filter, KanbanSquare, LayoutList, ListTodo, Plus, Search, Square, X } from "lucide-react";
 import { cn } from "../lib/utils";
 import { DIFFICULTIES, DIFFICULTY_META, TASK_STATUSES } from "../lib/constants";
 import { useReorderTasks, useTasks, useUpdateTask, type ReorderUpdate } from "../hooks/useQueries";
 import { useAuth } from "../context/AuthContext";
-import { Podometer } from "../components/tasks/Podometer";
 import type { Difficulty, Task, TaskStatus } from "../types";
 import { Spinner } from "../components/ui/Spinner";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -15,6 +14,7 @@ import { TaskModal } from "../components/tasks/TaskModal";
 
 export function TaskBoard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: tasks = [], isLoading } = useTasks();
   const reorder = useReorderTasks();
@@ -32,7 +32,6 @@ export function TaskBoard() {
   /* Filters */
   const [query, setQuery] = useState("");
   const [tagFilter, setTagFilter] = useState<string[]>([]);
-  const [podometerTaskId, setPodometerTaskId] = useState<string | null>(null);
   const [difficultyFilter, setDifficultyFilter] = useState<"" | Difficulty>("");
   const [tagPopoverOpen, setTagPopoverOpen] = useState(false);
   const [tagDraft, setTagDraft] = useState<string[]>([]);
@@ -88,11 +87,6 @@ export function TaskBoard() {
     for (const list of map.values()) list.sort((a, b) => a.position - b.position);
     return map;
   }, [filtered]);
-
-  const podometerTask = useMemo(() => {
-    if (podometerTaskId) return tasks.find((t) => t.id === podometerTaskId) ?? null;
-    return tasks.find((t) => t.status === "IN_PROGRESS" || t.status === "REVIEW") ?? null;
-  }, [tasks, podometerTaskId]);
 
   function openCreate(status: TaskStatus = "BACKLOG") {
     setEditingTask(null);
@@ -295,30 +289,11 @@ export function TaskBoard() {
         </div>
       </div>
 
-      {/* ── Podometer (time tracking for IN_PROGRESS tasks) ────── */}
-      {podometerTask ? (
-        <div>
-          <Podometer
-            key={podometerTask.id}
-            taskId={podometerTask.id}
-            taskTitle={podometerTask.title}
-            initialHours={podometerTask.actualHours}
-            onSaved={() => setPodometerTaskId(null)}
-          />
-          <div className="mt-2 text-right">
-            <Link to={`/podometer?taskId=${podometerTask.id}`} className="text-[11px] text-accent-bright hover:underline">
-              Open large Flip Clock →
-            </Link>
-          </div>
-        </div>
-      ) : (
-        <div className="rounded-xl border border-dashed border-slate-700 bg-surface/50 p-3 text-center">
-          <p className="text-xs text-ink-faint">No active podometer — click the Clock icon on an In Progress card or</p>
-          <Link to="/podometer" className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-accent-bright hover:underline">
-            <Clock size={12} /> Choose a task for Podometer
-          </Link>
-        </div>
-      )}
+      <div className="flex justify-end">
+        <Link to="/podometer" className="inline-flex items-center gap-1.5 rounded-xl border border-accent/20 bg-accent/10 px-3 py-2 text-xs font-medium text-accent-bright transition-colors hover:bg-accent/20">
+          <Clock size={14} /> Podometer Clock
+        </Link>
+      </div>
 
       {/* ── Kanban board ────────────────────────────────────────── */}
       {isLoading ? (
@@ -388,7 +363,7 @@ export function TaskBoard() {
                       onDragEnd={finishDrag}
                       onEdit={openEdit}
                       onToggleDone={toggleDone}
-                      onPodometer={(t) => setPodometerTaskId(t.id)}
+                      onPodometer={(t) => navigate(`/podometer?taskId=${t.id}`)}
                       onDropBefore={(targetId) => {
                         if (dragId && dragId !== targetId) moveTask(dragId, col.id, targetId);
                         else finishDrag();
