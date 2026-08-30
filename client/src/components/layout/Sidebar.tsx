@@ -1,5 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
+  Clock,
   FileText,
   FolderGit2,
   GraduationCap,
@@ -7,6 +8,7 @@ import {
   Search,
   Settings,
   SquareKanban,
+  Timer,
   UserRound,
   Users,
   X,
@@ -23,6 +25,7 @@ interface SidebarProps {
 const NAV_ITEMS = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/board", label: "Task Board", icon: SquareKanban },
+  { to: "/podometer", label: "Podometer", icon: Timer },
   { to: "/projects", label: "Projects", icon: FolderGit2 },
   { to: "/courses", label: "Courses", icon: GraduationCap },
   { to: "/rooms", label: "Co-Learning", icon: Users },

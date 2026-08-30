@@ -52,7 +52,7 @@ export function PodometerPage() {
   const intervalRef = useRef<number | null>(null);
 
   const selectedTask = useMemo(() => tasks.find((t) => t.id === selectedId) ?? null, [tasks, selectedId]);
-  const inProgressTasks = useMemo(() => tasks.filter((t) => t.status === "IN_PROGRESS"), [tasks]);
+  const selectableTasks = useMemo(() => tasks.filter((t) => t.status === "IN_PROGRESS" || t.status === "REVIEW"), [tasks]);
 
   useEffect(() => {
     if (initialTaskId) setSelectedId(initialTaskId);
@@ -106,22 +106,30 @@ export function PodometerPage() {
           onChange={(e) => handleTaskChange(e.target.value)}
         >
           <option value="">— Select a task —</option>
-          {inProgressTasks.length > 0 && (
-            <optgroup label="In Progress">
-              {inProgressTasks.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.title} ({t.actualHours.toFixed(2)}h tracked)
-                </option>
-              ))}
-            </optgroup>
+          {selectableTasks.length === 0 ? (
+            <option disabled>No In Progress or Review tasks — move a task to In Progress or Review first</option>
+          ) : (
+            <>
+              <optgroup label="In Progress">
+                {selectableTasks
+                  .filter((t) => t.status === "IN_PROGRESS")
+                  .map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.title} ({t.actualHours.toFixed(2)}h tracked)
+                    </option>
+                  ))}
+              </optgroup>
+              <optgroup label="Review">
+                {selectableTasks
+                  .filter((t) => t.status === "REVIEW")
+                  .map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.title} ({t.actualHours.toFixed(2)}h tracked)
+                    </option>
+                  ))}
+              </optgroup>
+            </>
           )}
-          <optgroup label="All tasks">
-            {tasks.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.title} — {t.status} ({t.actualHours.toFixed(2)}h)
-              </option>
-            ))}
-          </optgroup>
         </select>
         {selectedTask && (
           <p className="mt-2 text-center text-xs text-ink-faint">

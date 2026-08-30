@@ -91,7 +91,7 @@ export function TaskBoard() {
 
   const podometerTask = useMemo(() => {
     if (podometerTaskId) return tasks.find((t) => t.id === podometerTaskId) ?? null;
-    return tasks.find((t) => t.status === "IN_PROGRESS") ?? null;
+    return tasks.find((t) => t.status === "IN_PROGRESS" || t.status === "REVIEW") ?? null;
   }, [tasks, podometerTaskId]);
 
   function openCreate(status: TaskStatus = "BACKLOG") {

@@ -168,7 +168,7 @@ export function TaskCard({
           </a>
         )}
 
-        {task.status === "IN_PROGRESS" && onPodometer && (
+        {(task.status === "IN_PROGRESS" || task.status === "REVIEW") && onPodometer && (
           <button
             onClick={(e) => {
               e.stopPropagation();
