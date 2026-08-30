@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { FileDown, LayoutTemplate, SlidersHorizontal, ZoomIn, ZoomOut } from "lucide-react";
 import { useMe, useProjects, useCourses, useUpdateProfile } from "../hooks/useQueries";
 import { buildResumeData } from "../lib/buildResume";
-import { downloadResumeDocx } from "../lib/buildResumeDocx";
 import { ResumePreview } from "../components/resume/ResumePreview";
 import { ResumeCustomizeModal } from "../components/resume/ResumeCustomizeModal";
 import { ResumeTemplateModal } from "../components/resume/ResumeTemplateModal";
@@ -73,9 +72,6 @@ export function ResumePage() {
           </Button>
           <Button onClick={() => window.print()}>
             <FileDown size={14} /> Download PDF
-          </Button>
-          <Button variant="outline" onClick={() => resume && void downloadResumeDocx(resume)}>
-            <FileDown size={14} /> Download Word
           </Button>
           <div className="no-print flex items-center gap-1 rounded-md border border-slate-700 p-0.5">
             <button
