@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import { Filter, KanbanSquare, LayoutList, ListTodo, Plus, Search, Square, X } from "lucide-react";
+import { Clock, Filter, KanbanSquare, LayoutList, ListTodo, Plus, Search, Square, X } from "lucide-react";
 import { cn } from "../lib/utils";
 import { DIFFICULTIES, DIFFICULTY_META, TASK_STATUSES } from "../lib/constants";
 import { useReorderTasks, useTasks, useUpdateTask, type ReorderUpdate } from "../hooks/useQueries";
@@ -170,9 +170,14 @@ export function TaskBoard() {
               <LayoutList size={14} /> List
             </Link>
           </div>
-          <Button onClick={() => openCreate()} className="shrink-0">
-            <Plus size={16} strokeWidth={2.5} /> New Task
-          </Button>
+          <div className="flex items-center gap-2">
+            <Link to="/podometer" className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-surface-raised px-3 py-2 text-xs font-medium text-ink-muted transition-colors hover:border-accent/40 hover:text-accent-bright">
+              <Clock size={14} /> Podometer
+            </Link>
+            <Button onClick={() => openCreate()} className="shrink-0">
+              <Plus size={16} strokeWidth={2.5} /> New Task
+            </Button>
+          </div>
         </div>
 
         {/* Row 2: search + filters */}
@@ -291,14 +296,28 @@ export function TaskBoard() {
       </div>
 
       {/* ── Podometer (time tracking for IN_PROGRESS tasks) ────── */}
-      {podometerTask && (
-        <Podometer
-          key={podometerTask.id}
-          taskId={podometerTask.id}
-          taskTitle={podometerTask.title}
-          initialHours={podometerTask.actualHours}
-          onSaved={() => setPodometerTaskId(null)}
-        />
+      {podometerTask ? (
+        <div>
+          <Podometer
+            key={podometerTask.id}
+            taskId={podometerTask.id}
+            taskTitle={podometerTask.title}
+            initialHours={podometerTask.actualHours}
+            onSaved={() => setPodometerTaskId(null)}
+          />
+          <div className="mt-2 text-right">
+            <Link to={`/podometer?taskId=${podometerTask.id}`} className="text-[11px] text-accent-bright hover:underline">
+              Open large Flip Clock →
+            </Link>
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-xl border border-dashed border-slate-700 bg-surface/50 p-3 text-center">
+          <p className="text-xs text-ink-faint">No active podometer — click the Clock icon on an In Progress card or</p>
+          <Link to="/podometer" className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-accent-bright hover:underline">
+            <Clock size={12} /> Choose a task for Podometer
+          </Link>
+        </div>
       )}
 
       {/* ── Kanban board ────────────────────────────────────────── */}
