@@ -29,8 +29,10 @@ function decodeTags(tags) {
 }
 
 /** Shape a raw task row for API responses. */
-function serializeTask(task) {
-  return { ...task, tags: decodeTags(task.tags) };
+function serializeTask(task, role) {
+  const tags = decodeTags(task.tags);
+  const visible = role === "DEVELOPER" ? tags : tags.filter((t) => t.toLowerCase() !== "developer");
+  return { ...task, tags: visible };
 }
 
 const optionalUrl = z
@@ -150,12 +152,15 @@ export const listTasks = asyncHandler(async (req, res) => {
     tasks = tasks.filter((t) => decodeTags(t.tags).some((x) => x.toLowerCase() === needle));
   }
 
-  res.json(tasks.map(serializeTask));
+  res.json(tasks.map((t) => serializeTask(t, req.user.role)));
 });
 
-/** POST /api/tasks */
+ /** POST /api/tasks */
 export const createTask = asyncHandler(async (req, res) => {
   const data = parse(createSchema, req.body);
+  if (data.tags?.some((t) => t.toLowerCase() === "developer") && req.user.role !== "DEVELOPER") {
+    throw new HttpError(403, "Only developers can use the Developer tag");
+  }
   const relations = await resolveRelations(req.user.id, data);
 
   const last = await prisma.task.findFirst({
@@ -176,7 +181,7 @@ export const createTask = asyncHandler(async (req, res) => {
     include: includeForList,
   });
 
-  res.status(201).json(serializeTask(task));
+  res.status(201).json(serializeTask(task, req.user.role));
 });
 
 /** PUT /api/tasks/:id */
@@ -187,6 +192,9 @@ export const updateTask = asyncHandler(async (req, res) => {
   if (!existing) throw new HttpError(404, "Task not found");
 
   const data = parse(updateSchema, req.body);
+  if (data.tags?.some((t) => t.toLowerCase() === "developer") && req.user.role !== "DEVELOPER") {
+    throw new HttpError(403, "Only developers can use the Developer tag");
+  }
   const relations = await resolveRelations(req.user.id, data, existing);
 
   let completedAt = existing.completedAt;
@@ -205,7 +213,7 @@ export const updateTask = asyncHandler(async (req, res) => {
     include: includeForList,
   });
 
-  res.json(serializeTask(task));
+  res.json(serializeTask(task, req.user.role));
 });
 
 /**
@@ -249,7 +257,7 @@ export const reorderTasks = asyncHandler(async (req, res) => {
     include: includeForList,
   });
 
-  res.json(tasks.map(serializeTask));
+  res.json(tasks.map((t) => serializeTask(t, req.user.role)));
 });
 
 /** DELETE /api/tasks/:id */

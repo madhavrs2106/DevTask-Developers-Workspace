@@ -11,6 +11,7 @@ import {
 import type { Task } from "../../types";
 import { cn, dueMeta } from "../../lib/utils";
 import { DIFFICULTY_META } from "../../lib/constants";
+import { useAuth } from "../../context/AuthContext";
 
 interface TaskCardProps {
   task: Task;
@@ -32,6 +33,8 @@ export function TaskCard({
   onToggleDone,
   onDropBefore,
 }: TaskCardProps) {
+  const { user } = useAuth();
+  const visibleTags = task.tags.filter((tag) => tag.toLowerCase() !== "developer" || user?.role === "DEVELOPER");
   const done = task.status === "DONE";
   const due = dueMeta(task.dueDate);
   const difficulty = DIFFICULTY_META[task.difficulty];
@@ -95,10 +98,10 @@ export function TaskCard({
         </button>
       </div>
 
-      {/* Tags */}
-      {task.tags.length > 0 && (
+      {/* Tags — Developer tag only visible to developers */}
+      {visibleTags.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-1">
-          {task.tags.map((tag) => (
+          {visibleTags.map((tag) => (
             <span
               key={tag}
               className="rounded-md border border-slate-700/80 bg-slate-800/70 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-slate-300"

@@ -16,6 +16,7 @@ import {
 import { cn, dueMeta, formatHours } from "../lib/utils";
 import { DIFFICULTY_META, STATUS_META } from "../lib/constants";
 import { useDeleteTask, useTasks } from "../hooks/useQueries";
+import { useAuth } from "../context/AuthContext";
 import type { Task, TaskStatus } from "../types";
 import { Spinner } from "../components/ui/Spinner";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -33,6 +34,7 @@ const SORT_LABELS: Record<SortMode, string> = {
 const STATUS_ORDER: TaskStatus[] = ["IN_PROGRESS", "REVIEW", "BACKLOG", "DONE"];
 
 export function TaskList() {
+  const { user } = useAuth();
   const { data: tasks = [], isLoading } = useTasks();
   const deleteTask = useDeleteTask();
 
@@ -215,19 +217,22 @@ export function TaskList() {
                     </p>
                   </div>
 
-                  {/* Tags */}
+                  {/* Tags — Developer tag only visible to developers */}
                   <div className="hidden shrink-0 items-center gap-1.5 xl:flex">
-                    {task.tags.slice(0, 3).map((tag) => (
-                      <span
-                        key={tag}
-                        className="rounded-md border border-slate-700/80 bg-slate-800/70 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-slate-300"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                    {task.tags.length > 3 && (
+                    {task.tags
+                      .filter((tag) => tag.toLowerCase() !== "developer" || user?.role === "DEVELOPER")
+                      .slice(0, 3)
+                      .map((tag) => (
+                        <span
+                          key={tag}
+                          className="rounded-md border border-slate-700/80 bg-slate-800/70 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide text-slate-300"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    {task.tags.filter((tag) => tag.toLowerCase() !== "developer" || user?.role === "DEVELOPER").length > 3 && (
                       <span className="metric-mono text-[10px] text-ink-faint">
-                        +{task.tags.length - 3}
+                        +{task.tags.filter((tag) => tag.toLowerCase() !== "developer" || user?.role === "DEVELOPER").length - 3}
                       </span>
                     )}
                   </div>

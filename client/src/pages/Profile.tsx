@@ -99,6 +99,11 @@ export function Profile() {
                 <Trophy size={11} />
                 {ROLE_META[profile.role].label}
               </span>
+              {profile.role === "DEVELOPER" && (
+                <span className="inline-flex items-center gap-1 rounded-full border border-violet-400/30 bg-violet-400/10 px-2.5 py-0.5 text-[11px] font-medium uppercase tracking-wide text-violet-300">
+                  <Code2 size={11} /> Developer
+                </span>
+              )}
             </div>
             <p className="mt-1 font-mono text-sm text-accent-bright/70">@{profile.username}</p>
 

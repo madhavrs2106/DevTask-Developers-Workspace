@@ -4,6 +4,7 @@ import { Filter, KanbanSquare, LayoutList, ListTodo, Plus, Search, Square, X } f
 import { cn } from "../lib/utils";
 import { DIFFICULTIES, DIFFICULTY_META, TASK_STATUSES } from "../lib/constants";
 import { useReorderTasks, useTasks, useUpdateTask, type ReorderUpdate } from "../hooks/useQueries";
+import { useAuth } from "../context/AuthContext";
 import type { Difficulty, Task, TaskStatus } from "../types";
 import { Spinner } from "../components/ui/Spinner";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -12,6 +13,7 @@ import { TaskCard } from "../components/tasks/TaskCard";
 import { TaskModal } from "../components/tasks/TaskModal";
 
 export function TaskBoard() {
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: tasks = [], isLoading } = useTasks();
   const reorder = useReorderTasks();
@@ -45,9 +47,14 @@ export function TaskBoard() {
 
   const allTags = useMemo(() => {
     const set = new Set<string>();
-    tasks.forEach((t) => t.tags.forEach((tag) => set.add(tag)));
+    tasks.forEach((t) =>
+      t.tags.forEach((tag) => {
+        if (tag.toLowerCase() === "developer" && user?.role !== "DEVELOPER") return;
+        set.add(tag);
+      })
+    );
     return [...set].sort((a, b) => a.localeCompare(b));
-  }, [tasks]);
+  }, [tasks, user?.role]);
 
   // Close popover on outside click
   useEffect(() => {

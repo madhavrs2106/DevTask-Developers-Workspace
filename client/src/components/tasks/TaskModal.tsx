@@ -118,12 +118,16 @@ export function TaskModal({ open, onClose, task, defaultStatus = "BACKLOG" }: Ta
 
   const suggestions = useMemo(() => {
     const q = tagDraft.trim().toLowerCase();
-    return TECH_TAGS.filter(
+    const base = [...TECH_TAGS];
+    if (meData?.role === "DEVELOPER" && !tags.some((t) => t.toLowerCase() === "developer")) {
+      base.push("Developer");
+    }
+    return base.filter(
       (t) =>
         !tags.some((existing) => existing.toLowerCase() === t.toLowerCase()) &&
         (q === "" ? true : t.toLowerCase().includes(q))
     ).slice(0, 6);
-  }, [tagDraft, tags]);
+  }, [tagDraft, tags, meData?.role]);
 
   function patch(partial: Partial<FormState>) {
     setForm((f) => ({ ...f, ...partial }));
@@ -132,6 +136,10 @@ export function TaskModal({ open, onClose, task, defaultStatus = "BACKLOG" }: Ta
   function addTag(raw: string) {
     const value = raw.trim().replace(/,+$/, "");
     if (!value) return;
+    if (value.toLowerCase() === "developer" && meData?.role !== "DEVELOPER") {
+      setError("Only developers can create the Developer tag");
+      return;
+    }
     if (tags.length >= 8) {
       setError("At most 8 tags per task");
       return;
