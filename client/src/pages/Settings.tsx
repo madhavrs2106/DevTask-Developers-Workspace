@@ -824,8 +824,24 @@ export function Settings() {
                     <input className="input-dark" value={academic?.college?.year ?? ""} onChange={(e) => patchAcademic("college", { year: e.target.value })} />
                   </div>
                   <div>
-                    <label className="label-dark">CGPA</label>
-                    <input className="input-dark" value={academic?.college?.cgpa ?? ""} onChange={(e) => patchAcademic("college", { cgpa: e.target.value })} />
+                    <label className="label-dark">CGPA (overall — legacy)</label>
+                    <input className="input-dark" value={academic?.college?.cgpa ?? ""} onChange={(e) => patchAcademic("college", { cgpa: e.target.value })} placeholder="e.g. 4.31" />
+                  </div>
+                  <div>
+                    <label className="label-dark">1st Year CGPA</label>
+                    <input className="input-dark" value={academic?.college?.cgpaYear1 ?? ""} onChange={(e) => patchAcademic("college", { cgpaYear1: e.target.value })} placeholder="e.g. 4.31" />
+                  </div>
+                  <div>
+                    <label className="label-dark">2nd Year CGPA</label>
+                    <input className="input-dark" value={academic?.college?.cgpaYear2 ?? ""} onChange={(e) => patchAcademic("college", { cgpaYear2: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="label-dark">3rd Year CGPA</label>
+                    <input className="input-dark" value={academic?.college?.cgpaYear3 ?? ""} onChange={(e) => patchAcademic("college", { cgpaYear3: e.target.value })} />
+                  </div>
+                  <div>
+                    <label className="label-dark">4th Year CGPA</label>
+                    <input className="input-dark" value={academic?.college?.cgpaYear4 ?? ""} onChange={(e) => patchAcademic("college", { cgpaYear4: e.target.value })} />
                   </div>
                   <div>
                     <label className="label-dark">Grad year</label>

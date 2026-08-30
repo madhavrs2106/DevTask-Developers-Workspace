@@ -243,7 +243,11 @@ function AcademicStep({
           { k: "degree", l: "Degree" },
           { k: "branch", l: "Branch / Major" },
           { k: "year", l: "Current year" },
-          { k: "cgpa", l: "CGPA" },
+          { k: "cgpa", l: "CGPA (overall)" },
+          { k: "cgpaYear1", l: "1st Year CGPA" },
+          { k: "cgpaYear2", l: "2nd Year CGPA" },
+          { k: "cgpaYear3", l: "3rd Year CGPA" },
+          { k: "cgpaYear4", l: "4th Year CGPA" },
           { k: "gradYear", l: "Grad year" },
         ]
       : [
