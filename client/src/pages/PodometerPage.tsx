@@ -151,26 +151,26 @@ export function PodometerPage() {
       </div>
 
       {/* Controls */}
-      <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+      <div className="mt-8 flex flex-nowrap items-center justify-center gap-1.5 sm:gap-3">
         {!running ? (
-          <Button onClick={() => setRunning(true)} disabled={!selectedTask} className="h-11 gap-2 px-8 text-sm">
-            <Play size={16} /> Start
+          <Button onClick={() => setRunning(true)} disabled={!selectedTask} className="h-9 gap-1 px-3 text-xs sm:h-11 sm:gap-2 sm:px-8 sm:text-sm">
+            <Play size={14} className="sm:h-4 sm:w-4" /> Start
           </Button>
         ) : (
-          <Button variant="outline" onClick={() => setRunning(false)} className="h-11 gap-2 px-8 text-sm">
-            <Pause size={16} /> Pause
+          <Button variant="outline" onClick={() => setRunning(false)} className="h-9 gap-1 px-3 text-xs sm:h-11 sm:gap-2 sm:px-8 sm:text-sm">
+            <Pause size={14} className="sm:h-4 sm:w-4" /> Pause
           </Button>
         )}
-        <Button variant="ghost" onClick={() => { setElapsed(0); setRunning(false); }} disabled={elapsed === 0 && !running} className="h-11 gap-2 px-6 text-sm">
-          <RotateCcw size={16} /> Reset
+        <Button variant="ghost" onClick={() => { setElapsed(0); setRunning(false); }} disabled={elapsed === 0 && !running} className="h-9 gap-1 px-3 text-xs sm:h-11 sm:gap-2 sm:px-6 sm:text-sm">
+          <RotateCcw size={14} className="sm:h-4 sm:w-4" /> Reset
         </Button>
         <Button
           variant="primary"
           onClick={() => void handleSave()}
           disabled={!selectedTask || elapsed === 0 || updateTask.isPending}
-          className="h-11 gap-2 px-8 text-sm"
+          className="h-9 gap-1 px-3 text-xs sm:h-11 sm:gap-2 sm:px-8 sm:text-sm"
         >
-          <Save size={16} /> {updateTask.isPending ? "Saving…" : "Finish & Save"}
+          <Save size={14} className="sm:h-4 sm:w-4" /> {updateTask.isPending ? "Saving…" : "Finish & Save"}
         </Button>
       </div>
 
