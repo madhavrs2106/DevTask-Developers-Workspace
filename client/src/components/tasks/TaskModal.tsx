@@ -22,7 +22,6 @@ interface FormState {
   status: TaskStatus;
   difficulty: Difficulty;
   dueDate: string;
-  actualHours: string;
   githubUrl: string;
   snippetLang: string;
   codeSnippet: string;
@@ -54,7 +53,6 @@ function emptyForm(defaultStatus: TaskStatus): FormState {
     status: defaultStatus,
     difficulty: "BEGINNER",
     dueDate: "",
-    actualHours: "",
     githubUrl: "",
     snippetLang: "",
     codeSnippet: "",
@@ -99,7 +97,6 @@ export function TaskModal({ open, onClose, task, defaultStatus = "BACKLOG" }: Ta
         status: task.status,
         difficulty: task.difficulty,
         dueDate: task.dueDate ? task.dueDate.slice(0, 10) : "",
-        actualHours: task.actualHours ? String(task.actualHours) : "",
         githubUrl: task.githubUrl ?? "",
         snippetLang: task.snippetLang ?? "",
         codeSnippet: task.codeSnippet ?? "",
@@ -177,7 +174,6 @@ export function TaskModal({ open, onClose, task, defaultStatus = "BACKLOG" }: Ta
       githubUrl: form.githubUrl.trim() || null,
       // noon timestamp keeps the calendar day stable across timezones
       dueDate: form.dueDate ? new Date(`${form.dueDate}T12:00:00`).toISOString() : null,
-      actualHours: Number(form.actualHours) || 0,
       projectId: form.projectId || null,
       courseId: form.courseId || null,
     };
@@ -365,36 +361,24 @@ export function TaskModal({ open, onClose, task, defaultStatus = "BACKLOG" }: Ta
           Link tasks to a project, a course, or both — so you know which course each project task belongs to.
         </p>
 
-        {/* Due date + hours */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="task-due" className="label-dark">
-              Due date
-            </label>
-            <input
-              id="task-due"
-              type="date"
-              className="input-dark [color-scheme:dark]"
-              value={form.dueDate}
-              onChange={(e) => patch({ dueDate: e.target.value })}
-            />
-          </div>
-          <div>
-            <label htmlFor="task-hours" className="label-dark">
-              Hours spent
-            </label>
-            <input
-              id="task-hours"
-              type="number"
-              min={0}
-              step={0.5}
-              placeholder="0"
-              className="input-dark font-mono"
-              value={form.actualHours}
-              onChange={(e) => patch({ actualHours: e.target.value })}
-            />
-          </div>
+        {/* Due date */}
+        <div>
+          <label htmlFor="task-due" className="label-dark">
+            Due date
+          </label>
+          <input
+            id="task-due"
+            type="date"
+            className="input-dark [color-scheme:dark]"
+            value={form.dueDate}
+            onChange={(e) => patch({ dueDate: e.target.value })}
+          />
         </div>
+        {isEdit && task && task.actualHours > 0 && (
+          <p className="text-[11px] text-ink-faint">
+            Time tracked: <span className="font-mono text-ink">{task.actualHours.toFixed(2)}h</span> (via Podometer)
+          </p>
+        )}
 
         {/* GitHub link */}
         <div>

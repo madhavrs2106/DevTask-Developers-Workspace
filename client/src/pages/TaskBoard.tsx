@@ -5,6 +5,7 @@ import { cn } from "../lib/utils";
 import { DIFFICULTIES, DIFFICULTY_META, TASK_STATUSES } from "../lib/constants";
 import { useReorderTasks, useTasks, useUpdateTask, type ReorderUpdate } from "../hooks/useQueries";
 import { useAuth } from "../context/AuthContext";
+import { Podometer } from "../components/tasks/Podometer";
 import type { Difficulty, Task, TaskStatus } from "../types";
 import { Spinner } from "../components/ui/Spinner";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -31,6 +32,7 @@ export function TaskBoard() {
   /* Filters */
   const [query, setQuery] = useState("");
   const [tagFilter, setTagFilter] = useState<string[]>([]);
+  const [podometerTaskId, setPodometerTaskId] = useState<string | null>(null);
   const [difficultyFilter, setDifficultyFilter] = useState<"" | Difficulty>("");
   const [tagPopoverOpen, setTagPopoverOpen] = useState(false);
   const [tagDraft, setTagDraft] = useState<string[]>([]);
@@ -86,6 +88,11 @@ export function TaskBoard() {
     for (const list of map.values()) list.sort((a, b) => a.position - b.position);
     return map;
   }, [filtered]);
+
+  const podometerTask = useMemo(() => {
+    if (podometerTaskId) return tasks.find((t) => t.id === podometerTaskId) ?? null;
+    return tasks.find((t) => t.status === "IN_PROGRESS") ?? null;
+  }, [tasks, podometerTaskId]);
 
   function openCreate(status: TaskStatus = "BACKLOG") {
     setEditingTask(null);
@@ -283,6 +290,17 @@ export function TaskBoard() {
         </div>
       </div>
 
+      {/* ── Podometer (time tracking for IN_PROGRESS tasks) ────── */}
+      {podometerTask && (
+        <Podometer
+          key={podometerTask.id}
+          taskId={podometerTask.id}
+          taskTitle={podometerTask.title}
+          initialHours={podometerTask.actualHours}
+          onSaved={() => setPodometerTaskId(null)}
+        />
+      )}
+
       {/* ── Kanban board ────────────────────────────────────────── */}
       {isLoading ? (
         <Spinner className="py-24" label="Loading your board…" />
@@ -351,6 +369,7 @@ export function TaskBoard() {
                       onDragEnd={finishDrag}
                       onEdit={openEdit}
                       onToggleDone={toggleDone}
+                      onPodometer={(t) => setPodometerTaskId(t.id)}
                       onDropBefore={(targetId) => {
                         if (dragId && dragId !== targetId) moveTask(dragId, col.id, targetId);
                         else finishDrag();

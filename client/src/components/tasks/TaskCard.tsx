@@ -4,6 +4,7 @@ import {
   CalendarClock,
   CheckCircle2,
   Circle,
+  Clock,
   Code2,
   FolderGit2,
   Github,
@@ -22,6 +23,7 @@ interface TaskCardProps {
   onToggleDone: (task: Task) => void;
   /** Drop a dragged card *before* this one */
   onDropBefore?: (targetId: string) => void;
+  onPodometer?: (task: Task) => void;
 }
 
 export function TaskCard({
@@ -32,6 +34,7 @@ export function TaskCard({
   onEdit,
   onToggleDone,
   onDropBefore,
+  onPodometer,
 }: TaskCardProps) {
   const { user } = useAuth();
   const visibleTags = task.tags.filter((tag) => tag.toLowerCase() !== "developer" || user?.role === "DEVELOPER");
@@ -163,6 +166,19 @@ export function TaskCard({
           >
             <Github size={13} />
           </a>
+        )}
+
+        {task.status === "IN_PROGRESS" && onPodometer && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onPodometer(task);
+            }}
+            title="Start Podometer"
+            className="rounded-md p-0.5 text-accent-bright transition-colors hover:bg-accent/10 hover:text-white"
+          >
+            <Clock size={13} />
+          </button>
         )}
 
         {task.codeSnippet && (
