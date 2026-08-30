@@ -17,25 +17,25 @@ function formatFlip(totalSeconds: number): { h: string; m: string; s: string } {
 
 function FlipUnit({ value, label }: { value: string; label: string }) {
   return (
-    <div className="flex flex-col items-center gap-2">
-      <div className="relative flex gap-1">
+    <div className="flex flex-col items-center gap-1 sm:gap-2">
+      <div className="relative flex gap-0.5 sm:gap-1">
         {value.split("").map((digit, i) => (
           <div
             key={i}
-            className="relative flex h-24 w-16 items-center justify-center overflow-hidden rounded-xl border border-slate-700 bg-gradient-to-b from-slate-800 to-slate-900 shadow-lg sm:h-32 sm:w-20 md:h-40 md:w-28"
+            className="relative flex h-16 w-10 items-center justify-center overflow-hidden rounded-lg border border-slate-700 bg-gradient-to-b from-slate-800 to-slate-900 shadow-lg sm:h-24 sm:w-16 md:h-32 md:w-20 lg:h-40 lg:w-28"
             style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)" }}
           >
             {/* flip line */}
             <div className="absolute left-0 right-0 top-1/2 h-px bg-black/40" />
-            <div className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/60" />
-            <div className="absolute left-1/2 top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/60" style={{ left: "auto", right: "50%" }} />
-            <span className="font-mono text-4xl font-black tracking-wider text-white sm:text-5xl md:text-6xl" style={{ textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}>
+            <div className="absolute left-1/2 top-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/60 sm:h-2 sm:w-2" />
+            <div className="absolute left-1/2 top-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/60 sm:h-2 sm:w-2" style={{ left: "auto", right: "50%" }} />
+            <span className="font-mono text-2xl font-black tracking-wider text-white sm:text-4xl md:text-5xl lg:text-6xl" style={{ textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}>
               {digit}
             </span>
           </div>
         ))}
       </div>
-      <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-ink-faint">{label}</span>
+      <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-ink-faint sm:text-[10px]">{label}</span>
     </div>
   );
 }
@@ -142,11 +142,11 @@ export function PodometerPage() {
       </div>
 
       {/* Flip Clock */}
-      <div className="mt-10 flex items-center justify-center gap-2 sm:gap-3">
+      <div className="mt-10 flex flex-nowrap items-center justify-center gap-1 sm:gap-2 md:gap-3">
         <FlipUnit value={h} label="Hours" />
-        <span className="pb-6 font-mono text-3xl font-black text-white/20 sm:text-4xl">:</span>
+        <span className="pb-4 font-mono text-xl font-black text-white/20 sm:pb-6 sm:text-3xl md:text-4xl">:</span>
         <FlipUnit value={m} label="Minutes" />
-        <span className="pb-6 font-mono text-3xl font-black text-white/20 sm:text-4xl">:</span>
+        <span className="pb-4 font-mono text-xl font-black text-white/20 sm:pb-6 sm:text-3xl md:text-4xl">:</span>
         <FlipUnit value={s} label="Seconds" />
       </div>
 
