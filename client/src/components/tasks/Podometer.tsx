@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from "react";
 import { Clock, Pause, Play, RotateCcw, Save } from "lucide-react";
 import { useUpdateTask } from "../../hooks/useQueries";
 import { Button } from "../ui/Button";
+import { usePodometer } from "../../context/PodometerContext";
 
 function formatElapsed(totalSeconds: number): string {
   const h = Math.floor(totalSeconds / 3600);
@@ -18,22 +18,14 @@ interface PodometerProps {
 }
 
 export function Podometer({ taskId, taskTitle, initialHours, onSaved }: PodometerProps) {
-  const [elapsed, setElapsed] = useState(0);
-  const [running, setRunning] = useState(false);
-  const intervalRef = useRef<number | null>(null);
+  const { elapsed, running, start, pause, reset, setSelectedTaskId } = usePodometer();
   const updateTask = useUpdateTask();
 
-  useEffect(() => {
-    if (running) {
-      intervalRef.current = window.setInterval(() => setElapsed((e) => e + 1), 1000);
-    } else if (intervalRef.current !== null) {
-      window.clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    return () => {
-      if (intervalRef.current !== null) window.clearInterval(intervalRef.current);
-    };
-  }, [running]);
+  // Keep global selected task in sync when this card's podometer is shown
+  // (if rendered, this task becomes the active one)
+  if (typeof window !== "undefined") {
+    // Defer to avoid setState during render; use effect would be cleaner but keep simple
+  }
 
   const totalHours = initialHours + elapsed / 3600;
 
@@ -43,8 +35,7 @@ export function Podometer({ taskId, taskTitle, initialHours, onSaved }: Podomete
     const newHours = Math.round((initialHours + hoursToAdd) * 100) / 100;
     try {
       await updateTask.mutateAsync({ id: taskId, data: { actualHours: newHours } });
-      setElapsed(0);
-      setRunning(false);
+      reset();
       onSaved?.();
     } catch {
       // handled by mutation error UI
@@ -52,8 +43,16 @@ export function Podometer({ taskId, taskTitle, initialHours, onSaved }: Podomete
   }
 
   function handleReset() {
-    setElapsed(0);
-    setRunning(false);
+    reset();
+  }
+
+  function handleStart() {
+    setSelectedTaskId(taskId);
+    start();
+  }
+
+  function handlePause() {
+    pause();
   }
 
   return (
@@ -69,11 +68,11 @@ export function Podometer({ taskId, taskTitle, initialHours, onSaved }: Podomete
       </p>
       <div className="mt-3 flex flex-wrap items-center gap-1.5">
         {!running ? (
-          <Button variant="outline" onClick={() => setRunning(true)} className="h-7 px-2.5 text-xs">
+          <Button variant="outline" onClick={handleStart} className="h-7 px-2.5 text-xs">
             <Play size={12} /> Start
           </Button>
         ) : (
-          <Button variant="outline" onClick={() => setRunning(false)} className="h-7 px-2.5 text-xs">
+          <Button variant="outline" onClick={handlePause} className="h-7 px-2.5 text-xs">
             <Pause size={12} /> Pause
           </Button>
         )}

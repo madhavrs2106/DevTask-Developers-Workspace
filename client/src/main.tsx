@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import App from "./App";
 import { AuthProvider } from "./context/AuthContext";
 import { FullScreenProvider } from "./context/FullScreenContext";
+import { PodometerProvider } from "./context/PodometerContext";
 import "./index.css";
 
 const queryClient = new QueryClient({
@@ -23,7 +24,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
       <BrowserRouter>
         <AuthProvider>
           <FullScreenProvider>
-            <App />
+            <PodometerProvider>
+              <App />
+            </PodometerProvider>
           </FullScreenProvider>
         </AuthProvider>
       </BrowserRouter>

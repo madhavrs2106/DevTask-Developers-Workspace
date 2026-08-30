@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Clock, Pause, Play, RotateCcw, Save, Timer } from "lucide-react";
 import { useTasks, useUpdateTask } from "../hooks/useQueries";
 import { Button } from "../components/ui/Button";
+import { usePodometer } from "../context/PodometerContext";
 
 function formatFlip(totalSeconds: number): { h: string; m: string; s: string } {
   const h = Math.floor(totalSeconds / 3600);
@@ -44,31 +45,17 @@ export function PodometerPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { data: tasks = [] } = useTasks();
   const updateTask = useUpdateTask();
+  const { selectedTaskId, setSelectedTaskId, elapsed, running, start, pause, reset, setElapsed } = usePodometer();
 
   const initialTaskId = searchParams.get("taskId") ?? "";
-  const [selectedId, setSelectedId] = useState(initialTaskId);
-  const [elapsed, setElapsed] = useState(0);
-  const [running, setRunning] = useState(false);
-  const intervalRef = useRef<number | null>(null);
+  const selectedId = selectedTaskId || initialTaskId;
 
   const selectedTask = useMemo(() => tasks.find((t) => t.id === selectedId) ?? null, [tasks, selectedId]);
   const selectableTasks = useMemo(() => tasks.filter((t) => t.status === "IN_PROGRESS" || t.status === "REVIEW"), [tasks]);
 
   useEffect(() => {
-    if (initialTaskId) setSelectedId(initialTaskId);
-  }, [initialTaskId]);
-
-  useEffect(() => {
-    if (running) {
-      intervalRef.current = window.setInterval(() => setElapsed((e) => e + 1), 1000);
-    } else if (intervalRef.current !== null) {
-      window.clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-    return () => {
-      if (intervalRef.current !== null) window.clearInterval(intervalRef.current);
-    };
-  }, [running]);
+    if (initialTaskId && initialTaskId !== selectedTaskId) setSelectedTaskId(initialTaskId);
+  }, [initialTaskId, selectedTaskId, setSelectedTaskId]);
 
   const { h, m, s } = formatFlip(elapsed);
   const totalHours = selectedTask ? selectedTask.actualHours + elapsed / 3600 : elapsed / 3600;
@@ -77,15 +64,13 @@ export function PodometerPage() {
     if (!selectedTask || elapsed === 0) return;
     const newHours = Math.round((selectedTask.actualHours + elapsed / 3600) * 100) / 100;
     await updateTask.mutateAsync({ id: selectedTask.id, data: { actualHours: newHours } });
-    setElapsed(0);
-    setRunning(false);
+    reset();
   }
 
   function handleTaskChange(id: string) {
-    setSelectedId(id);
+    setSelectedTaskId(id);
     setSearchParams(id ? { taskId: id } : {}, { replace: true });
-    setElapsed(0);
-    setRunning(false);
+    reset();
   }
 
   return (
@@ -153,15 +138,15 @@ export function PodometerPage() {
       {/* Controls */}
       <div className="mt-8 flex flex-nowrap items-center justify-center gap-1.5 sm:gap-3">
         {!running ? (
-          <Button onClick={() => setRunning(true)} disabled={!selectedTask} className="h-9 gap-1 px-3 text-xs sm:h-11 sm:gap-2 sm:px-8 sm:text-sm">
+          <Button onClick={() => start()} disabled={!selectedTask} className="h-9 gap-1 px-3 text-xs sm:h-11 sm:gap-2 sm:px-8 sm:text-sm">
             <Play size={14} className="sm:h-4 sm:w-4" /> Start
           </Button>
         ) : (
-          <Button variant="outline" onClick={() => setRunning(false)} className="h-9 gap-1 px-3 text-xs sm:h-11 sm:gap-2 sm:px-8 sm:text-sm">
+          <Button variant="outline" onClick={() => pause()} className="h-9 gap-1 px-3 text-xs sm:h-11 sm:gap-2 sm:px-8 sm:text-sm">
             <Pause size={14} className="sm:h-4 sm:w-4" /> Pause
           </Button>
         )}
-        <Button variant="ghost" onClick={() => { setElapsed(0); setRunning(false); }} disabled={elapsed === 0 && !running} className="h-9 gap-1 px-3 text-xs sm:h-11 sm:gap-2 sm:px-6 sm:text-sm">
+        <Button variant="ghost" onClick={() => reset()} disabled={elapsed === 0 && !running} className="h-9 gap-1 px-3 text-xs sm:h-11 sm:gap-2 sm:px-6 sm:text-sm">
           <RotateCcw size={14} className="sm:h-4 sm:w-4" /> Reset
         </Button>
         <Button
