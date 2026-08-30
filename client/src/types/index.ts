@@ -52,10 +52,6 @@ export interface CollegeDetails {
   branch?: string;
   year?: string;
   cgpa?: string;
-  cgpaYear1?: string;
-  cgpaYear2?: string;
-  cgpaYear3?: string;
-  cgpaYear4?: string;
   gradYear?: string;
 }
 export interface AcademicDetails {

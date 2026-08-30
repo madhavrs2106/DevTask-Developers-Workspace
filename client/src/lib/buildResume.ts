@@ -65,21 +65,11 @@ export function buildResumeData(
   if (academic.college) {
     const c = academic.college;
     const duration = [c.year, c.gradYear].filter(Boolean).join(" - ") || undefined;
-    const cgpaParts: string[] = [];
-    if (c.cgpaYear1) cgpaParts.push(`1st Year: ${c.cgpaYear1}`);
-    if (c.cgpaYear2) cgpaParts.push(`2nd Year: ${c.cgpaYear2}`);
-    if (c.cgpaYear3) cgpaParts.push(`3rd Year: ${c.cgpaYear3}`);
-    if (c.cgpaYear4) cgpaParts.push(`4th Year: ${c.cgpaYear4}`);
-    const cgpa = cgpaParts.length
-      ? cgpaParts.join(" | ")
-      : c.cgpa
-        ? `CGPA: ${c.cgpa}`
-        : undefined;
     education.push({
       degree: [c.degree, c.branch].filter(Boolean).join(", ") || "Degree",
       institution: c.name || "Institution",
       duration,
-      cgpa,
+      cgpa: c.cgpa ? `CGPA: ${c.cgpa}` : undefined,
     });
   }
   if (academic.twelfth) {
