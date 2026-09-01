@@ -1,6 +1,8 @@
 {
   "functions": {
-    "api": "./server/src/index.js"
+    "api": {
+      "node": "./server/src/index.js"
+    }
   },
   "routes": [
     {
